@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Smartping Campaign Dashboard</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0a0a;--surface:#111;--surface2:#161616;--border:#222;--border2:#2a2a2a;
+    --text:#e0e0e0;--muted:#555;--muted2:#888;
+    --lime:#C5FF00;--lime-dim:#a3d400;
+    --red:#ff4d4d;--green:#4dff91;--amber:#ffb84d;
+    --font:
+    'Courier New',monospace;
+  }
+  body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:60px}
+
+  /* HEADER */
+  .header{display:flex;align-items:center;gap:16px;padding:18px 32px;border-bottom:1px solid var(--border);background:#0d0d0d}
+  .logo{font-size:20px;font-weight:900;letter-spacing:4px;color:#fff}.logo span{color:var(--lime)}
+  .sub{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;flex:1}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px;transition:background .3s}
+  .status-dot.live{background:var(--green);box-shadow:0 0 6px var(--green)}
+  .header-status{font-size:11px;color:var(--muted2);display:flex;align-items:center}
+
+  /* MAIN GRID */
+  .main{display:grid;grid-template-columns:1fr 340px;gap:1px;background:var(--border);min-height:calc(100vh - 57px)}
+  .left{background:var(--bg);padding:28px 32px;display:flex;flex-direction:column;gap:28px}
+  .right{background:var(--bg);padding:28px 24px;display:flex;flex-direction:column;gap:24px}
+
+  /* SECTION LABEL */
+  .sec-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+
+  /* SYNC BAR */
+  .sync-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .btn{background:var(--lime);color:#000;border:none;padding:9px 20px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;transition:opacity .15s}
+  .btn:hover{opacity:.85}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn-ghost{background:transparent;color:var(--muted2);border:1px solid var(--border2);padding:9px 18px;cursor:pointer;font-family:var(--font);font-size:11px;letter-spacing:1px;border-radius:3px;transition:all .15s}
+  .btn-ghost:hover{border-color:var(--lime);color:var(--lime)}
+  .sync-meta{font-size:11px;color:var(--muted);margin-left:auto}
+
+  /* TABLE */
+  .table-wrap{border:1px solid var(--border);border-radius:4px;overflow:auto;max-height:360px}
+  .table{width:100%;border-collapse:collapse;font-size:11px}
+  .table th{padding:9px 14px;background:#111;color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;position:sticky;top:0;white-space:nowrap}
+  .table td{padding:9px 14px;border-bottom:1px solid #141414;color:var(--text);vertical-align:middle}
+  .table tr:last-child td{border-bottom:none}
+  .table tr:hover td{background:#111}
+  .badge{display:inline-block;font-size:9px;padding:2px 7px;border-radius:2px;border:1px solid var(--border2);color:var(--muted2);letter-spacing:.5px;white-space:nowrap}
+  .badge.mql{border-color:#4dff9144;color:var(--green)}
+  .badge.match{border-color:var(--lime);color:var(--lime)}
+  .empty-state{padding:48px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:1px}
+
+  /* CAMPAIGN CARD */
+  .campaign-card{border:1px solid var(--border2);border-radius:4px;overflow:hidden}
+  .campaign-header{background:var(--surface);padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+  .campaign-name{font-size:13px;font-weight:700;letter-spacing:1px;color:#fff}
+  .campaign-badge{font-size:9px;padding:2px 8px;border-radius:2px;background:#1a2200;color:var(--lime);border:1px solid #3a5500;letter-spacing:1px}
+  .campaign-body{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .rule-row{display:flex;align-items:center;gap:8px;font-size:11px}
+  .rule-key{color:var(--muted2);min-width:100px}
+  .rule-val{color:var(--text);font-size:11px}
+  .rule-op{font-size:9px;padding:1px 5px;border:1px solid var(--border2);color:var(--muted);border-radius:2px}
+  .campaign-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)}
+  .match-count{font-size:11px;color:var(--muted2)}
+  .match-count span{color:var(--lime);font-size:13px;font-weight:700}
+  .fire-btn{background:var(--lime);color:#000;border:none;padding:7px 16px;cursor:pointer;font-family:var(--font);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;transition:opacity .15s}
+  .fire-btn:hover{opacity:.85}
+  .fire-btn:disabled{opacity:.4;cursor:not-allowed}
+  .fire-result{font-size:10px;color:var(--lime);margin-top:6px;letter-spacing:.5px}
+
+  /* LOGS */
+  .log-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .log-stat{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px 12px;text-align:center}
+  .log-stat-val{font-size:22px;font-weight:700;font-family:var(--font)}
+  .log-stat-label{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+  .log-feed{border:1px solid var(--border);border-radius:4px;overflow:hidden;max-height:340px;overflow-y:auto}
+  .log-row{padding:8px 12px;border-bottom:1px solid #141414;font-size:10px;display:grid;grid-template-columns:60px 1fr 50px;gap:8px;align-items:center}
+  .log-row:last-child{border-bottom:none}
+  .log-time{color:var(--muted);font-size:9px}
+  .log-msg{color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .log-status{text-align:right;font-size:9px;font-weight:700;letter-spacing:.5px}
+  .log-status.success{color:var(--green)}
+  .log-status.error{color:var(--red)}
+  .log-status.skipped{color:var(--muted)}
+  .log-empty{padding:24px;text-align:center;color:var(--muted);font-size:11px}
+  .log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .log-header .sec-label{margin-bottom:0}
+  .log-clear{font-size:10px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:var(--font);letter-spacing:.5px}
+  .log-clear:hover{color:var(--red)}
+
+  /* SPINNER */
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--lime);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+
+  @media(max-width:900px){
+    .main{grid-template-columns:1fr}
+    .left,.right{padding:20px 16px}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">TERRATERN<span>.</span></div>
+  <div class="sub">Smartping Campaign Dashboard</div>
+  <div class="header-status"><span class="status-dot" id="dot"></span><span id="conn-label">Idle</span></div>
+</div>
+
+<div class="main">
+  <!-- LEFT: Metabase data + campaigns -->
+  <div class="left">
+
+    <!-- Sync section -->
+    <div>
+      <div class="sec-label">Metabase Data</div>
+      <div class="sync-bar">
+        <button class="btn" id="sync-btn" onclick="syncMetabase()">&#8635; Sync from Metabase</button>
+        <span class="sync-meta" id="sync-meta">Not synced yet</span>
+      </div>
+    </div>
+
+    <!-- Data table -->
+    <div>
+      <div class="sec-label" id="table-label">Leads <span id="lead-count" style="color:var(--lime)"></span></div>
+      <div class="table-wrap" id="table-wrap">
+        <div class="empty-state">Click "Sync from Metabase" to load leads</div>
+      </div>
+    </div>
+
+    <!-- Campaign cards -->
+    <div>
+      <div class="sec-label">API Campaigns</div>
+      <div id="campaigns-wrap">
+        <div class="campaign-card">
+          <div class="campaign-header">
+            <div>
+              <div class="campaign-name">ghcalum_api</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.5px">Germany Healthcare Alumni Webinar</div>
+            </div>
+            <div class="campaign-badge">LIVE</div>
+          </div>
+          <div class="campaign-body">
+            <div class="rule-row">
+              <span class="rule-key">application</span>
+              <span class="rule-op">contains</span>
+              <span class="rule-val">Germany</span>
+            </div>
+            <div class="rule-row">
+              <span class="rule-key">template</span>
+              <span class="rule-op">=</span>
+              <span class="rule-val">ghcalum</span>
+            </div>
+          </div>
+          <div class="campaign-footer">
+            <div>
+              <div class="match-count">Matched leads: <span id="match-ghcalum">—</span></div>
+              <div class="fire-result" id="fire-result-ghcalum"></div>
+            </div>
+            <button class="fire-btn" id="fire-ghcalum" onclick="fireCampaign('ghcalum_api','ghcalum')" disabled>
+              &#9654; Fire Campaign
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Logs -->
+  <div class="right">
+    <div>
+      <div class="log-header">
+        <div class="sec-label">Activity Log</div>
+        <button class="log-clear" onclick="clearLogs()">Clear</button>
+      </div>
+      <div class="log-stats">
+        <div class="log-stat"><div class="log-stat-val" id="stat-total" style="color:var(--text)">0</div><div class="log-stat-label">Total</div></div>
+        <div class="log-stat"><div class="log-stat-val" id="stat-success" style="color:var(--green)">0</div><div class="log-stat-label">Sent</div></div>
+        <div class="log-stat"><div class="log-stat-val" id="stat-error" style="color:var(--red)">0</div><div class="log-stat-label">Failed</div></div>
+      </div>
+      <div class="log-feed" id="log-feed">
+        <div class="log-empty">No activity yet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const APIKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
+const SMARTPING_URL = "https://backend.api-wa.co/campaign/smartping/api/v2";
+const METABASE_URL  = "https://metabase.terratern.com/api/public/card/7e84f141-e90d-4852-a158-4d6a75bf4833/query/json";
+
+let leads = [];
+let logs  = [];
+
+// ── METABASE SYNC ──────────────────────────────────────────────
+async function syncMetabase() {
+  const btn = document.getElementById('sync-btn');
+  const meta = document.getElementById('sync-meta');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Syncing...';
+  setDot('loading');
+
+  try {
+    const res  = await fetch(METABASE_URL);
+    const data = await res.json();
+
+    if (!Array.isArray(data)) throw new Error("Unexpected response from Metabase");
+
+    leads = data;
+    const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    meta.textContent = `${leads.length} leads — last synced ${now}`;
+    document.getElementById('lead-count').textContent = `(${leads.length})`;
+
+    renderTable(leads);
+    updateMatchCounts();
+    setDot('live');
+    addLog('system','Synced '+leads.length+' leads from Metabase','success');
+
+  } catch(e) {
+    meta.textContent = 'Sync failed: ' + e.message;
+    setDot('error');
+    addLog('system','Metabase sync failed: '+e.message,'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '&#8635; Sync from Metabase';
+}
+
+// ── TABLE RENDER ───────────────────────────────────────────────
+function renderTable(data) {
+  const wrap = document.getElementById('table-wrap');
+  if (!data.length) { wrap.innerHTML = '<div class="empty-state">No leads found</div>'; return; }
+
+  const cols = ['fullname','mobile','email','current_lead_status','application','mql_status'];
+  const labels = ['Name','Mobile','Email','Status','Application','MQL'];
+
+  let html = '<table class="table"><thead><tr>';
+  labels.forEach(l => html += `<th>${l}</th>`);
+  html += '<th>Match</th></tr></thead><tbody>';
+
+  data.forEach(row => {
+    const matched = matchesGermany(row);
+    html += '<tr>';
+    cols.forEach(c => {
+      let val = row[c] || '—';
+      if (c === 'mql_status') val = `<span class="badge mql">${val}</span>`;
+      if (c === 'application' && val !== '—') val = `<span style="font-size:10px;color:var(--muted2)">${String(val).slice(0,28)}${String(val).length>28?'…':''}</span>`;
+      html += `<td>${val}</td>`;
+    });
+    html += `<td>${matched ? '<span class="badge match">MATCH</span>' : '<span class="badge">—</span>'}</td>`;
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+// ── FILTER LOGIC ───────────────────────────────────────────────
+function matchesGermany(row) {
+  const app = String(row.application || '').toLowerCase();
+  return app.includes('germany');
+}
+
+function updateMatchCounts() {
+  const matched = leads.filter(matchesGermany);
+  document.getElementById('match-ghcalum').textContent = matched.length;
+  const fireBtn = document.getElementById('fire-ghcalum');
+  fireBtn.disabled = matched.length === 0;
+}
+
+// ── FIRE CAMPAIGN ──────────────────────────────────────────────
+async function fireCampaign(campaignName, templateName) {
+  const btn = document.getElementById(`fire-${templateName}`);
+  const result = document.getElementById(`fire-result-${templateName}`);
+  const matched = leads.filter(matchesGermany);
+
+  if (!matched.length) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Firing...';
+  result.textContent = '';
+
+  let success = 0, failed = 0;
+
+  for (const lead of matched) {
+    const phone = String(lead.mobile || '').replace(/^\+/,'').replace(/\D/g,'');
+    const name  = lead.fullname || 'User';
+    if (!phone) { failed++; continue; }
+
+    const payload = {
+      apiKey:       APIKEY,
+      campaignName: campaignName,
+      destination:  phone,
+      userName:     name,
+      templateParams: ["1 hour","15 May","6PM IST","meet.google.com/ocz-xymg-dgf","storiesbyachu","0987654"],
+      source:       "smartping-dashboard",
+      media:        {},
+      buttons:      [],
+      carouselCards:[],
+      location:     {},
+      attributes:   {},
+      paramsFallbackValue: { FirstName: "user" },
+    };
+
+    try {
+      const res  = await fetch(SMARTPING_URL, {
+        method:  'POST',
+        headers: {'Content-Type':'application/json'},
+        body:    JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        success++;
+        addLog(campaignName, `Sent to ${name} (${phone})`, 'success');
+      } else {
+        failed++;
+        addLog(campaignName, `Failed ${phone}: ${JSON.stringify(data).slice(0,60)}`, 'error');
+      }
+    } catch(e) {
+      failed++;
+      addLog(campaignName, `Error ${phone}: ${e.message}`, 'error');
+    }
+  }
+
+  result.textContent = `Done — ${success} sent, ${failed} failed`;
+  btn.disabled = false;
+  btn.innerHTML = '&#9654; Fire Campaign';
+}
+
+// ── LOGS ───────────────────────────────────────────────────────
+function addLog(campaign, msg, status) {
+  const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  logs.unshift({ time: now, campaign, msg, status });
+  if (logs.length > 200) logs = logs.slice(0, 200);
+  renderLogs();
+}
+
+function renderLogs() {
+  const feed = document.getElementById('log-feed');
+  if (!logs.length) { feed.innerHTML = '<div class="log-empty">No activity yet</div>'; return; }
+
+  const total   = logs.length;
+  const success = logs.filter(l => l.status === 'success').length;
+  const error   = logs.filter(l => l.status === 'error').length;
+
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-success').textContent = success;
+  document.getElementById('stat-error').textContent   = error;
+
+  feed.innerHTML = logs.map(l => `
+    <div class="log-row">
+      <span class="log-time">${l.time}</span>
+      <span class="log-msg" title="${l.msg}">[${l.campaign}] ${l.msg}</span>
+      <span class="log-status ${l.status}">${l.status.toUpperCase()}</span>
+    </div>
+  `).join('');
+}
+
+function clearLogs() {
+  logs = [];
+  document.getElementById('stat-total').textContent   = 0;
+  document.getElementById('stat-success').textContent = 0;
+  document.getElementById('stat-error').textContent   = 0;
+  renderLogs();
+}
+
+function setDot(state) {
+  const dot   = document.getElementById('dot');
+  const label = document.getElementById('conn-label');
+  dot.className = 'status-dot';
+  if (state === 'live')    { dot.classList.add('live'); label.textContent = 'Live'; label.style.color = 'var(--green)'; }
+  else if (state === 'loading') { label.textContent = 'Syncing...'; label.style.color = 'var(--amber)'; }
+  else if (state === 'error')   { label.textContent = 'Error'; label.style.color = 'var(--red)'; }
+  else                          { label.textContent = 'Idle'; label.style.color = 'var(--muted2)'; }
+}
+</script>
+</body>
+</html>
