@@ -3,7 +3,7 @@ export default async function handler(req, res) {
 
   const payload = {
     apiKey:         SMARTPING_API_KEY,
-    campaignName:   "ghcalum",
+    campaignName:   "ghcalum_api",
     destination:    "917094956963",
     userName:       "Aswin",
     templateParams: [
@@ -14,14 +14,18 @@ export default async function handler(req, res) {
       "storiesbyachu",
       "0987654"
     ],
-    source:        "test-script",
-    media:         {},
-    buttons:       [],
-    carouselCards: [],
-    location:      {},
+    source:         "test-script",
+    media:          {},
+    buttons:        [],
+    carouselCards:  [],
+    location:       {},
+    attributes:     {},
+    paramsFallbackValue: {
+      FirstName: "user"
+    },
   };
 
-  const response = await fetch("https://backend.aisensy.com/campaign/t1/api/v2", {
+  const response = await fetch("https://backend.api-wa.co/campaign/smartping/api/v2", {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify(payload),
