@@ -377,26 +377,19 @@ function setDot(state) {
   else                          { label.textContent = 'Idle'; label.style.color = 'var(--muted2)'; }
 }
 </script>
- <div style="padding:20px 32px;border-top:1px solid #222;margin-top:20px">
-  <button onclick="testCron()" style="background:#C5FF00;color:#000;border:none;padding:10px 20px;cursor:pointer;font-family:monospace;font-weight:700;border-radius:3px;font-size:12px;letter-spacing:1px">
-    &#9654; Test Cron Now
+<div style="position:fixed;bottom:20px;right:20px;z-index:999">
+  <button onclick="runCron()" style="background:#C5FF00;color:#000;border:none;padding:12px 20px;cursor:pointer;font-family:monospace;font-weight:700;border-radius:3px;font-size:12px">
+    &#9654; Run Cron
   </button>
-  <pre id="cron-result" style="font-family:monospace;font-size:11px;margin-top:10px;color:#888;white-space:pre-wrap"></pre>
+  <pre id="cr" style="background:#111;color:#C5FF00;padding:12px;font-size:10px;margin-top:8px;max-width:300px;border-radius:3px;display:none"></pre>
 </div>
-
 <script>
-async function testCron() {
-  document.getElementById('cron-result').textContent = 'Running...';
-  try {
-    const res  = await fetch('/api/cron', {
-      method:  'POST',
-      headers: { 'Authorization': 'Bearer terratern_smartping_2026' }
-    });
-    const data = await res.json();
-    document.getElementById('cron-result').textContent = JSON.stringify(data, null, 2);
-  } catch(e) {
-    document.getElementById('cron-result').textContent = 'Error: ' + e.message;
-  }
+async function runCron(){
+  document.getElementById('cr').style.display='block';
+  document.getElementById('cr').textContent='Running...';
+  const r=await fetch('/api/cron',{method:'POST',headers:{'Authorization':'Bearer terratern_smartping_2026'}});
+  const d=await r.json();
+  document.getElementById('cr').textContent=JSON.stringify(d,null,2);
 }
 </script>
 </body>
