@@ -390,7 +390,7 @@ async function testCron() {
   try {
     const res  = await fetch('/api/cron', {
       method:  'POST',
-      headers: { 'Authorization': 'Bearer YOUR_WEBHOOK_SECRET_HERE' }
+      headers: { 'Authorization': 'terratern_smartping_2026' }
     });
     const data = await res.json();
     document.getElementById('cron-result').textContent = JSON.stringify(data, null, 2);
