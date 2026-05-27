@@ -272,6 +272,21 @@ function renderFilterList() {
   const list = document.getElementById('filter-list');
   if (!filters.length) { list.innerHTML=''; return; }
 
+  // Before rendering, ensure each filter's val is valid for its current field
+  if (fetchedOnce) {
+    filters.forEach(f => {
+      const vals = fieldValCache[f.field] || [];
+      const curOp = OPERATORS.find(o => o.value===f.op);
+      const needVal = curOp ? curOp.needsVal : true;
+      if (needVal && vals.length) {
+        // if current val not in this field's values, reset to first
+        if (!vals.includes(f.val)) {
+          f.val = vals[0];
+        }
+      }
+    });
+  }
+
   list.innerHTML = filters.map((f,i) => {
     // field dropdown
     const fieldOpts = FIELDS.map(ff =>
@@ -286,7 +301,7 @@ function renderFilterList() {
     const curOp   = OPERATORS.find(o => o.value===f.op);
     const needVal = curOp ? curOp.needsVal : true;
 
-    // value dropdown — populated from cache
+    // value dropdown — populated from cache for THIS filter's field only
     let valEl = '';
     if (!needVal) {
       valEl = `<select disabled><option>—</option></select>`;
@@ -330,16 +345,18 @@ function renderFilterList() {
 
 function updateFilter(i, key, val) {
   filters[i][key] = val;
-  // when field changes, reset val and repopulate dropdown from cache
   if (key === 'field') {
+    // reset val to first value of the newly selected field
     const vals = fieldValCache[val] || [];
     filters[i].val = vals.length ? vals[0] : '';
     renderFilterList();
-  }
-  if (key === 'op') {
-    filters[i].val = '';
+  } else if (key === 'op') {
+    // reset val when operator changes
+    const vals = fieldValCache[filters[i].field] || [];
+    filters[i].val = vals.length ? vals[0] : '';
     renderFilterList();
   }
+  // for 'val' changes, just update in-place — no re-render needed
 }
 
 function setFilterLogic(i, val) {
