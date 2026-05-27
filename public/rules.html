@@ -20,7 +20,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .nav-link{font-size:11px;color:var(--muted2);text-decoration:none;border:1px solid var(--border2);padding:6px 14px;border-radius:3px;letter-spacing:1px;transition:all .15s}
 .nav-link:hover{border-color:var(--lime);color:var(--lime)}
 
-.layout{display:grid;grid-template-columns:500px 1fr;gap:1px;background:var(--border);min-height:calc(100vh - 57px)}
+.layout{display:grid;grid-template-columns:520px 1fr;gap:1px;background:var(--border);min-height:calc(100vh - 57px)}
 .left{background:var(--bg);padding:28px 32px}
 .right{background:var(--bg);padding:28px 32px}
 
@@ -33,36 +33,48 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .form-select{width:100%;background:#111;border:1px solid var(--border2);color:var(--text);padding:9px 12px;font-family:var(--font);font-size:12px;border-radius:3px;outline:none;appearance:none;cursor:pointer;transition:border-color .15s}
 .form-select:focus{border-color:var(--lime)}
 
+/* FETCH VALUES PANEL */
+.fetch-panel{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:12px 14px;margin-bottom:14px}
+.fetch-panel-header{display:flex;align-items:center;gap:10px;margin-bottom:0}
+.fetch-panel-header .sec-label{margin-bottom:0;flex:1}
+.fetch-all-btn{background:transparent;border:1px solid var(--border2);color:var(--muted2);padding:7px 14px;cursor:pointer;font-family:var(--font);font-size:11px;letter-spacing:1px;border-radius:3px;transition:all .15s;white-space:nowrap}
+.fetch-all-btn:hover{border-color:var(--lime);color:var(--lime)}
+.fetch-all-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.values-map{margin-top:12px;display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto}
+.vm-row{display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:start;font-size:10px}
+.vm-field{color:var(--muted2);padding-top:2px;letter-spacing:.3px}
+.vm-vals{display:flex;flex-wrap:wrap;gap:4px}
+.vm-chip{background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:2px 7px;color:var(--text);font-size:9px;letter-spacing:.3px}
+.vm-chip.empty-val{color:var(--muted);font-style:italic;border-style:dashed}
+.vm-count{font-size:9px;color:var(--muted);padding-top:3px}
+
 /* FILTER ROWS */
-.filter-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.filter-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.filter-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 
 .filter-row{border:1px solid var(--border2);border-radius:4px;padding:10px 12px;background:var(--surface)}
-.filter-row-top{display:grid;grid-template-columns:60px 1fr 1fr;gap:6px;align-items:center;margin-bottom:8px}
-.filter-row-top.first-row{grid-template-columns:1fr 1fr}
-.filter-row-bottom{display:grid;grid-template-columns:1fr 90px 1fr 28px;gap:6px;align-items:center}
+.filter-top{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.filter-bottom{display:grid;grid-template-columns:1fr 28px;gap:6px;align-items:center}
 
-.filter-row select,.filter-row input{background:#0a0a0a;border:1px solid var(--border2);color:var(--text);padding:7px 10px;font-family:var(--font);font-size:11px;border-radius:3px;outline:none;width:100%;transition:border-color .15s}
-.filter-row select:focus,.filter-row input:focus{border-color:var(--lime)}
-.filter-row select:disabled{opacity:.4;cursor:not-allowed}
+.filter-row select{background:#0a0a0a;border:1px solid var(--border2);color:var(--text);padding:7px 10px;font-family:var(--font);font-size:11px;border-radius:3px;outline:none;width:100%;transition:border-color .15s;appearance:none}
+.filter-row select:focus{border-color:var(--lime)}
+.filter-row select:disabled{opacity:.35;cursor:not-allowed}
 
-.logic-toggle{display:flex;border:1px solid var(--border2);border-radius:3px;overflow:hidden;width:fit-content}
-.lt-btn{background:transparent;border:none;color:var(--muted2);padding:5px 12px;cursor:pointer;font-family:var(--font);font-size:10px;letter-spacing:1px;transition:all .15s}
+.logic-toggle{display:flex;border:1px solid var(--border2);border-radius:3px;overflow:hidden;flex-shrink:0}
+.lt-btn{background:transparent;border:none;color:var(--muted2);padding:5px 10px;cursor:pointer;font-family:var(--font);font-size:10px;letter-spacing:1px;transition:all .15s;width:36px;text-align:center}
 .lt-btn.active{background:var(--lime);color:#000;font-weight:700}
-
-.fetch-btn{background:transparent;border:1px solid var(--border2);color:var(--muted2);padding:6px 8px;cursor:pointer;font-family:var(--font);font-size:10px;letter-spacing:.5px;border-radius:3px;white-space:nowrap;transition:all .15s}
-.fetch-btn:hover{border-color:var(--lime);color:var(--lime)}
-.fetch-btn:disabled{opacity:.4;cursor:not-allowed}
+.lt-spacer{width:72px;flex-shrink:0}
 
 .remove-btn{background:transparent;border:1px solid var(--border2);color:var(--muted);width:28px;height:30px;cursor:pointer;font-size:14px;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:var(--font);flex-shrink:0}
 .remove-btn:hover{border-color:var(--red);color:var(--red)}
 
-.add-filter-btn{background:transparent;border:1px dashed var(--border2);color:var(--muted2);padding:8px 14px;cursor:pointer;font-family:var(--font);font-size:11px;letter-spacing:1px;border-radius:3px;width:100%;transition:all .15s;margin-bottom:16px}
+.add-filter-btn{background:transparent;border:1px dashed var(--border2);color:var(--muted2);padding:8px 14px;cursor:pointer;font-family:var(--font);font-size:11px;letter-spacing:1px;border-radius:3px;width:100%;transition:all .15s;margin-bottom:14px}
 .add-filter-btn:hover{border-color:var(--lime);color:var(--lime)}
 
 /* BUTTONS */
 .btn-primary{background:var(--lime);color:#000;border:none;padding:10px 24px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:3px;transition:opacity .15s}
 .btn-primary:hover{opacity:.85}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
 .btn-ghost{background:transparent;color:var(--muted2);border:1px solid var(--border2);padding:10px 18px;cursor:pointer;font-family:var(--font);font-size:11px;letter-spacing:1px;border-radius:3px;transition:all .15s}
 .btn-ghost:hover{border-color:var(--lime);color:var(--lime)}
 .btn-preview{background:transparent;color:var(--amber);border:1px solid #5a3a00;padding:10px 18px;cursor:pointer;font-family:var(--font);font-size:11px;letter-spacing:1px;border-radius:3px;transition:all .15s}
@@ -71,13 +83,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .btn-danger{background:transparent;color:var(--muted);border:1px solid var(--border2);padding:5px 10px;cursor:pointer;font-family:var(--font);font-size:10px;letter-spacing:.5px;border-radius:3px;transition:all .15s}
 .btn-danger:hover{border-color:var(--red);color:var(--red)}
 .btn-row{display:flex;gap:10px;align-items:center;margin-top:4px;flex-wrap:wrap}
-
 .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
 
-/* PREVIEW PANEL */
-.preview-box{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:14px 16px;margin-top:14px}
-.preview-count{font-size:22px;font-weight:700;color:var(--lime);font-family:var(--font)}
-.preview-label{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+/* PREVIEW */
+.preview-box{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:14px 16px;margin-top:12px}
+.preview-count{font-size:28px;font-weight:700;color:var(--lime);font-family:var(--font)}
+.preview-sublabel{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
 .preview-table-wrap{max-height:200px;overflow-y:auto;margin-top:10px}
 .preview-table{width:100%;border-collapse:collapse;font-size:10px}
 .preview-table th{padding:7px 10px;background:#0d0d0d;color:var(--muted);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;position:sticky;top:0}
@@ -91,7 +102,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .import-label{background:transparent;color:var(--muted2);border:1px solid var(--border2);padding:7px 14px;cursor:pointer;font-family:var(--font);font-size:11px;letter-spacing:1px;border-radius:3px;transition:all .15s;display:inline-block}
 .import-label:hover{border-color:var(--lime);color:var(--lime)}
 #import-input{display:none}
-
 .rule-card{border:1px solid var(--border2);border-radius:4px;overflow:hidden;margin-bottom:12px;transition:border-color .2s}
 .rule-card.active-rule{border-color:#3a5500}
 .rule-card-header{background:var(--surface);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
@@ -101,7 +111,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .status-badge.active{background:#1a2200;color:var(--lime);border-color:#3a5500}
 .status-badge.paused{background:#1a1a1a;color:var(--muted);border-color:var(--border2)}
 .rule-card-body{padding:12px 16px;display:flex;flex-direction:column;gap:4px}
-.rule-filter-pill{display:inline-flex;align-items:center;gap:6px;font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:3px 8px;color:var(--muted2)}
+.rule-filter-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:3px 8px;color:var(--muted2)}
 .rule-filter-pill .rfield{color:var(--text)}
 .rule-filter-pill .rop{color:var(--amber);font-size:9px}
 .rule-filter-pill .rval{color:var(--lime)}
@@ -128,8 +138,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 </div>
 
 <div class="layout">
-
-  <!-- LEFT: Rule builder -->
   <div class="left">
     <div class="sec-label" id="form-title">Create Rule</div>
 
@@ -145,11 +153,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       </select>
     </div>
 
-    <div class="form-label" style="margin-bottom:10px">Filters</div>
+    <!-- FETCH VALUES PANEL -->
+    <div class="fetch-panel">
+      <div class="fetch-panel-header">
+        <div class="sec-label">Field Values</div>
+        <button class="fetch-all-btn" id="fetch-all-btn" onclick="fetchAllValues()">&#8635; Fetch Values from Metabase</button>
+      </div>
+      <div id="values-map-area"></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-section-header">
+      <div class="form-label" style="margin-bottom:0">Filters</div>
+    </div>
     <div class="filter-list" id="filter-list"></div>
     <button class="add-filter-btn" onclick="addFilter()">+ Add Filter</button>
 
-    <!-- Preview -->
+    <!-- PREVIEW -->
     <div class="btn-row">
       <button class="btn-preview" id="preview-btn" onclick="previewLeads()">&#9681; Preview Leads</button>
     </div>
@@ -164,7 +184,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <div style="font-size:11px;margin-top:10px;letter-spacing:.5px" id="form-msg"></div>
   </div>
 
-  <!-- RIGHT: Saved rules -->
   <div class="right">
     <div class="rules-toolbar">
       <div class="sec-label">Saved Rules <span id="rule-count" style="color:var(--lime)"></span></div>
@@ -173,7 +192,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
     <div id="rules-list"></div>
   </div>
-
 </div>
 
 <script>
@@ -186,47 +204,91 @@ const FIELDS = [
 ];
 
 const OPERATORS = [
-  {value:'is',           label:'is',                 needsVal:true},
-  {value:'is_not',       label:'is not',             needsVal:true},
-  {value:'contains',     label:'contains',           needsVal:true},
-  {value:'not_contains', label:'does not contain',   needsVal:true},
-  {value:'has_value',    label:'has any value',      needsVal:false},
-  {value:'is_empty',     label:'is empty / null',    needsVal:false},
+  {value:'is',           label:'is',               needsVal:true},
+  {value:'is_not',       label:'is not',           needsVal:true},
+  {value:'contains',     label:'contains',         needsVal:true},
+  {value:'not_contains', label:'does not contain', needsVal:true},
+  {value:'has_value',    label:'has any value',    needsVal:false},
+  {value:'is_empty',     label:'is empty / null',  needsVal:false},
 ];
 
-let rules    = loadRules();
-let filters  = [];
-let editId   = null;
-let allLeads = [];
-// cache of fetched distinct values per field
-let fieldValCache = {};
+let rules          = loadRules();
+let filters        = [];
+let editId         = null;
+let leadsCache     = null;
+let fieldValCache  = {};  // field -> sorted array of distinct values (null represented as '')
 
-// ── INIT ─────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────
 window.onload = () => {
-  addFilter(null, true);
-  addFilter(null, false);
-  preloadExample();
+  addFilter(true);
+  addFilter(false);
   renderRules();
 };
 
-function preloadExample() {
-  if (rules.length > 0) return;
-  filters = [
-    {logic:'AND', field:'current_lead_status', op:'is',       val:'Not Interested', options:['Not Interested','MQL','Ineligible','Test Lead']},
-    {logic:'AND', field:'application',         op:'contains', val:'Germany',        options:['Immigration Germany','Healthcare Germany','Work Germany','Ausbildung Germany','Immigration Australia','Immigration Canada']},
-    {logic:'AND', field:'latest_utm_campaign', op:'has_value',val:'',               options:[]},
-  ];
-  document.getElementById('rule-name').value = 'Germany Not Interested Reactivated';
+// ── FETCH ALL VALUES ──────────────────────────────────────────
+async function fetchAllValues() {
+  const btn  = document.getElementById('fetch-all-btn');
+  const area = document.getElementById('values-map-area');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Fetching...';
+  area.innerHTML = '';
+
+  try {
+    const leads = await fetchLeads();
+
+    // build map: field -> sorted distinct values
+    fieldValCache = {};
+    FIELDS.forEach(field => {
+      const raw = leads.map(r => {
+        const v = r[field];
+        return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim();
+      });
+      const distinct = [...new Set(raw)];
+      // sort: non-null first alphabetically, then null
+      const nonNull = distinct.filter(v => v !== null).sort((a,b) => a.localeCompare(b, undefined, {sensitivity:'base', numeric:true}));
+      const hasNull = distinct.includes(null);
+      fieldValCache[field] = hasNull ? [...nonNull, null] : nonNull;
+    });
+
+    renderValuesMap();
+    // refresh all filter dropdowns with new values
+    renderFilterList();
+
+  } catch(e) {
+    area.innerHTML = `<div style="font-size:11px;color:var(--red);margin-top:10px">Error: ${e.message}</div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '&#8635; Fetch Values from Metabase';
+}
+
+function renderValuesMap() {
+  const area = document.getElementById('values-map-area');
+  if (!Object.keys(fieldValCache).length) { area.innerHTML=''; return; }
+
+  const rows = FIELDS.map(field => {
+    const vals = fieldValCache[field] || [];
+    if (!vals.length) return '';
+    const chips = vals.map(v =>
+      v === null
+        ? `<span class="vm-chip empty-val">(empty)</span>`
+        : `<span class="vm-chip">${escHtml(v)}</span>`
+    ).join('');
+    return `<div class="vm-row">
+      <div class="vm-field">${field}<div class="vm-count">${vals.length} values</div></div>
+      <div class="vm-vals">${chips}</div>
+    </div>`;
+  }).join('');
+
+  area.innerHTML = `<div class="values-map" style="margin-top:12px">${rows}</div>`;
+}
+
+// ── FILTER ROWS ───────────────────────────────────────────────
+function addFilter(isFirst=false) {
+  filters.push({logic:'AND', field:FIELDS[0], op:'is', val:''});
   renderFilterList();
 }
 
-// ── ADD FILTER ────────────────────────────────────────────────
-function addFilter(prefill=null, isFirst=false) {
-  filters.push(prefill || {logic:'AND', field: FIELDS[0], op:'is', val:'', options:[]});
-  renderFilterList();
-}
-
-// ── RENDER FILTERS ────────────────────────────────────────────
 function renderFilterList() {
   const list = document.getElementById('filter-list');
   if (!filters.length) { list.innerHTML=''; return; }
@@ -240,44 +302,44 @@ function renderFilterList() {
       `<option value="${o.value}" ${f.op===o.value?'selected':''}>${o.label}</option>`
     ).join('');
 
-    const curOp   = OPERATORS.find(o=>o.value===f.op);
+    const curOp   = OPERATORS.find(o => o.value===f.op);
     const needVal = curOp ? curOp.needsVal : true;
 
     // value dropdown
     let valEl = '';
     if (!needVal) {
-      valEl = `<select disabled style="opacity:.3"><option>—</option></select>`;
-    } else if (f.options && f.options.length > 0) {
-      const valOpts = f.options.map(v =>
-        `<option value="${escHtml(v)}" ${f.val===v?'selected':''}>${escHtml(v)}</option>`
-      ).join('');
-      valEl = `<select onchange="updateFilter(${i},'val',this.value)">${valOpts}</select>`;
+      valEl = `<select disabled style="grid-column:span 1"><option>—</option></select>`;
     } else {
-      valEl = `<select disabled><option value="">— fetch values first —</option></select>`;
+      const cached = fieldValCache[f.field];
+      if (cached && cached.length) {
+        const opts = cached.map(v => {
+          const display = v === null ? '(empty)' : escHtml(v);
+          const val     = v === null ? '' : escHtml(v);
+          const sel     = f.val === (v===null?'':v) ? 'selected' : '';
+          return `<option value="${val}" ${sel}>${display}</option>`;
+        }).join('');
+        valEl = `<select onchange="updateFilter(${i},'val',this.value)">${opts}</select>`;
+      } else {
+        valEl = `<select disabled><option>— fetch values first —</option></select>`;
+      }
     }
 
-    // logic toggle (hidden for first row)
-    const logicHtml = i === 0
-      ? `<div style="width:60px"></div>`
+    // logic toggle
+    const logicEl = i === 0
+      ? `<div class="lt-spacer"></div>`
       : `<div class="logic-toggle">
            <button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setFilterLogic(${i},'AND')">AND</button>
-           <button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setFilterLogic(${i},'OR')">OR</button>
+           <button class="lt-btn ${f.logic==='OR'?'active':''}"  onclick="setFilterLogic(${i},'OR')">OR</button>
          </div>`;
 
-    const cacheKey = f.field;
-    const btnLabel = fieldValCache[cacheKey]
-      ? `&#10003; ${fieldValCache[cacheKey].length}`
-      : 'Fetch';
-
-    return `<div class="filter-row" id="fr-${i}">
-      <div class="filter-row-top" style="display:grid;grid-template-columns:${i===0?'1fr 1fr':'60px 1fr 1fr'};gap:6px;align-items:center;margin-bottom:8px">
-        ${logicHtml}
-        <select onchange="updateFilter(${i},'field',this.value)">${fieldOpts}</select>
-        <select onchange="updateFilter(${i},'op',this.value)">${opOpts}</select>
+    return `<div class="filter-row">
+      <div class="filter-top">
+        ${logicEl}
+        <select style="flex:1" onchange="updateFilter(${i},'field',this.value)">${fieldOpts}</select>
+        <select style="flex:1" onchange="updateFilter(${i},'op',this.value)">${opOpts}</select>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 80px 28px;gap:6px;align-items:center">
+      <div class="filter-bottom">
         ${valEl}
-        <button class="fetch-btn" onclick="fetchFieldValues(${i})" ${!needVal?'disabled':''} id="fetchbtn-${i}">${btnLabel}</button>
         <button class="remove-btn" onclick="removeFilter(${i})">&#215;</button>
       </div>
     </div>`;
@@ -286,13 +348,8 @@ function renderFilterList() {
 
 function updateFilter(i, key, val) {
   filters[i][key] = val;
-  if (key === 'field') {
-    filters[i].options = fieldValCache[val] || [];
-    filters[i].val = '';
-  }
-  if (key === 'op') {
-    renderFilterList();
-  }
+  if (key === 'field') filters[i].val = '';
+  if (key === 'op')    { filters[i].val = ''; renderFilterList(); }
 }
 
 function setFilterLogic(i, val) {
@@ -305,45 +362,7 @@ function removeFilter(i) {
   renderFilterList();
 }
 
-// ── FETCH FIELD VALUES ────────────────────────────────────────
-async function fetchFieldValues(i) {
-  const f      = filters[i];
-  const field  = f.field;
-  const btn    = document.getElementById(`fetchbtn-${i}`);
-
-  // use cache if available
-  if (fieldValCache[field]) {
-    filters[i].options = fieldValCache[field];
-    if (!filters[i].val && fieldValCache[field].length)
-      filters[i].val = fieldValCache[field][0];
-    renderFilterList();
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>';
-
-  try {
-    const leads = await fetchLeads();
-    // get distinct non-null values
-    const vals = [...new Set(
-      leads
-        .map(r => r[field])
-        .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
-    )].sort();
-
-    fieldValCache[field] = vals;
-    filters[i].options   = vals;
-    if (!filters[i].val && vals.length) filters[i].val = vals[0];
-    renderFilterList();
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Error';
-  }
-}
-
-// ── FETCH LEADS (cached per session) ─────────────────────────
-let leadsCache = null;
+// ── FETCH LEADS ───────────────────────────────────────────────
 async function fetchLeads() {
   if (leadsCache) return leadsCache;
   const res  = await fetch(METABASE_PROXY);
@@ -367,7 +386,7 @@ async function previewLeads() {
 
     area.innerHTML = `<div class="preview-box">
       <div class="preview-count">${matched.length}</div>
-      <div class="preview-label">leads matched</div>
+      <div class="preview-sublabel">leads matched</div>
       ${matched.length > 0 ? `
       <div class="preview-table-wrap">
         <table class="preview-table">
@@ -375,11 +394,11 @@ async function previewLeads() {
             <th>Name</th><th>Mobile</th><th>Application</th><th>Status</th><th>latest_utm_campaign</th>
           </tr></thead>
           <tbody>${matched.slice(0,50).map(r => `<tr>
-            <td>${r.fullname||'—'}</td>
-            <td>${r.mobile||'—'}</td>
-            <td style="font-size:9px">${String(r.application||'—').slice(0,30)}</td>
-            <td>${r.current_lead_status||'—'}</td>
-            <td style="color:var(--lime)">${r.latest_utm_campaign||'<span style="color:var(--muted)">null</span>'}</td>
+            <td>${escHtml(r.fullname||'—')}</td>
+            <td>${escHtml(r.mobile||'—')}</td>
+            <td style="font-size:9px">${escHtml(String(r.application||'—').slice(0,30))}</td>
+            <td>${escHtml(r.current_lead_status||'—')}</td>
+            <td style="color:${r.latest_utm_campaign?'var(--lime)':'var(--muted)'}">${escHtml(r.latest_utm_campaign||'(null)')}</td>
           </tr>`).join('')}</tbody>
         </table>
         ${matched.length > 50 ? `<div style="font-size:10px;color:var(--muted);padding:6px 10px">Showing 50 of ${matched.length}</div>` : ''}
@@ -396,15 +415,11 @@ async function previewLeads() {
 // ── FILTER ENGINE ─────────────────────────────────────────────
 function applyFilters(leads, filterList) {
   if (!filterList.length) return leads;
-
   return leads.filter(lead => {
     let result = evalFilter(lead, filterList[0]);
-
     for (let i = 1; i < filterList.length; i++) {
-      const f    = filterList[i];
-      const test = evalFilter(lead, f);
-      if (f.logic === 'OR') result = result || test;
-      else                  result = result && test;
+      const test = evalFilter(lead, filterList[i]);
+      result = filterList[i].logic === 'OR' ? result || test : result && test;
     }
     return result;
   });
@@ -414,7 +429,6 @@ function evalFilter(lead, f) {
   const raw  = lead[f.field];
   const cell = String(raw ?? '').toLowerCase().trim();
   const val  = String(f.val ?? '').toLowerCase().trim();
-
   switch(f.op) {
     case 'is':           return cell === val;
     case 'is_not':       return cell !== val;
@@ -430,16 +444,23 @@ function evalFilter(lead, f) {
 function saveRule() {
   const name     = document.getElementById('rule-name').value.trim();
   const campaign = document.getElementById('rule-campaign').value;
-  const msg      = document.getElementById('form-msg');
 
   if (!name)           { showMsg('Rule name is required.','var(--red)'); return; }
   if (!filters.length) { showMsg('Add at least one filter.','var(--red)'); return; }
 
-  const valid = filters.filter(f => f.field && f.op &&
-    (OPERATORS.find(o=>o.value===f.op)?.needsVal === false || f.val.trim() !== ''));
-  if (!valid.length) { showMsg('Fill in filter values or fetch them first.','var(--red)'); return; }
+  const valid = filters.filter(f => {
+    const op = OPERATORS.find(o => o.value===f.op);
+    return op && (op.needsVal === false || f.val.trim() !== '');
+  });
+  if (!valid.length) { showMsg('Fill in filter values or use "has any value" / "is empty".','var(--red)'); return; }
 
-  const rule = { id: editId || Date.now().toString(36), name, campaign, filters: valid, active: true, created: new Date().toISOString() };
+  const rule = {
+    id:       editId || Date.now().toString(36),
+    name, campaign,
+    filters:  valid,
+    active:   true,
+    created:  new Date().toISOString()
+  };
 
   if (editId) {
     const idx = rules.findIndex(r => r.id === editId);
@@ -452,13 +473,12 @@ function saveRule() {
   renderRules();
   resetForm();
   showMsg('Rule saved.','var(--lime)');
-  setTimeout(() => document.getElementById('form-msg').textContent='', 2000);
+  setTimeout(() => { const el=document.getElementById('form-msg'); if(el) el.textContent=''; }, 2000);
 }
 
 function showMsg(txt, color) {
   const el = document.getElementById('form-msg');
-  el.textContent = txt;
-  el.style.color = color;
+  el.textContent = txt; el.style.color = color;
 }
 
 // ── EDIT / DELETE / TOGGLE ────────────────────────────────────
@@ -468,19 +488,18 @@ function editRule(id) {
   editId = id;
   document.getElementById('rule-name').value     = rule.name;
   document.getElementById('rule-campaign').value = rule.campaign;
-  filters = rule.filters.map(f => ({...f, options: fieldValCache[f.field] || (f.val ? [f.val] : [])}));
+  filters = rule.filters.map(f => ({...f}));
   renderFilterList();
-  document.getElementById('form-title').textContent = 'Edit Rule';
-  document.getElementById('form-msg').textContent   = '';
-  document.getElementById('preview-area').innerHTML = '';
+  document.getElementById('form-title').textContent  = 'Edit Rule';
+  document.getElementById('form-msg').textContent    = '';
+  document.getElementById('preview-area').innerHTML  = '';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function deleteRule(id) {
   if (!confirm('Delete this rule?')) return;
   rules = rules.filter(r => r.id !== id);
-  saveRulesStore();
-  renderRules();
+  saveRulesStore(); renderRules();
 }
 
 function toggleRule(id) {
@@ -492,27 +511,23 @@ function toggleRule(id) {
 function renderRules() {
   const list = document.getElementById('rules-list');
   document.getElementById('rule-count').textContent = rules.length ? `(${rules.length})` : '';
-
   if (!rules.length) {
     list.innerHTML = '<div class="empty-rules">No rules yet. Create one on the left.</div>';
     return;
   }
-
   list.innerHTML = rules.map(rule => {
     const pills = rule.filters.map((f,i) => {
       const opLabel = OPERATORS.find(o=>o.value===f.op)?.label || f.op;
-      const valPart = OPERATORS.find(o=>o.value===f.op)?.needsVal
-        ? `<span class="rval">${escHtml(f.val)}</span>` : '';
+      const needVal = OPERATORS.find(o=>o.value===f.op)?.needsVal;
+      const valPart = needVal ? `<span class="rval">${escHtml(f.val||'(empty)')}</span>` : '';
       const sep = i < rule.filters.length-1
         ? `<div class="rule-logic-sep">${rule.filters[i+1].logic}</div>` : '';
       return `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
         <div class="rule-filter-pill">
           <span class="rfield">${f.field}</span>
-          <span class="rop">${opLabel}</span>
-          ${valPart}
+          <span class="rop">${opLabel}</span>${valPart}
         </div>${sep}</div>`;
     }).join('');
-
     return `<div class="rule-card ${rule.active?'active-rule':''}">
       <div class="rule-card-header">
         <div>
@@ -537,15 +552,14 @@ function renderRules() {
 
 // ── RESET ─────────────────────────────────────────────────────
 function resetForm() {
-  editId  = null;
-  filters = [];
+  editId     = null;
   leadsCache = null;
+  filters    = [];
   document.getElementById('rule-name').value     = '';
   document.getElementById('rule-campaign').value = 'ghcalum_api';
-  document.getElementById('form-title').textContent = 'Create Rule';
-  document.getElementById('preview-area').innerHTML = '';
-  addFilter(null, true);
-  addFilter(null, false);
+  document.getElementById('form-title').textContent  = 'Create Rule';
+  document.getElementById('preview-area').innerHTML  = '';
+  addFilter(true); addFilter(false);
   renderFilterList();
 }
 
@@ -560,21 +574,17 @@ function exportRules() {
 }
 
 function importRules(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+  const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
     try {
       const imp = JSON.parse(ev.target.result);
       if (!Array.isArray(imp)) throw new Error('Invalid format');
-      rules = imp;
-      saveRulesStore();
-      renderRules();
+      rules = imp; saveRulesStore(); renderRules();
       alert(`Imported ${rules.length} rules.`);
     } catch(err) { alert('Import failed: ' + err.message); }
   };
-  reader.readAsText(file);
-  e.target.value = '';
+  reader.readAsText(file); e.target.value = '';
 }
 
 // ── STORAGE ───────────────────────────────────────────────────
@@ -587,7 +597,7 @@ function escHtml(s) {
 }
 function fmtDate(iso) {
   try { return new Date(iso).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
-  catch(e){ return '—'; }
+  catch(e) { return '—'; }
 }
 </script>
 </body>
