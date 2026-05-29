@@ -5,6 +5,22 @@ const SMARTPING_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5
 const SMARTPING_URL     = "https://backend.api-wa.co/campaign/smartping/api/v2";
 const METABASE_URL      = "https://metabase.terratern.com/api/public/card/7e84f141-e90d-4852-a158-4d6a75bf4833/query/json";
 
+// ── DYNAMIC PARAM MAPPINGS ────────────────────────────────────
+// For campaigns that need per-lead dynamic values
+// Return null to fall back to static params from Google Sheet
+const DYNAMIC_PARAMS = {
+  ghc_mkt02_api: (row, staticParams) => [
+    firstName(row.fullname),   // {{1}} first name
+    "+917094956963",           // {{2}} TerraTern call number
+    row.bde || "Shreya Pandey" // {{3}} assigned advisor
+  ],
+};
+
+function firstName(fullname) {
+  if (!fullname) return "there";
+  return String(fullname).trim().split(/\s+/)[0];
+}
+
 export default async function handler(req, res) {
   const isCron   = req.headers["x-vercel-cron"] === "1";
   const isManual = req.method === "POST" &&
@@ -13,7 +29,7 @@ export default async function handler(req, res) {
 
   await addLog({ campaign:"cron", status:"success", note:"Cron started" });
 
-  // 1. Fetch leads
+  // 1. Fetch leads from Metabase
   let leads = [];
   try {
     const mbRes = await fetch(METABASE_URL);
@@ -38,8 +54,8 @@ export default async function handler(req, res) {
   const results = { sent:0, skipped_dedup:0, skipped_no_match:0, failed:0 };
 
   for (const row of leads) {
-    const phone = normalizePhone(row.phone||row.Phone||row.mobile||row.Mobile||"");
-    const name  = row.fullname||row.name||row.Name||"User";
+    const phone = normalizePhone(row.mobile || "");
+    const name  = row.fullname || "User";
     if (!phone) { results.skipped_no_match++; continue; }
 
     // find first matching active rule
@@ -49,10 +65,10 @@ export default async function handler(req, res) {
     });
     if (!matchedRule) { results.skipped_no_match++; continue; }
 
-    // get campaign config from sheet
+    // get campaign config
     const campaign = campaignMap[matchedRule.campaign];
     if (!campaign) {
-      await addLog({ campaign:matchedRule.campaign, status:"error", note:"Campaign not found in sheet" });
+      await addLog({ campaign:matchedRule.campaign, status:"error", note:"Campaign not in sheet" });
       results.failed++; continue;
     }
 
@@ -64,20 +80,25 @@ export default async function handler(req, res) {
       continue;
     }
 
-    // build payload
+    // build template params — dynamic mapping takes priority over sheet static params
+    const dynamicFn = DYNAMIC_PARAMS[matchedRule.campaign];
+    const templateParams = dynamicFn
+      ? dynamicFn(row, campaign.template_params || [])
+      : (campaign.template_params || []);
+
     const payload = {
       apiKey:       SMARTPING_API_KEY,
       campaignName: matchedRule.campaign,
       destination:  phone,
       userName:     name,
-      templateParams: campaign.template_params || [],
-      source:       "cron-1pm",
-      media:        campaign.media_url ? { url: campaign.media_url, filename: "media" } : {},
+      templateParams,
+      source:       "cron-auto",
+      media:        campaign.media_url ? { url:campaign.media_url, filename:"media" } : {},
       buttons:      [],
       carouselCards:[],
       location:     {},
       attributes:   {},
-      paramsFallbackValue: { FirstName:"user" },
+      paramsFallbackValue: { FirstName: firstName(row.fullname) },
     };
 
     try {
