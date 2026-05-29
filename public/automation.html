@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Automation — TerraTern</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#00215C;--blue:#255CC1;--sky:#9acbfd;--yellow:#f1c819;
+  --bg:#f4f7fc;--surface:#fff;--border:#dde6f5;
+  --text:#00215C;--muted:#5a7ab5;--muted2:#8aa4cc;
+  --green:#1a9e5c;--red:#e03e3e;--amber:#b07d00;
+  --font:'Inter',system-ui,sans-serif;--radius:8px;--shadow:0 1px 4px rgba(0,33,92,.08);
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:80px}
+.header{background:var(--navy);padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,33,92,.15)}
+.logo{font-size:18px;font-weight:800;letter-spacing:2px;color:#fff}.logo span{color:var(--yellow)}
+.sub{font-size:11px;color:var(--sky);letter-spacing:1px;text-transform:uppercase;flex:1}
+.nav-link{font-size:12px;color:var(--sky);text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:6px 14px;border-radius:6px;transition:all .15s}
+.nav-link:hover{background:rgba(154,203,253,.15);border-color:var(--sky)}
+
+/* TABS */
+.tabs{background:var(--navy);padding:0 32px;display:flex;gap:4px;border-top:1px solid rgba(255,255,255,.1)}
+.tab{font-size:12px;font-weight:600;color:rgba(154,203,253,.6);padding:12px 18px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.5px}
+.tab:hover{color:var(--sky)}
+.tab.active{color:#fff;border-bottom-color:var(--yellow)}
+
+.wrap{max-width:1300px;margin:0 auto;padding:24px 32px}
+.tab-content{display:none}.tab-content.active{display:block}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 24px;margin-bottom:20px}
+.sec-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600}
+.layout2{display:grid;grid-template-columns:420px 1fr;gap:20px}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;display:block;font-weight:600;text-transform:uppercase}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--blue)}
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;outline:none;appearance:none;cursor:pointer}
+.form-select:focus{border-color:var(--blue)}
+.form-hint{font-size:11px;color:var(--muted2);margin-top:4px}
+
+/* PARAMS */
+.params-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.param-row{display:grid;grid-template-columns:1fr 28px;gap:6px;align-items:center}
+.param-row input{border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;width:100%}
+.param-row input:focus{border-color:var(--blue)}
+.remove-param{background:transparent;border:1.5px solid #fca5a5;color:var(--red);width:28px;height:30px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.add-param-btn{background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:7px 12px;cursor:pointer;font-family:var(--font);font-size:12px;border-radius:6px;width:100%;transition:all .15s}
+.add-param-btn:hover{border-color:var(--blue);color:var(--blue)}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+/* BUTTONS */
+.btn{background:var(--blue);color:#fff;border:none;padding:10px 24px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;border-radius:6px;transition:all .15s}
+.btn:hover{background:var(--navy)}
+.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:9px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
+.btn-ghost:hover{background:var(--blue);color:#fff}
+.btn-amber{background:transparent;color:var(--amber);border:1.5px solid var(--yellow);padding:9px 18px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:700;border-radius:6px;transition:all .15s}
+.btn-amber:hover{background:var(--yellow);color:var(--navy)}
+.btn-danger{background:transparent;color:var(--red);border:1.5px solid #fca5a5;padding:5px 12px;cursor:pointer;font-family:var(--font);font-size:11px;border-radius:6px;transition:all .15s}
+.btn-danger:hover{background:#fdecea}
+.btn-row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.status-msg{font-size:12px;font-weight:600;margin-top:8px}
+.status-msg.ok{color:var(--green)}.status-msg.err{color:var(--red)}
+
+/* FETCH BAR */
+.fetch-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0f7ff;border:1.5px solid var(--sky);border-radius:var(--radius);margin-bottom:16px}
+.fetch-status{font-size:11px;color:var(--muted);flex:1;font-weight:500}
+.fetch-status.ok{color:var(--green)}.fetch-status.err{color:var(--red)}
+.fetch-btn{background:var(--blue);color:#fff;border:none;padding:7px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;white-space:nowrap}
+.fetch-btn:hover{background:var(--navy)}
+.fetch-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* FILTER ROWS */
+.filter-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.filter-row{border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;background:#fafcff}
+.filter-top{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.filter-bottom{display:grid;grid-template-columns:1fr 30px;gap:6px;align-items:center}
+.filter-row select{border:1.5px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-family:var(--font);font-size:12px;outline:none;width:100%;background:#fff;appearance:none}
+.filter-row select:focus{border-color:var(--blue)}
+.filter-row select:disabled{opacity:.4;cursor:not-allowed;background:#f5f5f5}
+.logic-toggle{display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0}
+.lt-btn{background:#fff;border:none;color:var(--muted);padding:5px 10px;cursor:pointer;font-family:var(--font);font-size:10px;font-weight:700;width:36px;text-align:center;transition:all .15s}
+.lt-btn.active{background:var(--blue);color:#fff}
+.lt-spacer{width:72px;flex-shrink:0}
+.remove-btn{background:transparent;border:1.5px solid #fca5a5;color:var(--red);width:30px;height:32px;cursor:pointer;font-size:14px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.remove-btn:hover{background:#fdecea}
+.add-filter-btn{background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:8px 14px;cursor:pointer;font-family:var(--font);font-size:12px;border-radius:6px;width:100%;transition:all .15s;margin-bottom:14px}
+.add-filter-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* PREVIEW */
+.preview-box{background:#f0f7ff;border:1.5px solid var(--sky);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
+.preview-count{font-size:32px;font-weight:800;color:var(--blue)}
+.preview-sublabel{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.preview-table-wrap{max-height:180px;overflow-y:auto;border-radius:6px;border:1px solid var(--border);overflow:hidden}
+.preview-table{width:100%;border-collapse:collapse;font-size:11px}
+.preview-table th{padding:7px 10px;background:#e8f0ff;color:var(--navy);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;font-weight:700}
+.preview-table td{padding:7px 10px;border-bottom:1px solid #f0f4fb;color:var(--muted)}
+.preview-table tr:hover td{background:#f8faff}
+
+/* CAMPAIGN CARDS */
+.campaign-card{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+.campaign-card.active-c{border-color:var(--blue)}
+.cc-header{background:linear-gradient(135deg,var(--navy),var(--blue));padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.cc-name{font-size:14px;font-weight:700;color:#fff}
+.cc-badge{font-size:9px;padding:2px 8px;border-radius:20px;cursor:pointer;border:1px solid transparent;font-weight:700;letter-spacing:1px}
+.cc-badge.active{background:rgba(241,200,25,.2);color:var(--yellow);border-color:rgba(241,200,25,.4)}
+.cc-badge.paused{background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.2)}
+.cc-body{padding:12px 16px;background:#fafcff;font-size:12px}
+.cc-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:#fff}
+
+/* RULE CARDS */
+.rule-card{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+.rule-card.active-rule{border-color:var(--blue)}
+.rule-card-header{background:linear-gradient(135deg,var(--navy),var(--blue));padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.rule-card-name{font-size:13px;font-weight:700;color:#fff}
+.rule-card-campaign{font-size:10px;color:var(--sky);margin-top:2px}
+.status-badge{font-size:9px;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid transparent;font-weight:700;letter-spacing:1px}
+.status-badge.active{background:rgba(241,200,25,.2);color:var(--yellow);border-color:rgba(241,200,25,.4)}
+.status-badge.paused{background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.2)}
+.rule-card-body{padding:12px 16px;display:flex;flex-direction:column;gap:4px;background:#fafcff}
+.rule-filter-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;background:#e8f0ff;border:1px solid var(--border);border-radius:20px;padding:3px 10px;color:var(--muted)}
+.rule-filter-pill .rfield{color:var(--navy);font-weight:600}
+.rule-filter-pill .rop{color:var(--blue);font-size:10px}
+.rule-filter-pill .rval{color:var(--blue);font-weight:600}
+.rule-logic-sep{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:2px 0 2px 6px;font-weight:600}
+.rule-card-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fff}
+.rule-actions{display:flex;gap:8px}
+
+/* CRON */
+.cron-card{background:linear-gradient(135deg,#e8f0ff,#f0f8ff);border:1.5px solid var(--sky);border-radius:var(--radius);padding:20px 24px}
+.cron-schedule{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.cron-time{font-size:28px;font-weight:800;color:var(--navy)}
+.cron-result{background:var(--navy);color:#9acbfd;border-radius:6px;padding:12px 14px;font-size:11px;margin-top:14px;white-space:pre-wrap;font-family:monospace;display:none;line-height:1.6}
+
+/* LOG */
+.log-row{padding:9px 12px;border-bottom:1px solid #f0f4fb;font-size:11px;display:grid;grid-template-columns:58px 1fr 60px;gap:6px;align-items:center}
+.log-row:last-child{border-bottom:none}
+.log-row:hover{background:#f8faff}
+.log-time{color:var(--muted2);font-size:10px}
+.log-msg{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-status{text-align:right;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
+.log-status.success{background:#e8f5e9;color:var(--green)}
+.log-status.error{background:#fdecea;color:var(--red)}
+.log-status.skipped{background:#f5f5f5;color:var(--muted2)}
+.log-feed{border:1px solid var(--border);border-radius:6px;max-height:300px;overflow-y:auto}
+.log-empty{padding:24px;text-align:center;color:var(--muted2);font-size:12px}
+
+.empty-box{padding:48px;text-align:center;color:var(--muted2);font-size:13px;border:1.5px dashed var(--border);border-radius:var(--radius)}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+.spin-blue{border-color:rgba(37,92,193,.2);border-top-color:var(--blue)}
+@media(max-width:1000px){.layout2{grid-template-columns:1fr}.wrap{padding:16px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">TERRA<span>TERN</span></div>
+  <div class="sub">Automation</div>
+  <a href="/manual.html" class="nav-link">▶ Manual Campaign</a>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('campaigns')">Campaigns</div>
+  <div class="tab" onclick="switchTab('rules')">Rules</div>
+  <div class="tab" onclick="switchTab('cron')">Cron & Logs</div>
+</div>
+
+<div class="wrap">
+
+  <!-- TAB: CAMPAIGNS ──────────────────────────────────────── -->
+  <div class="tab-content active" id="tab-campaigns">
+    <div class="layout2">
+
+      <div class="card">
+        <div class="sec-label" id="camp-form-title">Add Campaign</div>
+        <div class="form-group">
+          <label class="form-label">Campaign Name</label>
+          <input class="form-input" id="c-name" placeholder="e.g. ghcalum_api"/>
+          <div class="form-hint">Must match exactly with AiSensy API campaign name</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Template Parameters</label>
+          <div class="params-list" id="params-list"></div>
+          <button class="add-param-btn" onclick="addParam()">+ Add Parameter</button>
+          <div class="form-hint">In order — maps to {{1}}, {{2}}, {{3}}...</div>
+        </div>
+        <div class="divider"></div>
+        <div class="form-group">
+          <label class="form-label">Media URL <span style="color:var(--muted2);font-weight:400">(optional)</span></label>
+          <input class="form-input" id="c-media-url" placeholder="https://...direct image/video URL"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Media Type</label>
+          <select class="form-select" id="c-media-type">
+            <option value="">None</option>
+            <option value="image">Image (jpg, png)</option>
+            <option value="video">Video (mp4)</option>
+            <option value="document">Document (pdf)</option>
+            <option value="audio">Audio (mp3)</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="saveCampaign()">Save Campaign</button>
+          <button class="btn-ghost" onclick="resetCampForm()">Clear</button>
+        </div>
+        <div class="status-msg" id="c-msg"></div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="sec-label" style="margin-bottom:0">Campaigns <span id="c-count" style="color:var(--blue)"></span></div>
+          <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadCampaigns()">↻ Refresh</button>
+        </div>
+        <div id="campaigns-list"><div class="empty-box">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: RULES ──────────────────────────────────────────── -->
+  <div class="tab-content" id="tab-rules">
+    <div class="layout2">
+
+      <div class="card">
+        <div class="sec-label" id="rule-form-title">Create Rule</div>
+        <div class="form-group">
+          <label class="form-label">Rule Name</label>
+          <input class="form-input" id="rule-name" placeholder="e.g. Germany Not Interested"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Campaign</label>
+          <select class="form-select" id="rule-campaign">
+            <option value="">Loading...</option>
+          </select>
+        </div>
+        <div class="fetch-bar">
+          <span class="fetch-status" id="fetch-status">Fetch values to enable filter dropdowns</span>
+          <button class="fetch-btn" id="fetch-btn" onclick="fetchAllValues()">↻ Fetch Values</button>
+        </div>
+        <div class="form-label" style="margin-bottom:10px">Filters</div>
+        <div class="filter-list" id="filter-list"></div>
+        <button class="add-filter-btn" onclick="addFilter()">+ Add Filter</button>
+        <div class="btn-row">
+          <button class="btn-ghost" style="border-color:var(--yellow);color:var(--amber)" id="preview-btn" onclick="previewLeads()">◑ Preview</button>
+        </div>
+        <div id="preview-area"></div>
+        <div class="divider"></div>
+        <div class="btn-row">
+          <button class="btn" onclick="saveRule()">Save Rule</button>
+          <button class="btn-ghost" onclick="resetRuleForm()">Clear</button>
+          <span class="status-msg" id="rule-msg" style="margin-top:0"></span>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="sec-label" style="margin-bottom:0">Rules <span id="rule-count" style="color:var(--blue)"></span></div>
+          <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadRules()">↻ Refresh</button>
+        </div>
+        <div id="rules-list"><div class="empty-box">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CRON ───────────────────────────────────────────── -->
+  <div class="tab-content" id="tab-cron">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <div class="card">
+        <div class="sec-label">Cron Schedule</div>
+        <div class="cron-card">
+          <div class="cron-schedule">
+            <div>
+              <div class="cron-time">1:00 PM IST</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">Every day — auto-runs without action</div>
+            </div>
+            <button class="btn-amber" id="cron-btn" onclick="runCron()">▶ Run Now</button>
+          </div>
+          <pre class="cron-result" id="cron-result"></pre>
+        </div>
+        <div style="margin-top:16px;padding:14px 16px;background:#f8faff;border-radius:6px;border:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">What cron does</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">
+            1. Fetches all leads from Metabase<br>
+            2. Loads active rules from Google Sheet<br>
+            3. Matches each lead to first matching rule<br>
+            4. Skips leads messaged in last 24h (dedup)<br>
+            5. Sends WhatsApp via Smartping<br>
+            6. Logs everything to Google Sheet
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="sec-label" style="margin-bottom:0">Session Log</div>
+          <button onclick="clearLogs()" style="font-size:11px;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:var(--font)">Clear</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+          <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
+            <div style="font-size:20px;font-weight:800;color:var(--navy)" id="stat-total">0</div>
+            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Total</div>
+          </div>
+          <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
+            <div style="font-size:20px;font-weight:800;color:var(--green)" id="stat-sent">0</div>
+            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Sent</div>
+          </div>
+          <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
+            <div style="font-size:20px;font-weight:800;color:var(--red)" id="stat-failed">0</div>
+            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Failed</div>
+          </div>
+        </div>
+        <div class="log-feed" id="log-feed"><div class="log-empty">No activity yet</div></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WEBHOOK_SECRET = "terratern_smartping_2026";
+const RULES_API      = "/api/rules";
+const CAMPAIGNS_API  = "/api/campaigns";
+const METABASE_PROXY = "/api/metabase-proxy";
+
+const FIELDS = ['current_lead_status','current_lead_stage','application','mql_status','webinar_booked','webinar_attended','state','utm_source','latest_utm_campaign','bde','otp_verified'];
+const OPERATORS = [
+  {value:'is',label:'is',needsVal:true},{value:'is_not',label:'is not',needsVal:true},
+  {value:'contains',label:'contains',needsVal:true},{value:'not_contains',label:'does not contain',needsVal:true},
+  {value:'has_value',label:'has any value',needsVal:false},{value:'is_empty',label:'is empty / null',needsVal:false},
+];
+
+let campaigns=[],rules=[],filters=[],params=[],editCampName=null,editRuleId=null;
+let leadsCache=null,fieldValCache={},fetchedOnce=false,logs=[];
+
+window.onload=()=>{
+  loadCampaigns(); loadRules();
+  addParam(); addParam();
+  addFilter(true); addFilter(false);
+};
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const names=['campaigns','rules','cron'];
+    t.className='tab'+(names[i]===name?' active':'');
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>c.className='tab-content');
+  document.getElementById('tab-'+name).className='tab-content active';
+}
+
+// ── CAMPAIGNS ─────────────────────────────────────────────────
+async function loadCampaigns(){
+  try{
+    const res=await fetch(CAMPAIGNS_API);
+    const data=await res.json();
+    campaigns=data.campaigns||[];
+    renderCampaigns();
+    loadCampaignDropdown();
+  }catch(e){ document.getElementById('campaigns-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`; }
+}
+
+function loadCampaignDropdown(){
+  const sel=document.getElementById('rule-campaign');
+  const active=campaigns.filter(c=>c.active);
+  if(!active.length){ sel.innerHTML='<option value="">No active campaigns</option>'; return; }
+  sel.innerHTML=active.map(c=>`<option value="${c.campaign_name}">${c.campaign_name}</option>`).join('');
+}
+
+async function saveCampaign(){
+  const name=document.getElementById('c-name').value.trim();
+  const mediaUrl=document.getElementById('c-media-url').value.trim();
+  const mediaType=document.getElementById('c-media-type').value;
+  const msg=document.getElementById('c-msg');
+  if(!name){showCampMsg('Name required','err');return;}
+  if(!params.filter(p=>p.trim()).length){showCampMsg('Add at least one param','err');return;}
+  msg.textContent='Saving...';msg.className='status-msg';
+  try{
+    const res=await fetch(CAMPAIGNS_API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({campaign_name:name,template_params:params.filter(p=>p.trim()),media_url:mediaUrl,media_type:mediaType,active:true})});
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    await loadCampaigns(); resetCampForm();
+    showCampMsg('✓ Saved','ok');
+  }catch(e){showCampMsg('Failed: '+e.message,'err');}
+}
+
+async function toggleCampaign(name){
+  const c=campaigns.find(c=>c.campaign_name===name); if(!c) return;
+  try{
+    await fetch(CAMPAIGNS_API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...c,template_params:c.template_params,active:!c.active})});
+    await loadCampaigns();
+  }catch(e){alert('Failed: '+e.message);}
+}
+
+async function deleteCampaign(name){
+  if(!confirm(`Delete "${name}"?`)) return;
+  try{
+    await fetch(`${CAMPAIGNS_API}/${encodeURIComponent(name)}`,{method:'DELETE'});
+    await loadCampaigns();
+  }catch(e){alert('Failed: '+e.message);}
+}
+
+function editCampaign(name){
+  const c=campaigns.find(c=>c.campaign_name===name); if(!c) return;
+  editCampName=name;
+  document.getElementById('c-name').value=c.campaign_name;
+  document.getElementById('c-media-url').value=c.media_url||'';
+  document.getElementById('c-media-type').value=c.media_type||'';
+  params=[...(c.template_params||[])];
+  renderParams();
+  document.getElementById('camp-form-title').textContent='Edit Campaign';
+  switchTab('campaigns');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function addParam(v=''){ params.push(v); renderParams(); }
+function removeParam(i){ params.splice(i,1); renderParams(); }
+function updateParam(i,v){ params[i]=v; }
+function renderParams(){
+  document.getElementById('params-list').innerHTML=params.map((p,i)=>`
+    <div class="param-row">
+      <input value="${escHtml(p)}" placeholder="{{${i+1}}} value" oninput="updateParam(${i},this.value)"/>
+      <button class="remove-param" onclick="removeParam(${i})">×</button>
+    </div>`).join('');
+}
+
+function renderCampaigns(){
+  const list=document.getElementById('campaigns-list');
+  document.getElementById('c-count').textContent=campaigns.length?`(${campaigns.length})`:'';
+  if(!campaigns.length){list.innerHTML='<div class="empty-box">No campaigns yet.</div>';return;}
+  list.innerHTML=campaigns.map(c=>`
+    <div class="campaign-card ${c.active?'active-c':''}">
+      <div class="cc-header">
+        <div class="cc-name">${escHtml(c.campaign_name)}</div>
+        <span class="cc-badge ${c.active?'active':'paused'}" onclick="toggleCampaign('${c.campaign_name}')">${c.active?'ACTIVE':'PAUSED'}</span>
+      </div>
+      <div class="cc-body">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${c.media_url?'6px':'0'}">
+          ${(c.template_params||[]).map((p,i)=>`<span style="background:#e8f0ff;padding:2px 8px;border-radius:4px;font-size:11px;color:var(--navy)">{{${i+1}}} ${escHtml(p)}</span>`).join('')||'<span style="color:var(--muted2);font-size:12px">No params</span>'}
+        </div>
+        ${c.media_url?`<div style="font-size:11px;color:var(--blue)">📎 ${c.media_type||'media'} · <a href="${c.media_url}" target="_blank" style="color:var(--blue)">view</a></div>`:''}
+      </div>
+      <div class="cc-footer">
+        <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editCampaign('${c.campaign_name}')">Edit</button>
+        <button class="btn-danger" onclick="deleteCampaign('${c.campaign_name}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function resetCampForm(){
+  editCampName=null; params=[];
+  document.getElementById('c-name').value='';
+  document.getElementById('c-media-url').value='';
+  document.getElementById('c-media-type').value='';
+  document.getElementById('camp-form-title').textContent='Add Campaign';
+  document.getElementById('c-msg').textContent='';
+  addParam(); addParam(); renderParams();
+}
+function showCampMsg(txt,type){const el=document.getElementById('c-msg');el.textContent=txt;el.className='status-msg '+type;setTimeout(()=>el.textContent='',3000);}
+
+// ── RULES ─────────────────────────────────────────────────────
+async function loadRules(){
+  try{
+    const res=await fetch(RULES_API);
+    const data=await res.json();
+    rules=data.rules||[];
+    renderRules();
+  }catch(e){document.getElementById('rules-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;}
+}
+
+async function fetchAllValues(){
+  const btn=document.getElementById('fetch-btn');
+  const status=document.getElementById('fetch-status');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Fetching...';
+  status.className='fetch-status'; status.textContent='Fetching...';
+  try{
+    leadsCache=null;
+    const res=await fetch(METABASE_PROXY);
+    const leads=await res.json();
+    if(!Array.isArray(leads)) throw new Error('Bad response');
+    leadsCache=leads;
+    fieldValCache={};
+    FIELDS.forEach(field=>{
+      const seen=new Set(); const nonNull=[]; let hasEmpty=false;
+      leads.forEach(r=>{
+        const raw=r[field];
+        const v=(raw===null||raw===undefined||String(raw).trim()==='') ? null : String(raw).trim();
+        if(v===null) hasEmpty=true;
+        else if(!seen.has(v)){seen.add(v);nonNull.push(v);}
+      });
+      nonNull.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base',numeric:true}));
+      fieldValCache[field]=hasEmpty?[...nonNull,'']:nonNull;
+    });
+    fetchedOnce=true;
+    status.className='fetch-status ok';
+    status.textContent=`✓ Fetched ${leads.length} leads`;
+    renderFilterList();
+  }catch(e){status.className='fetch-status err';status.textContent='Failed: '+e.message;}
+  btn.disabled=false; btn.innerHTML='↻ Fetch Values';
+}
+
+function addFilter(){filters.push({logic:'AND',field:FIELDS[0],op:'is',val:''});renderFilterList();}
+function renderFilterList(){
+  const list=document.getElementById('filter-list');
+  if(!filters.length){list.innerHTML='';return;}
+  if(fetchedOnce){
+    filters.forEach(f=>{
+      const vals=fieldValCache[f.field]||[];
+      const curOp=OPERATORS.find(o=>o.value===f.op);
+      if(curOp?.needsVal&&vals.length&&!vals.includes(f.val)) f.val=vals[0];
+    });
+  }
+  list.innerHTML=filters.map((f,i)=>{
+    const fieldOpts=FIELDS.map(ff=>`<option value="${ff}" ${f.field===ff?'selected':''}>${ff}</option>`).join('');
+    const opOpts=OPERATORS.map(o=>`<option value="${o.value}" ${f.op===o.value?'selected':''}>${o.label}</option>`).join('');
+    const curOp=OPERATORS.find(o=>o.value===f.op);
+    const needVal=curOp?curOp.needsVal:true;
+    let valEl='';
+    if(!needVal){valEl=`<select disabled><option>—</option></select>`;}
+    else if(!fetchedOnce){valEl=`<select disabled><option>— fetch first —</option></select>`;}
+    else{
+      const vals=fieldValCache[f.field]||[];
+      if(!vals.length){valEl=`<select disabled><option>— no values —</option></select>`;}
+      else{
+        const opts=vals.map(v=>`<option value="${escHtml(v)}" ${f.val===v?'selected':''}>${v===''?'(empty)':escHtml(v)}</option>`).join('');
+        valEl=`<select onchange="updateFilter(${i},'val',this.value)">${opts}</select>`;
+      }
+    }
+    const logicEl=i===0?`<div class="lt-spacer"></div>`:`<div class="logic-toggle"><button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setFL(${i},'AND')">AND</button><button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setFL(${i},'OR')">OR</button></div>`;
+    return `<div class="filter-row">
+      <div class="filter-top">${logicEl}<select style="flex:1" onchange="updateFilter(${i},'field',this.value)">${fieldOpts}</select><select style="flex:1" onchange="updateFilter(${i},'op',this.value)">${opOpts}</select></div>
+      <div class="filter-bottom">${valEl}<button class="remove-btn" onclick="removeFilter(${i})">×</button></div>
+    </div>`;
+  }).join('');
+}
+function updateFilter(i,k,v){filters[i][k]=v;if(k==='field'){const vals=fieldValCache[v]||[];filters[i].val=vals.length?vals[0]:'';renderFilterList();}if(k==='op'){const vals=fieldValCache[filters[i].field]||[];filters[i].val=vals.length?vals[0]:'';renderFilterList();}}
+function setFL(i,v){filters[i].logic=v;renderFilterList();}
+function removeFilter(i){filters.splice(i,1);renderFilterList();}
+
+async function previewLeads(){
+  const area=document.getElementById('preview-area');
+  const btn=document.getElementById('preview-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin spin-blue"></span>Fetching...'; area.innerHTML='';
+  try{
+    if(!leadsCache){const res=await fetch(METABASE_PROXY);leadsCache=await res.json();}
+    const matched=applyFilters(leadsCache,filters);
+    area.innerHTML=`<div class="preview-box">
+      <div class="preview-count">${matched.length}</div>
+      <div class="preview-sublabel">leads matched</div>
+      ${matched.length?`<div class="preview-table-wrap"><table class="preview-table">
+        <thead><tr><th>Name</th><th>Mobile</th><th>Status</th><th>Application</th></tr></thead>
+        <tbody>${matched.slice(0,30).map(r=>`<tr>
+          <td>${escHtml(r.fullname||'—')}</td><td>${escHtml(r.mobile||'—')}</td>
+          <td>${escHtml(r.current_lead_status||'—')}</td>
+          <td style="font-size:10px">${escHtml(String(r.application||'—').slice(0,24))}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`:''}
+    </div>`;
+  }catch(e){area.innerHTML=`<div style="font-size:12px;color:var(--red);margin-top:10px">Error: ${e.message}</div>`;}
+  btn.disabled=false; btn.innerHTML='◑ Preview';
+}
+
+async function saveRule(){
+  const name=document.getElementById('rule-name').value.trim();
+  const campaign=document.getElementById('rule-campaign').value;
+  const msg=document.getElementById('rule-msg');
+  if(!name){msg.textContent='Name required';msg.className='status-msg err';return;}
+  if(!campaign){msg.textContent='Select campaign';msg.className='status-msg err';return;}
+  const valid=filters.filter(f=>{const op=OPERATORS.find(o=>o.value===f.op);return op&&(op.needsVal===false||f.val!=='');});
+  if(!valid.length){msg.textContent='Add filters';msg.className='status-msg err';return;}
+  msg.textContent='Saving...';msg.className='status-msg';
+  try{
+    const rule={id:editRuleId||Date.now().toString(36),name,campaign,filters:valid,active:true,created_at:new Date().toISOString()};
+    const res=await fetch(RULES_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rule)});
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    await loadRules(); resetRuleForm();
+    msg.className='status-msg ok'; msg.textContent='✓ Saved';
+    setTimeout(()=>msg.textContent='',3000);
+  }catch(e){msg.className='status-msg err';msg.textContent='Failed: '+e.message;}
+}
+
+async function toggleRule(id){
+  const rule=rules.find(r=>r.id===id); if(!rule) return;
+  try{await fetch(`${RULES_API}/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:!rule.active})});await loadRules();}
+  catch(e){alert('Failed: '+e.message);}
+}
+
+async function deleteRule(id){
+  if(!confirm('Delete this rule?')) return;
+  try{await fetch(`${RULES_API}/${id}`,{method:'DELETE'});rules=rules.filter(r=>r.id!==id);renderRules();}
+  catch(e){alert('Failed: '+e.message);}
+}
+
+function editRule(id){
+  const rule=rules.find(r=>r.id===id); if(!rule) return;
+  editRuleId=id;
+  document.getElementById('rule-name').value=rule.name;
+  document.getElementById('rule-campaign').value=rule.campaign;
+  filters=rule.filters.map(f=>({...f}));
+  renderFilterList();
+  document.getElementById('rule-form-title').textContent='Edit Rule';
+  switchTab('rules');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderRules(){
+  const list=document.getElementById('rules-list');
+  document.getElementById('rule-count').textContent=rules.length?`(${rules.length})`:'';
+  if(!rules.length){list.innerHTML='<div class="empty-box">No rules yet.</div>';return;}
+  list.innerHTML=rules.map(rule=>{
+    const pills=rule.filters.map((f,i)=>{
+      const opLabel=OPERATORS.find(o=>o.value===f.op)?.label||f.op;
+      const needVal=OPERATORS.find(o=>o.value===f.op)?.needsVal;
+      const valPart=needVal?`<span class="rval">${f.val===''?'(empty)':escHtml(f.val)}</span>`:'';
+      const sep=i<rule.filters.length-1?`<div class="rule-logic-sep">${rule.filters[i+1].logic}</div>`:'';
+      return `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+        <div class="rule-filter-pill"><span class="rfield">${f.field}</span><span class="rop">${opLabel}</span>${valPart}</div>${sep}
+      </div>`;
+    }).join('');
+    return `<div class="rule-card ${rule.active?'active-rule':''}">
+      <div class="rule-card-header">
+        <div><div class="rule-card-name">${escHtml(rule.name)}</div><div class="rule-card-campaign">▶ ${rule.campaign}</div></div>
+        <span class="status-badge ${rule.active?'active':'paused'}" onclick="toggleRule('${rule.id}')">${rule.active?'ACTIVE':'PAUSED'}</span>
+      </div>
+      <div class="rule-card-body">${pills}</div>
+      <div class="rule-card-footer">
+        <span style="font-size:11px;color:var(--muted)">${fmtDate(rule.created_at)}</span>
+        <div class="rule-actions">
+          <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editRule('${rule.id}')">Edit</button>
+          <button class="btn-danger" onclick="deleteRule('${rule.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function resetRuleForm(){
+  editRuleId=null; filters=[];
+  document.getElementById('rule-name').value='';
+  document.getElementById('rule-form-title').textContent='Create Rule';
+  document.getElementById('preview-area').innerHTML='';
+  document.getElementById('rule-msg').textContent='';
+  addFilter(true); addFilter(false); renderFilterList();
+}
+
+function applyFilters(leads,filterList){
+  if(!filterList?.length) return leads;
+  return leads.filter(lead=>{
+    let result=evalFilter(lead,filterList[0]);
+    for(let i=1;i<filterList.length;i++){const test=evalFilter(lead,filterList[i]);result=filterList[i].logic==='OR'?result||test:result&&test;}
+    return result;
+  });
+}
+function evalFilter(lead,f){
+  const raw=lead[f.field];const cell=String(raw??'').toLowerCase().trim();const val=String(f.val??'').toLowerCase().trim();
+  switch(f.op){case 'is':return cell===val;case 'is_not':return cell!==val;case 'contains':return cell.includes(val);case 'not_contains':return !cell.includes(val);case 'has_value':return raw!==null&&raw!==undefined&&String(raw).trim()!=='';case 'is_empty':return raw===null||raw===undefined||String(raw).trim()==='';default:return true;}
+}
+
+// ── CRON ──────────────────────────────────────────────────────
+async function runCron(){
+  const btn=document.getElementById('cron-btn');
+  const box=document.getElementById('cron-result');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Running...';
+  box.style.display='block'; box.textContent='Running...';
+  try{
+    const res=await fetch('/api/cron',{method:'POST',headers:{'Authorization':`Bearer ${WEBHOOK_SECRET}`}});
+    const data=await res.json();
+    box.textContent=JSON.stringify(data,null,2);
+    if(data.sent>0) addLog('cron',`Sent ${data.sent} messages`,'success');
+    else addLog('cron',`Done: no_match=${data.skipped_no_match||0} dedup=${data.skipped_dedup||0}`,'skipped');
+  }catch(e){box.textContent='Error: '+e.message;addLog('cron','Failed: '+e.message,'error');}
+  btn.disabled=false; btn.innerHTML='▶ Run Now';
+}
+
+// ── LOGS ──────────────────────────────────────────────────────
+function addLog(campaign,msg,status){
+  const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  logs.unshift({time:now,campaign,msg,status});
+  if(logs.length>200) logs=logs.slice(0,200);
+  renderLogs();
+}
+function renderLogs(){
+  const feed=document.getElementById('log-feed');
+  if(!logs.length){feed.innerHTML='<div class="log-empty">No activity yet</div>';return;}
+  document.getElementById('stat-total').textContent=logs.length;
+  document.getElementById('stat-sent').textContent=logs.filter(l=>l.status==='success').length;
+  document.getElementById('stat-failed').textContent=logs.filter(l=>l.status==='error').length;
+  feed.innerHTML=logs.map(l=>`<div class="log-row"><span class="log-time">${l.time}</span><span class="log-msg">[${l.campaign}] ${l.msg}</span><span class="log-status ${l.status}">${l.status.toUpperCase()}</span></div>`).join('');
+}
+function clearLogs(){logs=[];document.getElementById('stat-total').textContent=0;document.getElementById('stat-sent').textContent=0;document.getElementById('stat-failed').textContent=0;renderLogs();}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(iso){try{return new Date(iso).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return '—';}}
+</script>
+</body>
+</html>
