@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Send Test — TerraTern</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;padding:40px 32px;background:#f4f7fc;color:#00215C}
+h3{font-size:18px;font-weight:800;margin-bottom:24px;letter-spacing:.5px}
+h3 span{color:#255CC1}
+.card{background:#fff;border:1px solid #dde6f5;border-radius:8px;padding:24px;max-width:460px;box-shadow:0 1px 4px rgba(0,33,92,.08)}
+.form-label{font-size:10px;font-weight:700;color:#5a7ab5;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block}
+.form-input{width:100%;padding:10px 12px;border:1.5px solid #dde6f5;border-radius:6px;font-size:13px;color:#00215C;outline:none;transition:border-color .15s;font-family:inherit}
+.form-input:focus{border-color:#255CC1}
+.form-select{width:100%;padding:10px 12px;border:1.5px solid #dde6f5;border-radius:6px;font-size:13px;color:#00215C;outline:none;font-family:inherit;background:#fff;appearance:none;cursor:pointer}
+.form-select:focus{border-color:#255CC1}
+.form-group{margin-bottom:14px}
+.phone-row{display:flex;align-items:stretch;gap:0}
+.phone-row .form-input{border-radius:6px 0 0 6px;border-right:none}
+.btn-fetch{background:var(--blue,#255CC1);color:#fff;border:none;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+.btn-fetch:hover{background:#00215C}
+.btn-fetch:disabled{opacity:.5;cursor:not-allowed}
+
+.lead-box{background:#f0f7ff;border:1.5px solid #9acbfd;border-radius:6px;padding:12px 14px;margin-bottom:16px;display:none}
+.lead-field{display:flex;gap:8px;margin-bottom:4px;font-size:12px}
+.lead-field:last-child{margin-bottom:0}
+.lf-key{color:#5a7ab5;min-width:90px;font-weight:600}
+.lf-val{color:#00215C;font-weight:700}
+
+.params-preview{background:#f8faff;border:1px solid #dde6f5;border-radius:6px;padding:10px 14px;margin-bottom:14px;display:none}
+.pp-title{font-size:10px;font-weight:700;color:#5a7ab5;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.pp-row{display:flex;gap:8px;font-size:12px;margin-bottom:4px}
+.pp-key{color:#5a7ab5;min-width:50px;font-weight:600}
+.pp-val{color:#255CC1;font-weight:700}
+
+.btn{width:100%;background:#f1c819;color:#00215C;border:none;padding:12px;border-radius:6px;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;font-family:inherit;letter-spacing:.5px}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.result{border-radius:6px;padding:12px 14px;font-size:12px;margin-top:12px;display:none;font-weight:600}
+.result.ok{background:#e8f5e9;color:#1a9e5c;border:1px solid #a5d6a7}
+.result.err{background:#fdecea;color:#e03e3e;border:1px solid #fca5a5}
+.status{font-size:12px;margin-bottom:12px;display:none;font-weight:500}
+.divider{border:none;border-top:1px solid #dde6f5;margin:16px 0}
+.back-link{display:inline-block;margin-bottom:20px;font-size:12px;color:#255CC1;text-decoration:none;font-weight:600}
+.back-link:hover{text-decoration:underline}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+.spin-blue{border-color:rgba(37,92,193,.2);border-top-color:#255CC1}
+</style>
+</head>
+<body>
+
+<a href="/automation.html" class="back-link">← Automation</a>
+<h3>TERRA<span>TERN</span> — Send Test Message</h3>
+
+<div class="card">
+
+  <!-- Step 1: Phone -->
+  <div class="form-group">
+    <label class="form-label">Step 1 — Enter Mobile Number</label>
+    <div class="phone-row">
+      <input class="form-input" id="phone" placeholder="919751124464" type="tel" onkeydown="if(event.key==='Enter')fetchLead()"/>
+      <button class="btn-fetch" id="fetch-btn" onclick="fetchLead()">Fetch Lead</button>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <!-- Lead details -->
+  <div class="lead-box" id="lead-box">
+    <div class="lead-field"><span class="lf-key">Name</span><span class="lf-val" id="l-name">—</span></div>
+    <div class="lead-field"><span class="lf-key">Mobile</span><span class="lf-val" id="l-mobile">—</span></div>
+    <div class="lead-field"><span class="lf-key">BDE</span><span class="lf-val" id="l-bde">—</span></div>
+    <div class="lead-field"><span class="lf-key">Application</span><span class="lf-val" id="l-app">—</span></div>
+    <div class="lead-field"><span class="lf-key">Status</span><span class="lf-val" id="l-status">—</span></div>
+  </div>
+
+  <!-- Step 2: Campaign -->
+  <div class="form-group" id="camp-section" style="display:none">
+    <div class="divider"></div>
+    <label class="form-label">Step 2 — Select Campaign</label>
+    <select class="form-select" id="campaign-select" onchange="onCampaignChange()">
+      <option value="">— Select campaign —</option>
+    </select>
+  </div>
+
+  <!-- Params preview -->
+  <div class="params-preview" id="params-preview">
+    <div class="pp-title">Will be sent as</div>
+    <div id="params-list"></div>
+    <div id="media-info" style="font-size:11px;color:#255CC1;margin-top:6px;display:none">📎 Media attached</div>
+  </div>
+
+  <!-- Send -->
+  <button class="btn" id="send-btn" onclick="sendMessage()" disabled style="display:none">
+    ▶ Send WhatsApp
+  </button>
+  <div class="result" id="result"></div>
+
+</div>
+
+<script>
+const METABASE_PROXY = "/api/metabase-proxy";
+const CAMPAIGNS_API  = "/api/campaigns";
+const APIKEY         = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
+const SMARTPING_URL  = "https://backend.api-wa.co/campaign/smartping/api/v2";
+
+// Dynamic param resolvers per campaign
+const DYNAMIC_PARAMS = {
+  ghc_mkt02_api: (lead) => [
+    firstName(lead.fullname),
+    "08064124242",
+    lead.bde || "Shreya Pandey"
+  ],
+};
+
+let currentLead = null;
+let campaigns   = [];
+
+window.onload = () => loadCampaigns();
+
+async function loadCampaigns() {
+  try {
+    const res  = await fetch(CAMPAIGNS_API);
+    const data = await res.json();
+    campaigns  = data.campaigns||[]; // show all regardless of active status
+    const sel  = document.getElementById('campaign-select');
+    campaigns.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.campaign_name;
+      opt.textContent = c.campaign_name;
+      sel.appendChild(opt);
+    });
+  } catch(e) { console.error('Failed to load campaigns', e); }
+}
+
+async function fetchLead() {
+  const phoneRaw = document.getElementById('phone').value.trim().replace(/\D/g,'');
+  if (!phoneRaw) { showStatus('Enter a phone number first.','red'); return; }
+
+  const btn = document.getElementById('fetch-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  showStatus('Fetching from Metabase...','');
+  document.getElementById('lead-box').style.display='none';
+  document.getElementById('camp-section').style.display='none';
+  document.getElementById('params-preview').style.display='none';
+  document.getElementById('send-btn').style.display='none';
+  document.getElementById('result').style.display='none';
+
+  try {
+    const res   = await fetch(METABASE_PROXY);
+    const leads = await res.json();
+    if (!Array.isArray(leads)) throw new Error('Bad response');
+
+    const last10 = phoneRaw.slice(-10);
+    const lead   = leads.find(r => String(r.mobile||'').replace(/\D/g,'').slice(-10) === last10);
+
+    if (!lead) {
+      showStatus('No lead found with this number.','red');
+      btn.disabled=false; btn.textContent='Fetch Lead'; return;
+    }
+
+    currentLead = lead;
+    document.getElementById('l-name').textContent   = lead.fullname||'—';
+    document.getElementById('l-mobile').textContent = lead.mobile||'—';
+    document.getElementById('l-bde').textContent    = lead.bde||'—';
+    document.getElementById('l-app').textContent    = String(lead.application||'—').slice(0,40);
+    document.getElementById('l-status').textContent = lead.current_lead_status||'—';
+    document.getElementById('lead-box').style.display='block';
+    document.getElementById('camp-section').style.display='block';
+    document.getElementById('campaign-select').value='';
+    document.getElementById('params-preview').style.display='none';
+    document.getElementById('send-btn').style.display='none';
+    showStatus('✓ Lead found — now select a campaign','green');
+
+  } catch(e) { showStatus('Error: '+e.message,'red'); }
+
+  btn.disabled=false; btn.textContent='Fetch Lead';
+}
+
+function onCampaignChange() {
+  const name = document.getElementById('campaign-select').value;
+  const preview = document.getElementById('params-preview');
+  const sendBtn = document.getElementById('send-btn');
+
+  if (!name || !currentLead) {
+    preview.style.display='none'; sendBtn.style.display='none'; return;
+  }
+
+  const camp   = campaigns.find(c=>c.campaign_name===name);
+  if (!camp) return;
+
+  // resolve params
+  const params = resolveParams(name, camp, currentLead);
+
+  // show preview
+  const list = document.getElementById('params-list');
+  list.innerHTML = params.map((p,i) =>
+    `<div class="pp-row"><span class="pp-key">{{${i+1}}}</span><span class="pp-val">${p}</span></div>`
+  ).join('');
+
+  const mediaInfo = document.getElementById('media-info');
+  mediaInfo.style.display = camp.media_url ? 'block' : 'none';
+
+  preview.style.display='block';
+  sendBtn.style.display='block';
+  sendBtn.disabled=false;
+  document.getElementById('result').style.display='none';
+}
+
+function resolveParams(campaignName, camp, lead) {
+  // 1. use DYNAMIC_PARAMS if defined for this campaign
+  if (DYNAMIC_PARAMS[campaignName]) {
+    return DYNAMIC_PARAMS[campaignName](lead);
+  }
+  // 2. use test_params from sheet if available
+  if (camp.test_params && camp.test_params.length > 0) {
+    return camp.test_params;
+  }
+  // 3. fall back to template_params (static values)
+  return camp.template_params || [];
+}
+
+async function sendMessage() {
+  if (!currentLead) return;
+  const name     = document.getElementById('campaign-select').value;
+  const camp     = campaigns.find(c=>c.campaign_name===name);
+  if (!camp) return;
+
+  const phone  = String(currentLead.mobile||'').replace(/\D/g,'');
+  const params = resolveParams(name, camp, currentLead);
+
+  const btn    = document.getElementById('send-btn');
+  const result = document.getElementById('result');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Sending...';
+  result.style.display='none';
+
+  const payload = {
+    apiKey:         APIKEY,
+    campaignName:   name,
+    destination:    phone,
+    userName:       currentLead.fullname||'User',
+    templateParams: params,
+    source:         "sendtest",
+    media:          camp.media_url ? {url:camp.media_url, filename:"media"} : {},
+    buttons:[], carouselCards:[], location:{}, attributes:{},
+    paramsFallbackValue: {FirstName: firstName(currentLead.fullname)},
+  };
+
+  try {
+    const res  = await fetch(SMARTPING_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data = await res.json();
+    result.style.display='block';
+    if (res.ok) {
+      result.className='result ok';
+      result.textContent=`✓ Sent to ${currentLead.fullname} (${phone}) via ${name}`;
+    } else {
+      result.className='result err';
+      result.textContent='✗ Failed: '+(data.message||JSON.stringify(data).slice(0,120));
+    }
+  } catch(e) {
+    result.style.display='block';
+    result.className='result err';
+    result.textContent='✗ Error: '+e.message;
+  }
+
+  btn.disabled=false; btn.innerHTML='▶ Send WhatsApp';
+}
+
+function firstName(full) {
+  return String(full||'there').trim().split(/\s+/)[0];
+}
+
+function showStatus(msg, color) {
+  const el=document.getElementById('status');
+  el.style.display='block'; el.textContent=msg;
+  el.style.color=color==='red'?'#e03e3e':color==='green'?'#1a9e5c':'#5a7ab5';
+}
+</script>
+</body>
+</html>
