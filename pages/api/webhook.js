@@ -1,10 +1,9 @@
 // pages/api/webhook.js
-import { getAllRules, isDuplicate, markSent, addLog } from "../../lib/kv";
+import { getAllRules, isDuplicate, markSent, addLog } from "../../lib/gas";
 
 const SMARTPING_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
 const SMARTPING_URL    = "https://backend.api-wa.co/campaign/smartping/api/v2";
 
-// Template params per campaign — add more campaigns here
 const CAMPAIGN_PARAMS = {
   ghcalum_api: (row) => [
     "1 hour", "15 May", "6PM IST",
@@ -25,12 +24,11 @@ export default async function handler(req, res) {
   const rows = extractRows(req.body);
   if (!rows.length) return res.status(400).json({ error: "No data found" });
 
-  // Load all active rules from KV
-  const allRules   = await getAllRules();
-  const activeRules = allRules.filter(r => r.active);
+  const allRules    = await getAllRules();
+  const activeRules = allRules.filter(r => r.active === true || r.active === "TRUE");
 
   if (!activeRules.length) {
-    return res.status(200).json({ message: "No active rules — nothing sent" });
+    return res.status(200).json({ message: "No active rules" });
   }
 
   const results = [];
@@ -39,30 +37,23 @@ export default async function handler(req, res) {
     const phone = normalizePhone(row.phone || row.Phone || row.mobile || row.Mobile || "");
     const name  = row.fullname || row.name || row.Name || "User";
 
-    if (!phone) {
-      await addLog({ campaign: "webhook", status: "skipped", reason: "no_phone" });
-      results.push({ skipped: true, reason: "no_phone" });
-      continue;
-    }
+    if (!phone) { results.push({ skipped: true, reason: "no_phone" }); continue; }
 
-    // Find first active rule that matches this row
-    const matchedRule = activeRules.find(rule => applyFilters([row], rule.filters).length > 0);
+    const matchedRule = activeRules.find(rule => {
+      const filters = Array.isArray(rule.filters_json) ? rule.filters_json : [];
+      return applyFilters([row], filters).length > 0;
+    });
 
-    if (!matchedRule) {
-      results.push({ skipped: true, phone, reason: "no_rule_match" });
-      continue;
-    }
+    if (!matchedRule) { results.push({ skipped: true, reason: "no_rule_match" }); continue; }
 
-    // Dedup check — skip if already sent for this campaign in last 24h
-    const alreadySent = await isDuplicate(phone, matchedRule.campaign, 24);
+    const alreadySent = await isDuplicate(phone, matchedRule.campaign);
     if (alreadySent) {
-      await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "skipped", reason: "dedup" });
-      results.push({ skipped: true, phone, reason: "dedup" });
+      await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "skipped", note: "dedup" });
+      results.push({ skipped: true, reason: "dedup" });
       continue;
     }
 
-    // Build template params
-    const paramsFn = CAMPAIGN_PARAMS[matchedRule.campaign];
+    const paramsFn       = CAMPAIGN_PARAMS[matchedRule.campaign];
     const templateParams = paramsFn ? paramsFn(row) : [];
 
     const payload = {
@@ -86,28 +77,24 @@ export default async function handler(req, res) {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify(payload),
       });
-
       const data = await response.json().catch(() => ({}));
-
       if (response.ok) {
         await markSent(phone, matchedRule.campaign);
-        await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, name, status: "success", http_status: response.status });
-        results.push({ success: true, phone, campaign: matchedRule.campaign, rule: matchedRule.name });
+        await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, name, status: "success" });
+        results.push({ success: true, phone });
       } else {
-        await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "error", http_status: response.status, response: JSON.stringify(data).slice(0, 200) });
+        await addLog({ campaign: matchedRule.campaign, phone, status: "error", note: JSON.stringify(data).slice(0,200) });
         results.push({ success: false, phone, error: JSON.stringify(data) });
       }
-
-    } catch (err) {
-      await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "error", error: err.message });
-      results.push({ success: false, phone, error: err.message });
+    } catch (e) {
+      await addLog({ campaign: matchedRule.campaign, phone, status: "error", note: e.message });
+      results.push({ success: false, phone, error: e.message });
     }
   }
 
   return res.status(200).json({ processed: results.length, results });
 }
 
-// ── FILTER ENGINE ─────────────────────────────────────────────
 function applyFilters(rows, filterList) {
   if (!filterList?.length) return rows;
   return rows.filter(lead => {
@@ -138,10 +125,10 @@ function evalFilter(lead, f) {
 function normalizePhone(raw) {
   if (!raw) return null;
   const digits = String(raw).replace(/\D/g, "");
-  if (digits.length === 10)                          return "91" + digits;
+  if (digits.length === 10)                            return "91" + digits;
   if (digits.length === 12 && digits.startsWith("91")) return digits;
-  if (digits.length === 11 && digits.startsWith("0")) return "91" + digits.slice(1);
-  if (digits.length > 6)                             return digits;
+  if (digits.length === 11 && digits.startsWith("0"))  return "91" + digits.slice(1);
+  if (digits.length > 6)                               return digits;
   return null;
 }
 
