@@ -191,6 +191,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         </div>
         <div class="divider"></div>
         <div class="form-group">
+          <label class="form-label">Test Values <span style="color:var(--muted2);font-weight:400">(for Test button)</span></label>
+          <div class="params-list" id="test-params-list"></div>
+          <button class="add-param-btn" onclick="addTestParam()">+ Add Test Value</button>
+          <div class="form-hint">One per param in order — used when clicking ▶ Test on this campaign</div>
+        </div>
+        <div class="divider"></div>
+        <div class="form-group">
           <label class="form-label">Media URL <span style="color:var(--muted2);font-weight:400">(optional)</span></label>
           <input class="form-input" id="c-media-url" placeholder="https://...direct image/video URL"/>
         </div>
@@ -281,7 +288,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div class="cron-card">
           <div class="cron-schedule">
             <div>
-              <div class="cron-time">1:00 PM IST</div>
+              <div style="display:flex;gap:12px;align-items:center">
+                <div class="cron-time" style="font-size:20px">9:00 AM</div>
+                <div style="font-size:16px;color:var(--muted)">+</div>
+                <div class="cron-time" style="font-size:20px">1:00 PM</div>
+                <div style="font-size:13px;color:var(--muted);font-weight:600">IST</div>
+              </div>
               <div style="font-size:12px;color:var(--muted);margin-top:4px">Every day — auto-runs without action</div>
             </div>
             <button class="btn-amber" id="cron-btn" onclick="runCron()">▶ Run Now</button>
@@ -348,7 +360,7 @@ const OPERATORS = [
   {value:'date_between', label:'between (dates)',  needsVal:true,  isDate:true},
 ];
 
-let campaigns=[],rules=[],filters=[],params=[],editCampName=null,editRuleId=null;
+let campaigns=[],rules=[],filters=[],params=[],testParams=[],editCampName=null,editRuleId=null;
 let leadsCache=null,fieldValCache={},fetchedOnce=false,logs=[];
 
 window.onload=()=>{
@@ -395,7 +407,7 @@ async function saveCampaign(){
   msg.textContent='Saving...';msg.className='status-msg';
   try{
     const res=await fetch(CAMPAIGNS_API,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({campaign_name:name,template_params:params.filter(p=>p.trim()),media_url:mediaUrl,media_type:mediaType,active:true})});
+      body:JSON.stringify({campaign_name:name,template_params:params.filter(p=>p.trim()),test_params:testParams.filter(p=>p.trim()),media_url:mediaUrl,media_type:mediaType,active:true})});
     const data=await res.json();
     if(data.error) throw new Error(data.error);
     await loadCampaigns(); resetCampForm();
@@ -427,7 +439,8 @@ function editCampaign(name){
   document.getElementById('c-media-url').value=c.media_url||'';
   document.getElementById('c-media-type').value=c.media_type||'';
   params=[...(c.template_params||[])];
-  renderParams();
+  testParams=[...(c.test_params||[])];
+  renderParams(); renderTestParams();
   document.getElementById('camp-form-title').textContent='Edit Campaign';
   switchTab('campaigns');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -441,6 +454,18 @@ function renderParams(){
     <div class="param-row">
       <input value="${escHtml(p)}" placeholder="{{${i+1}}} value" oninput="updateParam(${i},this.value)"/>
       <button class="remove-param" onclick="removeParam(${i})">×</button>
+    </div>`).join('');
+}
+function addTestParam(v=''){ testParams.push(v); renderTestParams(); }
+function removeTestParam(i){ testParams.splice(i,1); renderTestParams(); }
+function updateTestParam(i,v){ testParams[i]=v; }
+function renderTestParams(){
+  const el=document.getElementById('test-params-list');
+  if(!el) return;
+  el.innerHTML=testParams.map((p,i)=>`
+    <div class="param-row">
+      <input value="${escHtml(p)}" placeholder="Test value for {{${i+1}}}" oninput="updateTestParam(${i},this.value)"/>
+      <button class="remove-param" onclick="removeTestParam(${i})">×</button>
     </div>`).join('');
 }
 
@@ -462,8 +487,10 @@ function renderCampaigns(){
       </div>
       <div class="cc-footer">
         <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editCampaign('${c.campaign_name}')">Edit</button>
+        <button class="btn-ghost" style="padding:5px 12px;font-size:11px;border-color:var(--yellow);color:var(--amber)" id="test-btn-${c.campaign_name}" onclick="testCampaign('${c.campaign_name}')">▶ Test</button>
         <button class="btn-danger" onclick="deleteCampaign('${c.campaign_name}')">Delete</button>
       </div>
+      <div id="test-result-${c.campaign_name}" style="font-size:11px;padding:6px 16px;display:none;background:#f8faff;border-top:1px solid var(--border)"></div>
     </div>`).join('');
 }
 
@@ -474,7 +501,8 @@ function resetCampForm(){
   document.getElementById('c-media-type').value='';
   document.getElementById('camp-form-title').textContent='Add Campaign';
   document.getElementById('c-msg').textContent='';
-  addParam(); addParam(); renderParams();
+  testParams=[];
+  addParam(); addParam(); renderParams(); renderTestParams();
 }
 function showCampMsg(txt,type){const el=document.getElementById('c-msg');el.textContent=txt;el.className='status-msg '+type;setTimeout(()=>el.textContent='',3000);}
 
@@ -756,6 +784,55 @@ function renderLogs(){
   feed.innerHTML=logs.map(l=>`<div class="log-row"><span class="log-time">${l.time}</span><span class="log-msg">[${l.campaign}] ${l.msg}</span><span class="log-status ${l.status}">${l.status.toUpperCase()}</span></div>`).join('');
 }
 function clearLogs(){logs=[];document.getElementById('stat-total').textContent=0;document.getElementById('stat-sent').textContent=0;document.getElementById('stat-failed').textContent=0;renderLogs();}
+
+async function testCampaign(name) {
+  const c = campaigns.find(c=>c.campaign_name===name); if(!c) return;
+  const btn = document.getElementById(`test-btn-${name}`);
+  const result = document.getElementById(`test-result-${name}`);
+  const APIKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
+  const SMARTPING_URL = "https://backend.api-wa.co/campaign/smartping/api/v2";
+  const TEST_PHONE = "917094956963";
+
+  btn.disabled=true; btn.textContent='Sending...';
+  result.style.display='block'; result.style.color='var(--muted)'; result.textContent='Firing test message...';
+
+  // use test_params if defined, else fall back to template_params
+  const params = (c.test_params && c.test_params.length > 0)
+    ? c.test_params
+    : (c.template_params||[]);
+
+  const payload = {
+    apiKey:       APIKEY,
+    campaignName: name,
+    destination:  TEST_PHONE,
+    userName:     "Aswin Raaju",
+    templateParams: params,
+    source:       "test-fire",
+    media:        c.media_url ? {url:c.media_url, filename:"media"} : {},
+    buttons:[], carouselCards:[], location:{}, attributes:{},
+    paramsFallbackValue: {FirstName:"Aswin"},
+  };
+
+  try {
+    const res  = await fetch(SMARTPING_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    const data = await res.json();
+    if(res.ok) {
+      result.style.color='var(--green)';
+      result.textContent='✓ Test sent to +917094956963';
+      addLog(name, 'Test sent to +917094956963', 'success');
+    } else {
+      result.style.color='var(--red)';
+      result.textContent='✗ Failed: ' + (data.message||JSON.stringify(data).slice(0,80));
+      addLog(name, 'Test failed: '+(data.message||''), 'error');
+    }
+  } catch(e) {
+    result.style.color='var(--red)';
+    result.textContent='✗ Error: '+e.message;
+  }
+
+  btn.disabled=false; btn.textContent='▶ Test';
+  setTimeout(()=>{ result.style.display='none'; }, 5000);
+}
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmtDate(iso){try{return new Date(iso).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return '—';}}
