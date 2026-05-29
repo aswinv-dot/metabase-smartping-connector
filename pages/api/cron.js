@@ -1,11 +1,10 @@
 // pages/api/cron.js
-import { getAllRules, isDuplicate, markSent, addLog } from "../../lib/kv";
+import { getAllRules, isDuplicate, markSent, addLog } from "../../lib/gas";
 
 const SMARTPING_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
 const SMARTPING_URL     = "https://backend.api-wa.co/campaign/smartping/api/v2";
 const METABASE_URL      = "https://metabase.terratern.com/api/public/card/7e84f141-e90d-4852-a158-4d6a75bf4833/query/json";
 
-// Template params per campaign
 const CAMPAIGN_PARAMS = {
   ghcalum_api: (row) => [
     "1 hour", "15 May", "6PM IST",
@@ -15,16 +14,15 @@ const CAMPAIGN_PARAMS = {
 };
 
 export default async function handler(req, res) {
-  // Vercel cron sends GET with header x-vercel-cron
-  // Also allow manual trigger via POST for testing
   const isCron   = req.headers["x-vercel-cron"] === "1";
-  const isManual = req.method === "POST" && req.headers["authorization"] === `Bearer ${process.env.WEBHOOK_SECRET}`;
+  const isManual = req.method === "POST" &&
+    req.headers["authorization"] === `Bearer ${process.env.WEBHOOK_SECRET}`;
 
   if (!isCron && !isManual) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  await addLog({ campaign: "cron", status: "success", reason: "cron_started", note: "Daily 1PM IST run started" });
+  await addLog({ campaign: "cron", status: "success", note: "Cron started" });
 
   // 1. Fetch leads from Metabase
   let leads = [];
@@ -33,16 +31,16 @@ export default async function handler(req, res) {
     leads = await mbRes.json();
     if (!Array.isArray(leads)) throw new Error("Bad Metabase response");
   } catch (e) {
-    await addLog({ campaign: "cron", status: "error", reason: "metabase_fetch_failed", error: e.message });
+    await addLog({ campaign: "cron", status: "error", note: "Metabase fetch failed: " + e.message });
     return res.status(500).json({ error: "Metabase fetch failed", detail: e.message });
   }
 
-  // 2. Load active rules from KV
+  // 2. Load active rules from Google Sheet
   const allRules    = await getAllRules();
-  const activeRules = allRules.filter(r => r.active);
+  const activeRules = allRules.filter(r => r.active === true || r.active === "TRUE");
 
   if (!activeRules.length) {
-    await addLog({ campaign: "cron", status: "skipped", reason: "no_active_rules" });
+    await addLog({ campaign: "cron", status: "skipped", note: "No active rules" });
     return res.status(200).json({ message: "No active rules" });
   }
 
@@ -55,20 +53,21 @@ export default async function handler(req, res) {
 
     if (!phone) { results.skipped_no_match++; continue; }
 
-    // Find first active rule that matches
-    const matchedRule = activeRules.find(rule => applyFilters([row], rule.filters).length > 0);
+    const matchedRule = activeRules.find(rule => {
+      const filters = Array.isArray(rule.filters_json) ? rule.filters_json : [];
+      return applyFilters([row], filters).length > 0;
+    });
+
     if (!matchedRule) { results.skipped_no_match++; continue; }
 
-    // Dedup — skip if sent in last 24h
-    const alreadySent = await isDuplicate(phone, matchedRule.campaign, 24);
+    const alreadySent = await isDuplicate(phone, matchedRule.campaign);
     if (alreadySent) {
       results.skipped_dedup++;
-      await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "skipped", reason: "dedup" });
+      await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "skipped", note: "dedup" });
       continue;
     }
 
-    // Build payload
-    const paramsFn      = CAMPAIGN_PARAMS[matchedRule.campaign];
+    const paramsFn       = CAMPAIGN_PARAMS[matchedRule.campaign];
     const templateParams = paramsFn ? paramsFn(row) : [];
 
     const payload = {
@@ -95,24 +94,23 @@ export default async function handler(req, res) {
 
       if (response.ok) {
         await markSent(phone, matchedRule.campaign);
-        await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, name, status: "success", source: "cron" });
+        await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, name, status: "success", note: "sent" });
         results.sent++;
       } else {
         const data = await response.json().catch(() => ({}));
-        await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "error", http_status: response.status, response: JSON.stringify(data).slice(0, 200) });
+        await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "error", note: JSON.stringify(data).slice(0, 200) });
         results.failed++;
       }
     } catch (e) {
-      await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "error", error: e.message });
+      await addLog({ campaign: matchedRule.campaign, rule: matchedRule.name, phone, status: "error", note: e.message });
       results.failed++;
     }
   }
 
-  await addLog({ campaign: "cron", status: "success", reason: "cron_completed", ...results });
+  await addLog({ campaign: "cron", status: "success", note: `Done: sent=${results.sent} dedup=${results.skipped_dedup} no_match=${results.skipped_no_match} failed=${results.failed}` });
   return res.status(200).json({ success: true, leads_total: leads.length, ...results });
 }
 
-// ── FILTER ENGINE ─────────────────────────────────────────────
 function applyFilters(rows, filterList) {
   if (!filterList?.length) return rows;
   return rows.filter(lead => {
