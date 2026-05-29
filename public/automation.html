@@ -334,11 +334,18 @@ const RULES_API      = "/api/rules";
 const CAMPAIGNS_API  = "/api/campaigns";
 const METABASE_PROXY = "/api/metabase-proxy";
 
-const FIELDS = ['current_lead_status','current_lead_stage','application','mql_status','webinar_booked','webinar_attended','state','utm_source','latest_utm_campaign','bde','otp_verified'];
+const FIELDS = ['current_lead_status','current_lead_stage','application','mql_status','webinar_booked','webinar_attended','state','utm_source','latest_utm_campaign','bde','otp_verified','created_at','updated_at'];
+const DATE_FIELDS = ['created_at','updated_at'];
 const OPERATORS = [
-  {value:'is',label:'is',needsVal:true},{value:'is_not',label:'is not',needsVal:true},
-  {value:'contains',label:'contains',needsVal:true},{value:'not_contains',label:'does not contain',needsVal:true},
-  {value:'has_value',label:'has any value',needsVal:false},{value:'is_empty',label:'is empty / null',needsVal:false},
+  {value:'is',           label:'is',               needsVal:true,  isDate:false},
+  {value:'is_not',       label:'is not',           needsVal:true,  isDate:false},
+  {value:'contains',     label:'contains',         needsVal:true,  isDate:false},
+  {value:'not_contains', label:'does not contain', needsVal:true,  isDate:false},
+  {value:'has_value',    label:'has any value',    needsVal:false, isDate:false},
+  {value:'is_empty',     label:'is empty / null',  needsVal:false, isDate:false},
+  {value:'date_after',   label:'after (date)',     needsVal:true,  isDate:true},
+  {value:'date_before',  label:'before (date)',    needsVal:true,  isDate:true},
+  {value:'date_between', label:'between (dates)',  needsVal:true,  isDate:true},
 ];
 
 let campaigns=[],rules=[],filters=[],params=[],editCampName=null,editRuleId=null;
@@ -541,9 +548,25 @@ function renderFilterList(){
     const curOp=OPERATORS.find(o=>o.value===f.op);
     const needVal=curOp?curOp.needsVal:true;
     let valEl='';
-    if(!needVal){valEl=`<select disabled><option>—</option></select>`;}
-    else if(!fetchedOnce){valEl=`<select disabled><option>— fetch first —</option></select>`;}
-    else{
+    const isDateField = DATE_FIELDS.includes(f.field);
+    const curOpObj = OPERATORS.find(o=>o.value===f.op);
+    if(!needVal){
+      valEl=`<select disabled><option>—</option></select>`;
+    } else if(curOpObj?.isDate || isDateField) {
+      // date input(s)
+      if(f.op==='date_between'){
+        const [v1,v2]=(f.val||'').split('|');
+        valEl=`<div style="display:flex;gap:4px;align-items:center">
+          <input type="date" value="${v1||''}" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:11px;font-family:var(--font);color:var(--text);outline:none;flex:1" oninput="updateFilterBetween(${i},'from',this.value)"/>
+          <span style="font-size:10px;color:var(--muted)">to</span>
+          <input type="date" value="${v2||''}" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:11px;font-family:var(--font);color:var(--text);outline:none;flex:1" oninput="updateFilterBetween(${i},'to',this.value)"/>
+        </div>`;
+      } else {
+        valEl=`<input type="date" value="${f.val||''}" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:11px;font-family:var(--font);color:var(--text);outline:none;width:100%" oninput="updateFilter(${i},'val',this.value)"/>`;
+      }
+    } else if(!fetchedOnce){
+      valEl=`<select disabled><option>— fetch first —</option></select>`;
+    } else{
       const vals=fieldValCache[f.field]||[];
       if(!vals.length){valEl=`<select disabled><option>— no values —</option></select>`;}
       else{
@@ -560,6 +583,12 @@ function renderFilterList(){
 }
 function updateFilter(i,k,v){filters[i][k]=v;if(k==='field'){const vals=fieldValCache[v]||[];filters[i].val=vals.length?vals[0]:'';renderFilterList();}if(k==='op'){const vals=fieldValCache[filters[i].field]||[];filters[i].val=vals.length?vals[0]:'';renderFilterList();}}
 function setFL(i,v){filters[i].logic=v;renderFilterList();}
+function updateFilterBetween(i,part,v){
+  const parts=(filters[i].val||'').split('|');
+  if(part==='from') parts[0]=v;
+  else parts[1]=v;
+  filters[i].val=parts.join('|');
+}
 function removeFilter(i){filters.splice(i,1);renderFilterList();}
 
 async function previewLeads(){
@@ -678,7 +707,20 @@ function applyFilters(leads,filterList){
   });
 }
 function evalFilter(lead,f){
-  const raw=lead[f.field];const cell=String(raw??'').toLowerCase().trim();const val=String(f.val??'').toLowerCase().trim();
+  const raw=lead[f.field];
+  const cell=String(raw??'').toLowerCase().trim();
+  const val=String(f.val??'').toLowerCase().trim();
+  // date operators
+  if(f.op==='date_after'||f.op==='date_before'||f.op==='date_between'){
+    const d=raw?new Date(raw):null;
+    if(!d||isNaN(d)) return false;
+    if(f.op==='date_after')  return d>=new Date(f.val);
+    if(f.op==='date_before') return d<=new Date(f.val+'T23:59:59');
+    if(f.op==='date_between'){
+      const [from,to]=(f.val||'').split('|');
+      return (!from||d>=new Date(from))&&(!to||d<=new Date(to+'T23:59:59'));
+    }
+  }
   switch(f.op){case 'is':return cell===val;case 'is_not':return cell!==val;case 'contains':return cell.includes(val);case 'not_contains':return !cell.includes(val);case 'has_value':return raw!==null&&raw!==undefined&&String(raw).trim()!=='';case 'is_empty':return raw===null||raw===undefined||String(raw).trim()==='';default:return true;}
 }
 
