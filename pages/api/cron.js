@@ -140,6 +140,17 @@ function evalFilter(lead, f) {
   const raw  = lead[f.field];
   const cell = String(raw??"").toLowerCase().trim();
   const val  = String(f.val??"").toLowerCase().trim();
+  // date operators
+  if(f.op==="date_after"||f.op==="date_before"||f.op==="date_between"){
+    const d = raw ? new Date(raw) : null;
+    if(!d||isNaN(d)) return false;
+    if(f.op==="date_after")  return d >= new Date(f.val);
+    if(f.op==="date_before") return d <= new Date(f.val+"T23:59:59");
+    if(f.op==="date_between"){
+      const [from,to]=(f.val||"").split("|");
+      return (!from||d>=new Date(from))&&(!to||d<=new Date(to+"T23:59:59"));
+    }
+  }
   switch(f.op) {
     case "is":           return cell===val;
     case "is_not":       return cell!==val;
