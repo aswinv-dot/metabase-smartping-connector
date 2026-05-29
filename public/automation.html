@@ -651,7 +651,7 @@ function editRule(id){
   editRuleId=id;
   document.getElementById('rule-name').value=rule.name;
   document.getElementById('rule-campaign').value=rule.campaign;
-  filters=rule.filters.map(f=>({...f}));
+  filters=(rule.filters||rule.filters_json||[]).map(f=>({...f}));
   renderFilterList();
   document.getElementById('rule-form-title').textContent='Edit Rule';
   switchTab('rules');
@@ -663,7 +663,7 @@ function renderRules(){
   document.getElementById('rule-count').textContent=rules.length?`(${rules.length})`:'';
   if(!rules.length){list.innerHTML='<div class="empty-box">No rules yet.</div>';return;}
   list.innerHTML=rules.map(rule=>{
-    const pills=rule.filters.map((f,i)=>{
+    const pills=(rule.filters||rule.filters_json||[]).map((f,i)=>{
       const opLabel=OPERATORS.find(o=>o.value===f.op)?.label||f.op;
       const needVal=OPERATORS.find(o=>o.value===f.op)?.needsVal;
       const valPart=needVal?`<span class="rval">${f.val===''?'(empty)':escHtml(f.val)}</span>`:'';
