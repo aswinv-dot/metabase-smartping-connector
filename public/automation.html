@@ -237,8 +237,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
             <option value="">Loading...</option>
           </select>
         </div>
-        <div class="fetch-bar">
-          <span class="fetch-status" id="fetch-status">Fetch values to enable filter dropdowns</span>
+        <div class="fetch-bar" style="flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1">
+            <label style="font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap">Created</label>
+            <input type="date" id="fetch-date-from" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--font);font-size:11px;color:var(--text);background:#fff;outline:none"/>
+            <label style="font-size:11px;color:var(--muted);font-weight:600">to</label>
+            <input type="date" id="fetch-date-to" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--font);font-size:11px;color:var(--text);background:#fff;outline:none"/>
+            <span class="fetch-status" id="fetch-status">Set date range then fetch</span>
+          </div>
           <button class="fetch-btn" id="fetch-btn" onclick="fetchAllValues()">↻ Fetch Values</button>
         </div>
         <div class="form-label" style="margin-bottom:10px">Filters</div>
@@ -478,13 +484,25 @@ async function loadRules(){
 async function fetchAllValues(){
   const btn=document.getElementById('fetch-btn');
   const status=document.getElementById('fetch-status');
+  const df=document.getElementById('fetch-date-from').value;
+  const dt=document.getElementById('fetch-date-to').value;
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>Fetching...';
   status.className='fetch-status'; status.textContent='Fetching...';
   try{
     leadsCache=null;
     const res=await fetch(METABASE_PROXY);
-    const leads=await res.json();
+    let leads=await res.json();
     if(!Array.isArray(leads)) throw new Error('Bad response');
+    // apply date filter client-side
+    if(df||dt){
+      leads=leads.filter(row=>{
+        const d=row.created_at?new Date(row.created_at):null;
+        if(!d) return true;
+        if(df&&d<new Date(df)) return false;
+        if(dt&&d>new Date(dt+"T23:59:59")) return false;
+        return true;
+      });
+    }
     leadsCache=leads;
     fieldValCache={};
     FIELDS.forEach(field=>{
@@ -500,7 +518,7 @@ async function fetchAllValues(){
     });
     fetchedOnce=true;
     status.className='fetch-status ok';
-    status.textContent=`✓ Fetched ${leads.length} leads`;
+    status.textContent=`✓ Fetched ${leads.length} leads${(df||dt)?' (date filtered)':''}`;
     renderFilterList();
   }catch(e){status.className='fetch-status err';status.textContent='Failed: '+e.message;}
   btn.disabled=false; btn.innerHTML='↻ Fetch Values';
