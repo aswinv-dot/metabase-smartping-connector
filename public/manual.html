@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Manual Campaign — TerraTern</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#00215C;--blue:#255CC1;--sky:#9acbfd;--yellow:#f1c819;
+  --bg:#f4f7fc;--surface:#fff;--border:#dde6f5;
+  --text:#00215C;--muted:#5a7ab5;--muted2:#8aa4cc;
+  --green:#1a9e5c;--red:#e03e3e;
+  --font:'Inter',system-ui,sans-serif;--radius:8px;--shadow:0 1px 4px rgba(0,33,92,.08);
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:60px}
+.header{background:var(--navy);padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,33,92,.15)}
+.logo{font-size:18px;font-weight:800;letter-spacing:2px;color:#fff}.logo span{color:var(--yellow)}
+.sub{font-size:11px;color:var(--sky);letter-spacing:1px;text-transform:uppercase;flex:1}
+.nav-link{font-size:12px;color:var(--sky);text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:6px 14px;border-radius:6px;transition:all .15s}
+.nav-link:hover{background:rgba(154,203,253,.15);border-color:var(--sky)}
+
+.wrap{max-width:1200px;margin:0 auto;padding:24px 32px;display:flex;flex-direction:column;gap:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 24px}
+.sec-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600}
+
+/* STEP INDICATOR */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:28px}
+.step{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--muted2)}
+.step.active{color:var(--blue)}
+.step.done{color:var(--green)}
+.step-num{width:28px;height:28px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.step.done .step-num{background:var(--green);border-color:var(--green);color:#fff}
+.step.active .step-num{background:var(--blue);border-color:var(--blue);color:#fff}
+.step-line{flex:1;height:2px;background:var(--border);margin:0 8px}
+.step-line.done{background:var(--green)}
+
+/* SYNC ROW */
+.sync-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.date-input{border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
+.date-input:focus{border-color:var(--blue)}
+.sync-meta{font-size:11px;color:var(--muted);margin-left:auto}
+
+/* CAMPAIGN SELECTOR */
+.campaign-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:4px}
+.campaign-tile{border:2px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:all .2s;background:#fff}
+.campaign-tile:hover{border-color:var(--sky);background:#f0f7ff}
+.campaign-tile.selected{border-color:var(--blue);background:#e8f0ff}
+.ct-name{font-size:13px;font-weight:700;color:var(--navy)}
+.ct-params{font-size:10px;color:var(--muted);margin-top:4px}
+.ct-media{font-size:10px;color:var(--blue);margin-top:3px}
+
+/* LEADS TABLE */
+.table-wrap{border:1px solid var(--border);border-radius:6px;overflow:auto;max-height:380px}
+.table{width:100%;border-collapse:collapse;font-size:12px}
+.table th{padding:9px 14px;background:#f0f5ff;color:var(--navy);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;position:sticky;top:0;font-weight:700;white-space:nowrap}
+.table td{padding:9px 14px;border-bottom:1px solid #f0f4fb;color:var(--text)}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:#f8faff}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.badge.mql{background:#e3f0ff;color:var(--blue);border:1px solid var(--sky)}
+.badge.no{background:#f5f5f5;color:var(--muted2)}
+.empty-state{padding:48px;text-align:center;color:var(--muted2);font-size:13px}
+
+/* FIRE SECTION */
+.fire-section{background:linear-gradient(135deg,#e8f0ff,#f0f8ff);border:1.5px solid var(--sky);border-radius:var(--radius);padding:20px 24px}
+.fire-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.fire-stat{text-align:center}
+.fire-stat-val{font-size:28px;font-weight:800;color:var(--navy)}
+.fire-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:3px}
+.fire-btn{background:var(--yellow);color:var(--navy);border:none;padding:14px 40px;cursor:pointer;font-family:var(--font);font-size:14px;font-weight:800;border-radius:8px;transition:all .15s;letter-spacing:.5px;width:100%}
+.fire-btn:hover{opacity:.9;transform:translateY(-1px)}
+.fire-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.fire-progress{margin-top:14px}
+.progress-bar-wrap{background:#dde6f5;border-radius:20px;height:8px;overflow:hidden;margin-bottom:8px}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--sky));border-radius:20px;transition:width .3s;width:0%}
+.progress-text{font-size:12px;color:var(--muted);text-align:center}
+.fire-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.fire-result-card{background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center}
+.fire-result-val{font-size:20px;font-weight:800}
+.fire-result-val.green{color:var(--green)}.fire-result-val.red{color:var(--red)}.fire-result-val.muted{color:var(--muted2)}
+.fire-result-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-top:2px}
+
+/* BUTTONS */
+.btn{background:var(--blue);color:#fff;border:none;padding:9px 20px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--navy)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:8px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
+.btn-ghost:hover{background:var(--blue);color:#fff}
+
+/* LOG */
+.log-row{padding:8px 12px;border-bottom:1px solid #f0f4fb;font-size:11px;display:grid;grid-template-columns:58px 1fr 60px;gap:6px;align-items:center}
+.log-row:last-child{border-bottom:none}
+.log-row:hover{background:#f8faff}
+.log-time{color:var(--muted2);font-size:10px}
+.log-msg{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-status{text-align:right;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
+.log-status.success{background:#e8f5e9;color:var(--green)}
+.log-status.error{background:#fdecea;color:var(--red)}
+.log-status.skipped{background:#f5f5f5;color:var(--muted2)}
+.log-feed{border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:280px;overflow-y:auto}
+.log-empty{padding:24px;text-align:center;color:var(--muted2);font-size:12px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+.spin-blue{border-color:rgba(37,92,193,.2);border-top-color:var(--blue)}
+
+@media(max-width:768px){.wrap{padding:16px}.fire-summary,.fire-result-grid{grid-template-columns:repeat(3,1fr)}.steps .step span:not(.step-num){display:none}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">TERRA<span>TERN</span></div>
+  <div class="sub">Manual Campaign</div>
+  <a href="/automation.html" class="nav-link">⚙ Automation</a>
+</div>
+
+<div class="wrap">
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step active" id="step1">
+      <span class="step-num">1</span>
+      <span>Sync Leads</span>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step" id="step2">
+      <span class="step-num">2</span>
+      <span>Pick Campaign</span>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step" id="step3">
+      <span class="step-num">3</span>
+      <span>Review & Fire</span>
+    </div>
+  </div>
+
+  <!-- STEP 1: SYNC -->
+  <div class="card" id="card-sync">
+    <div class="sec-label">Step 1 — Sync Leads from Metabase</div>
+    <div class="sync-row">
+      <label style="font-size:11px;color:var(--muted);font-weight:600">From</label>
+      <input type="date" class="date-input" id="date-from"/>
+      <label style="font-size:11px;color:var(--muted);font-weight:600">To</label>
+      <input type="date" class="date-input" id="date-to"/>
+      <button class="btn" id="sync-btn" onclick="syncLeads()">↻ Sync Leads</button>
+      <span class="sync-meta" id="sync-meta">Not synced yet</span>
+    </div>
+    <div id="table-area" style="margin-top:16px">
+      <div class="empty-state">Click Sync to load leads</div>
+    </div>
+  </div>
+
+  <!-- STEP 2: CAMPAIGN -->
+  <div class="card" id="card-campaign" style="display:none">
+    <div class="sec-label">Step 2 — Select Campaign</div>
+    <div class="campaign-grid" id="campaign-grid">
+      <div class="empty-state" style="padding:24px;grid-column:1/-1">Loading campaigns...</div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button class="btn-ghost" onclick="goBack(1)">← Back</button>
+      <button class="btn" id="next-btn" onclick="goStep3()" disabled>Next → Review</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: FIRE -->
+  <div class="card" id="card-fire" style="display:none">
+    <div class="sec-label">Step 3 — Review & Fire</div>
+    <div class="fire-section">
+      <div class="fire-summary">
+        <div class="fire-stat"><div class="fire-stat-val" id="f-total">0</div><div class="fire-stat-label">Total Leads</div></div>
+        <div class="fire-stat"><div class="fire-stat-val" id="f-campaign" style="font-size:16px;padding-top:6px">—</div><div class="fire-stat-label">Campaign</div></div>
+        <div class="fire-stat"><div class="fire-stat-val" id="f-params">0</div><div class="fire-stat-label">Template Params</div></div>
+      </div>
+      <button class="fire-btn" id="fire-btn" onclick="fireCampaign()">▶ FIRE CAMPAIGN</button>
+      <div class="fire-progress" id="fire-progress" style="display:none">
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+        <div class="progress-text" id="progress-text">Sending...</div>
+      </div>
+      <div class="fire-result-grid" id="fire-results" style="display:none">
+        <div class="fire-result-card"><div class="fire-result-val green" id="r-sent">0</div><div class="fire-result-label">Sent</div></div>
+        <div class="fire-result-card"><div class="fire-result-val red" id="r-failed">0</div><div class="fire-result-label">Failed</div></div>
+        <div class="fire-result-card"><div class="fire-result-val muted" id="r-skipped">0</div><div class="fire-result-label">Skipped</div></div>
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn-ghost" onclick="goBack(2)">← Back</button>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sec-label" style="margin-bottom:0">Activity Log</div>
+      <button onclick="clearLogs()" style="font-size:11px;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:var(--font)">Clear</button>
+    </div>
+    <div class="log-feed" id="log-feed"><div class="log-empty">No activity yet</div></div>
+  </div>
+
+</div>
+
+<script>
+const APIKEY        = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
+const SMARTPING_URL = "https://backend.api-wa.co/campaign/smartping/api/v2";
+
+let leads          = [];
+let campaigns      = [];
+let selectedCamp   = null;
+let logs           = [];
+let currentStep    = 1;
+
+window.onload = () => {
+  const today = new Date();
+  const prior = new Date(); prior.setDate(prior.getDate()-30);
+  document.getElementById('date-to').value   = today.toISOString().split('T')[0];
+  document.getElementById('date-from').value = prior.toISOString().split('T')[0];
+  loadCampaigns();
+};
+
+// ── CAMPAIGNS ─────────────────────────────────────────────────
+async function loadCampaigns() {
+  try {
+    const res  = await fetch('/api/campaigns');
+    const data = await res.json();
+    campaigns  = (data.campaigns||[]).filter(c=>c.active);
+  } catch(e) { campaigns=[]; }
+}
+
+// ── STEP 1: SYNC ──────────────────────────────────────────────
+async function syncLeads() {
+  const btn  = document.getElementById('sync-btn');
+  const meta = document.getElementById('sync-meta');
+  const df   = document.getElementById('date-from').value;
+  const dt   = document.getElementById('date-to').value;
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Syncing...';
+
+  try {
+    const res  = await fetch('/api/metabase-proxy');
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("Bad response");
+
+    let filtered = data;
+    if (df||dt) {
+      filtered = data.filter(row => {
+        const d = row.created_at ? new Date(row.created_at) : null;
+        if (!d) return true;
+        if (df && d < new Date(df)) return false;
+        if (dt && d > new Date(dt+"T23:59:59")) return false;
+        return true;
+      });
+    }
+
+    leads = filtered;
+    const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    meta.textContent = `${leads.length} of ${data.length} leads — synced ${now}`;
+    renderTable();
+    addLog('sync',`Synced ${leads.length} leads`,'success');
+
+    // auto-advance to step 2
+    setTimeout(()=>goStep(2), 400);
+  } catch(e) {
+    meta.textContent='Failed: '+e.message;
+    addLog('sync','Sync failed: '+e.message,'error');
+  }
+  btn.disabled=false; btn.innerHTML='↻ Sync Leads';
+}
+
+function renderTable() {
+  const area = document.getElementById('table-area');
+  if (!leads.length) { area.innerHTML='<div class="empty-state">No leads in selected date range</div>'; return; }
+  const cols   = ['fullname','mobile','email','current_lead_status','application','created_at'];
+  const labels = ['Name','Mobile','Email','Status','Application','Created'];
+  let html = '<div class="table-wrap"><table class="table"><thead><tr>';
+  labels.forEach(l=>html+=`<th>${l}</th>`);
+  html+='</tr></thead><tbody>';
+  leads.forEach(row=>{
+    html+='<tr>';
+    cols.forEach(c=>{
+      let val=row[c]||'—';
+      if (c==='created_at'&&val!=='—') val=new Date(val).toLocaleDateString('en-IN');
+      if (c==='application'&&val!=='—') val=`<span style="font-size:11px">${String(val).slice(0,26)}${String(val).length>26?'…':''}</span>`;
+      html+=`<td>${val}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  area.innerHTML=html;
+}
+
+// ── STEP 2: CAMPAIGN ──────────────────────────────────────────
+function renderCampaignGrid() {
+  const grid = document.getElementById('campaign-grid');
+  if (!campaigns.length) {
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1;padding:24px">No active campaigns. <a href="/automation.html" style="color:var(--blue)">Add one in Automation →</a></div>`;
+    return;
+  }
+  grid.innerHTML = campaigns.map(c=>`
+    <div class="campaign-tile" id="tile-${c.campaign_name}" onclick="selectCampaign('${c.campaign_name}')">
+      <div class="ct-name">${c.campaign_name}</div>
+      <div class="ct-params">${(c.template_params||[]).length} template params</div>
+      ${c.media_url?`<div class="ct-media">📎 Media attached</div>`:''}
+    </div>`).join('');
+}
+
+function selectCampaign(name) {
+  selectedCamp = campaigns.find(c=>c.campaign_name===name);
+  document.querySelectorAll('.campaign-tile').forEach(t=>t.classList.remove('selected'));
+  document.getElementById(`tile-${name}`)?.classList.add('selected');
+  document.getElementById('next-btn').disabled=false;
+}
+
+// ── STEP 3: FIRE ──────────────────────────────────────────────
+function setupFireStep() {
+  document.getElementById('f-total').textContent    = leads.length;
+  document.getElementById('f-campaign').textContent = selectedCamp?.campaign_name||'—';
+  document.getElementById('f-params').textContent   = (selectedCamp?.template_params||[]).length;
+  document.getElementById('fire-results').style.display='none';
+  document.getElementById('fire-progress').style.display='none';
+  document.getElementById('progress-bar').style.width='0%';
+  document.getElementById('fire-btn').disabled=false;
+  document.getElementById('fire-btn').textContent='▶ FIRE CAMPAIGN';
+}
+
+async function fireCampaign() {
+  if (!selectedCamp||!leads.length) return;
+  const btn=document.getElementById('fire-btn');
+  const prog=document.getElementById('fire-progress');
+  const bar=document.getElementById('progress-bar');
+  const txt=document.getElementById('progress-text');
+  const results=document.getElementById('fire-results');
+
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Firing...';
+  prog.style.display='block'; results.style.display='none';
+
+  let sent=0, failed=0, skipped=0;
+
+  for (let i=0; i<leads.length; i++) {
+    const lead = leads[i];
+    const phone = String(lead.mobile||'').replace(/^\+/,'').replace(/\D/g,'');
+    const name  = lead.fullname||'User';
+
+    const pct = Math.round(((i+1)/leads.length)*100);
+    bar.style.width=pct+'%';
+    txt.textContent=`Sending ${i+1} of ${leads.length}...`;
+
+    if (!phone) { skipped++; continue; }
+
+    const payload={
+      apiKey:APIKEY, campaignName:selectedCamp.campaign_name,
+      destination:phone, userName:name,
+      templateParams:selectedCamp.template_params||[],
+      source:"manual-fire",
+      media:selectedCamp.media_url?{url:selectedCamp.media_url,filename:"media"}:{},
+      buttons:[], carouselCards:[], location:{}, attributes:{},
+      paramsFallbackValue:{FirstName:"user"},
+    };
+
+    try {
+      const res=await fetch(SMARTPING_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if (res.ok) { sent++; addLog(selectedCamp.campaign_name,`Sent → ${name} (${phone})`,'success'); }
+      else { failed++; addLog(selectedCamp.campaign_name,`Failed → ${phone}`,'error'); }
+    } catch(e) { failed++; addLog(selectedCamp.campaign_name,`Error: ${e.message}`,'error'); }
+  }
+
+  bar.style.width='100%';
+  txt.textContent=`Done — ${sent} sent, ${failed} failed, ${skipped} skipped`;
+  document.getElementById('r-sent').textContent    = sent;
+  document.getElementById('r-failed').textContent  = failed;
+  document.getElementById('r-skipped').textContent = skipped;
+  results.style.display='grid';
+  btn.disabled=false; btn.textContent='▶ FIRE AGAIN';
+  addLog(selectedCamp.campaign_name,`Complete: ${sent} sent, ${failed} failed`,'success');
+}
+
+// ── STEP NAV ──────────────────────────────────────────────────
+function goStep(n) {
+  currentStep=n;
+  document.getElementById('card-sync').style.display     = n>=1?'block':'none';
+  document.getElementById('card-campaign').style.display = n>=2?'block':'none';
+  document.getElementById('card-fire').style.display     = n>=3?'block':'none';
+
+  [1,2,3].forEach(i=>{
+    const el=document.getElementById(`step${i}`);
+    el.className='step'+(i<n?' done':i===n?' active':'');
+  });
+  [1,2].forEach(i=>{
+    const el=document.getElementById(`line${i}`);
+    el.className='step-line'+(i<n?' done':'');
+  });
+
+  if (n===2) renderCampaignGrid();
+  if (n===3) setupFireStep();
+
+  window.scrollTo({top:document.getElementById(`card-${n===1?'sync':n===2?'campaign':'fire'}`).offsetTop-80,behavior:'smooth'});
+}
+
+function goStep3() { if (!selectedCamp) return; goStep(3); }
+function goBack(from) { goStep(from); }
+
+// ── LOGS ──────────────────────────────────────────────────────
+function addLog(campaign,msg,status) {
+  const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  logs.unshift({time:now,campaign,msg,status});
+  if (logs.length>200) logs=logs.slice(0,200);
+  renderLogs();
+}
+function renderLogs() {
+  const feed=document.getElementById('log-feed');
+  if (!logs.length){ feed.innerHTML='<div class="log-empty">No activity yet</div>'; return; }
+  feed.innerHTML=logs.map(l=>`
+    <div class="log-row">
+      <span class="log-time">${l.time}</span>
+      <span class="log-msg">[${l.campaign}] ${l.msg}</span>
+      <span class="log-status ${l.status}">${l.status.toUpperCase()}</span>
+    </div>`).join('');
+}
+function clearLogs(){ logs=[]; renderLogs(); }
+</script>
+</body>
+</html>
