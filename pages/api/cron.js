@@ -4,8 +4,7 @@ import { getAllRules, getCampaigns, addLog } from "../../lib/gas";
 const SMARTPING_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
 const SMARTPING_URL     = "https://backend.api-wa.co/campaign/smartping/api/v2";
 const METABASE_URL      = "https://metabase.terratern.com/api/public/card/7e84f141-e90d-4852-a158-4d6a75bf4833/query/json";
-const GAS_URL           = "https://script.google.com/macros/s/AKfycbwcMrKyCyop7YYWmr6Rm8XaRXj_V2Li7uVPCAMAhYWibjdcIHqrrYYhbBwRSzk1FwGP/exec";
-
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxOF8IfE40PFWYQQ37cLc9SBFyjoWuBoJ2pGzpl205eEH-3IkeMF9oOC2mfbV9gKTs1/exec";
 const DYNAMIC_PARAMS = {
   ghc_mkt02_api: (row) => [
     firstName(row.fullname),
