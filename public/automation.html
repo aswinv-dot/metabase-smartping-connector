@@ -353,7 +353,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div class="filter-list" id="s-filter-list"></div>
         <button class="add-filter-btn" onclick="addScheduleFilter()">+ Add Filter</button>
 
-        <div class="btn-row" style="margin-top:14px">
+        <div style="margin-top:14px;margin-bottom:10px">
+          <button class="btn-ghost" style="width:100%;border-color:var(--yellow);color:var(--amber);font-size:12px" onclick="checkOverlap()">⚡ Check Overlap Before Saving</button>
+          <div id="overlap-result" style="display:none;margin-top:10px"></div>
+        </div>
+        <div class="btn-row" style="margin-top:0">
           <button class="btn" onclick="saveSchedule()">Save Schedule</button>
           <button class="btn-ghost" onclick="resetScheduleForm()">Clear</button>
           <span class="status-msg" id="s-msg" style="margin-top:0"></span>
@@ -1522,6 +1526,90 @@ function renderSchedules(){
       </div>
     </div>`;
   }).join('');
+}
+
+async function checkOverlap(){
+  const resultDiv = document.getElementById('overlap-result');
+  const btn = document.querySelector('[onclick="checkOverlap()"]');
+  btn.disabled=true; btn.innerHTML='<span class="spin spin-blue"></span>Checking...';
+  resultDiv.style.display='none';
+
+  try {
+    // fetch leads if not cached
+    if(!sLeadsCache){
+      const res=await fetch(METABASE_PROXY);
+      sLeadsCache=await res.json();
+    }
+
+    // apply current form filters
+    const currentMatched = applyFilters(sLeadsCache, sFilters);
+    const currentPhones  = new Set(currentMatched.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
+
+    if(!currentPhones.size){
+      resultDiv.style.display='block';
+      resultDiv.innerHTML=`<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:12px 14px;font-size:12px;color:var(--red)">
+        ⚠ No leads matched your current filters. Add filters first.
+      </div>`;
+      btn.disabled=false; btn.innerHTML='⚡ Check Overlap Before Saving';
+      return;
+    }
+
+    // check against all existing active schedules
+    const existingSchedules = schedules.filter(s => s.active && s.id !== editSchedId);
+
+    if(!existingSchedules.length){
+      resultDiv.style.display='block';
+      resultDiv.innerHTML=`<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:12px 14px;font-size:12px;color:var(--green)">
+        ✓ No existing active schedules — no overlap possible.
+        <div style="margin-top:4px;color:var(--muted)">Your filters match <strong>${currentPhones.size.toLocaleString()}</strong> leads.</div>
+      </div>`;
+      btn.disabled=false; btn.innerHTML='⚡ Check Overlap Before Saving';
+      return;
+    }
+
+    // compare with each existing schedule
+    let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+      <div style="padding:8px 12px;background:#f0f5ff;font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)">
+        Overlap Check — Your filters match ${currentPhones.size.toLocaleString()} leads
+      </div>`;
+
+    let hasOverlap = false;
+    for(const s of existingSchedules){
+      const existingFilters = Array.isArray(s.filters_json) ? s.filters_json : [];
+      const existingMatched = applyFilters(sLeadsCache, existingFilters);
+      const existingPhones  = new Set(existingMatched.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
+      const overlap         = [...currentPhones].filter(p=>existingPhones.has(p)).length;
+      const pct             = Math.round((overlap/currentPhones.size)*100);
+      const color           = overlap===0?'var(--green)':pct>50?'var(--red)':'var(--amber)';
+      if(overlap>0) hasOverlap=true;
+
+      html+=`<div style="padding:10px 14px;border-bottom:1px solid #f0f4fb;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy)">${s.name}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Active · Start ${s.start_date}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:18px;font-weight:800;color:${color}">${overlap.toLocaleString()}</div>
+          <div style="font-size:10px;color:var(--muted)">${pct}% overlap</div>
+        </div>
+      </div>`;
+    }
+
+    html+=`<div style="padding:10px 14px;background:#f8faff;font-size:11px;color:var(--muted)">
+      ${hasOverlap
+        ? '⚠ Overlapping leads will receive messages from <strong>both schedules</strong> on the same day.'
+        : '✓ No overlap found — safe to save.'}
+    </div></div>`;
+
+    resultDiv.style.display='block';
+    resultDiv.innerHTML=html;
+
+  } catch(e){
+    resultDiv.style.display='block';
+    resultDiv.innerHTML=`<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:12px;font-size:12px;color:var(--red)">Failed: ${e.message}</div>`;
+  }
+
+  btn.disabled=false; btn.innerHTML='⚡ Check Overlap Before Saving';
 }
 
 function resetScheduleForm(){
