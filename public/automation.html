@@ -380,13 +380,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div class="cron-card">
           <div class="cron-schedule">
             <div>
-            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-  <div class="cron-time" style="font-size:20px">4:30 PM</div>
-  <div style="font-size:16px;color:var(--muted)">+</div>
-  <div class="cron-time" style="font-size:20px">6:00 PM</div>
-  <div style="font-size:16px;color:var(--muted)">+</div>
-  <div class="cron-time" style="font-size:20px">7:30 PM</div>
-  <div style="font-size:13px;color:var(--muted);font-weight:600">IST</div>
+              <div style="display:flex;gap:12px;align-items:center">
+                <div class="cron-time" style="font-size:20px">4:30 PM</div>
+                <div style="font-size:16px;color:var(--muted)">+</div>
+                <div class="cron-time" style="font-size:20px">6:00 PM</div>
+                <div style="font-size:16px;color:var(--muted)">+</div>
+                <div class="cron-time" style="font-size:20px">7:30 PM</div>
+                <div style="font-size:13px;color:var(--muted);font-weight:600">IST</div>
               </div>
               <div style="font-size:12px;color:var(--muted);margin-top:4px">Every day — auto-runs without action</div>
             </div>
@@ -398,11 +398,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
           <div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">What cron does</div>
           <div style="font-size:12px;color:var(--muted);line-height:1.8">
             1. Fetches all leads from Metabase<br>
-            2. Loads active rules from Google Sheet<br>
+            2. Loads active schedule from Supabase<br>
             3. Matches each lead to first matching rule<br>
             4. Skips leads messaged in last 24h (dedup)<br>
             5. Sends WhatsApp via Smartping<br>
-            6. Logs everything to Google Sheet
+            6. Logs everything to Supabase
           </div>
         </div>
       </div>
