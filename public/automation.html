@@ -1004,9 +1004,9 @@ async function loadTodayDetail() {
     // counts
     const sentSuccess = sentRows.filter(r=>r.status==='success').length;
     const sentFailed  = sentRows.filter(r=>r.status==='error').length;
-    const by430  = sentRows.filter(r=>r.time_slot==='4:30PM'||r.time_slot==='5PM').length;
-    const by600  = sentRows.filter(r=>r.time_slot==='6PM'||r.time_slot==='6:00PM').length;
-    const by730  = sentRows.filter(r=>r.time_slot==='7PM'||r.time_slot==='7:30PM').length;
+    const by430  = sentRows.filter(r=>r.time_slot==='4:30PM').length;
+    const by600  = sentRows.filter(r=>r.time_slot==='6:00PM').length;
+    const by730  = sentRows.filter(r=>r.time_slot==='7:30PM').length;
     const byOther= sentSuccess - by430 - by600 - by730;
 
     // fetch all sent for this phase to calculate remaining
