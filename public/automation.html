@@ -167,6 +167,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 <div class="tabs">
   <div class="tab active" onclick="switchTab('campaigns')">Campaigns</div>
   <div class="tab" onclick="switchTab('rules')">Rules</div>
+  <div class="tab" onclick="switchTab('schedule')">Schedule</div>
   <div class="tab" onclick="switchTab('cron')">Cron & Logs</div>
 </div>
 
@@ -279,6 +280,97 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
   </div>
 
+  <!-- TAB: SCHEDULE ──────────────────────────────────────── -->
+  <div class="tab-content" id="tab-schedule">
+    <div class="layout2">
+
+      <!-- LEFT: Schedule Form -->
+      <div class="card">
+        <div class="sec-label" id="sched-form-title">Create Schedule</div>
+
+        <div class="form-group">
+          <label class="form-label">Schedule Name</label>
+          <input class="form-input" id="s-name" placeholder="e.g. GHC + Ausbildung June 2026"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Start Date</label>
+          <input type="date" class="form-input" id="s-start-date"/>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">R1 Campaign</label>
+            <select class="form-select" id="s-r1-campaign"><option value="">Select...</option></select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">R1 Days</label>
+            <input type="number" class="form-input" id="s-r1-days" value="8" min="1"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gap 1 Days</label>
+          <input type="number" class="form-input" id="s-gap1-days" value="1" min="0"/>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">R2 Campaign</label>
+            <select class="form-select" id="s-r2-campaign"><option value="">Select...</option></select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">R2 Days</label>
+            <input type="number" class="form-input" id="s-r2-days" value="8" min="1"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gap 2 Days</label>
+          <input type="number" class="form-input" id="s-gap2-days" value="1" min="0"/>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">R3 Campaign</label>
+            <select class="form-select" id="s-r3-campaign"><option value="">Select...</option></select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">R3 Days</label>
+            <input type="number" class="form-input" id="s-r3-days" value="8" min="1"/>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="form-label" style="margin-bottom:10px">Lead Filters</div>
+        <div class="fetch-bar" style="margin-bottom:12px">
+          <span class="fetch-status" id="s-fetch-status">Fetch values to enable dropdowns</span>
+          <button class="fetch-btn" onclick="fetchScheduleValues()">↻ Fetch Values</button>
+        </div>
+        <div class="filter-list" id="s-filter-list"></div>
+        <button class="add-filter-btn" onclick="addScheduleFilter()">+ Add Filter</button>
+
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn" onclick="saveSchedule()">Save Schedule</button>
+          <button class="btn-ghost" onclick="resetScheduleForm()">Clear</button>
+          <span class="status-msg" id="s-msg" style="margin-top:0"></span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Schedule List -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="sec-label" style="margin-bottom:0">Schedules <span id="s-count" style="color:var(--blue)"></span></div>
+          <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadSchedules()">↻ Refresh</button>
+        </div>
+        <div id="schedules-list"><div class="empty-box">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+
   <!-- TAB: CRON ───────────────────────────────────────────── -->
   <div class="tab-content" id="tab-cron">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
@@ -372,11 +464,12 @@ window.onload=()=>{
 // ── TABS ──────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    const names=['campaigns','rules','cron'];
+    const names=['campaigns','rules','schedule','cron'];
     t.className='tab'+(names[i]===name?' active':'');
   });
   document.querySelectorAll('.tab-content').forEach(c=>c.className='tab-content');
   document.getElementById('tab-'+name).className='tab-content active';
+  if(name==='schedule') { loadSchedules(); populateScheduleCampaigns(); }
 }
 
 // ── CAMPAIGNS ─────────────────────────────────────────────────
@@ -832,6 +925,250 @@ async function testCampaign(name) {
 
   btn.disabled=false; btn.textContent='▶ Test';
   setTimeout(()=>{ result.style.display='none'; }, 5000);
+}
+
+// ── SCHEDULE ──────────────────────────────────────────────────
+const SCHEDULE_API = "/api/schedule";
+let schedules=[], sFilters=[], sLeadsCache=null, sFetchedOnce=false, sFieldValCache={}, editSchedId=null;
+
+async function loadSchedules(){
+  try{
+    const res=await fetch(SCHEDULE_API);
+    const data=await res.json();
+    schedules=data.schedules||[];
+    renderSchedules();
+  }catch(e){
+    document.getElementById('schedules-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;
+  }
+}
+
+function populateScheduleCampaigns(){
+  ['s-r1-campaign','s-r2-campaign','s-r3-campaign'].forEach(id=>{
+    const sel=document.getElementById(id);
+    const current=sel.value;
+    sel.innerHTML='<option value="">Select campaign...</option>'+
+      campaigns.map(c=>`<option value="${c.campaign_name}" ${current===c.campaign_name?'selected':''}>${c.campaign_name}</option>`).join('');
+  });
+}
+
+async function fetchScheduleValues(){
+  const status=document.getElementById('s-fetch-status');
+  status.textContent='Fetching...'; status.className='fetch-status';
+  try{
+    sLeadsCache=null;
+    const res=await fetch(METABASE_PROXY);
+    let leads=await res.json();
+    if(!Array.isArray(leads)) throw new Error('Bad response');
+    sLeadsCache=leads; sFieldValCache={};
+    FIELDS.forEach(field=>{
+      const seen=new Set(); const nonNull=[]; let hasEmpty=false;
+      leads.forEach(r=>{
+        const raw=r[field];
+        const v=(raw===null||raw===undefined||String(raw).trim()==='') ? null : String(raw).trim();
+        if(v===null) hasEmpty=true;
+        else if(!seen.has(v)){seen.add(v);nonNull.push(v);}
+      });
+      nonNull.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base',numeric:true}));
+      sFieldValCache[field]=hasEmpty?[...nonNull,'']:nonNull;
+    });
+    sFetchedOnce=true;
+    status.className='fetch-status ok';
+    status.textContent=`✓ Fetched ${leads.length} leads`;
+    renderScheduleFilters();
+  }catch(e){status.className='fetch-status err';status.textContent='Failed: '+e.message;}
+}
+
+function addScheduleFilter(){
+  sFilters.push({logic:'AND',field:FIELDS[0],op:'is',val:''});
+  renderScheduleFilters();
+}
+
+function renderScheduleFilters(){
+  const list=document.getElementById('s-filter-list');
+  if(!sFilters.length){list.innerHTML='';return;}
+  if(sFetchedOnce){
+    sFilters.forEach(f=>{
+      const vals=sFieldValCache[f.field]||[];
+      const curOp=OPERATORS.find(o=>o.value===f.op);
+      if(curOp?.needsVal&&vals.length&&!vals.includes(f.val)) f.val=vals[0];
+    });
+  }
+  list.innerHTML=sFilters.map((f,i)=>{
+    const fieldOpts=FIELDS.map(ff=>`<option value="${ff}" ${f.field===ff?'selected':''}>${ff}</option>`).join('');
+    const opOpts=OPERATORS.map(o=>`<option value="${o.value}" ${f.op===o.value?'selected':''}>${o.label}</option>`).join('');
+    const curOp=OPERATORS.find(o=>o.value===f.op);
+    const needVal=curOp?curOp.needsVal:true;
+    let valEl='';
+    if(!needVal){valEl=`<select disabled><option>—</option></select>`;}
+    else if(!sFetchedOnce){valEl=`<select disabled><option>— fetch first —</option></select>`;}
+    else{
+      const vals=sFieldValCache[f.field]||[];
+      if(!vals.length){valEl=`<select disabled><option>— no values —</option></select>`;}
+      else{
+        const opts=vals.map(v=>`<option value="${escHtml(v)}" ${f.val===v?'selected':''}>${v===''?'(empty)':escHtml(v)}</option>`).join('');
+        valEl=`<select onchange="updateSFilter(${i},'val',this.value)">${opts}</select>`;
+      }
+    }
+    const logicEl=i===0?`<div class="lt-spacer"></div>`:`<div class="logic-toggle"><button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setSFL(${i},'AND')">AND</button><button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setSFL(${i},'OR')">OR</button></div>`;
+    return `<div class="filter-row">
+      <div class="filter-top">${logicEl}<select style="flex:1" onchange="updateSFilter(${i},'field',this.value)">${fieldOpts}</select><select style="flex:1" onchange="updateSFilter(${i},'op',this.value)">${opOpts}</select></div>
+      <div class="filter-bottom">${valEl}<button class="remove-btn" onclick="removeSFilter(${i})">×</button></div>
+    </div>`;
+  }).join('');
+}
+
+function updateSFilter(i,k,v){sFilters[i][k]=v;if(k==='field'){const vals=sFieldValCache[v]||[];sFilters[i].val=vals.length?vals[0]:'';renderScheduleFilters();}if(k==='op'){const vals=sFieldValCache[sFilters[i].field]||[];sFilters[i].val=vals.length?vals[0]:'';renderScheduleFilters();}}
+function setSFL(i,v){sFilters[i].logic=v;renderScheduleFilters();}
+function removeSFilter(i){sFilters.splice(i,1);renderScheduleFilters();}
+
+async function saveSchedule(){
+  const name      = document.getElementById('s-name').value.trim();
+  const startDate = document.getElementById('s-start-date').value;
+  const r1c       = document.getElementById('s-r1-campaign').value;
+  const r1d       = parseInt(document.getElementById('s-r1-days').value)||8;
+  const gap1      = parseInt(document.getElementById('s-gap1-days').value)||1;
+  const r2c       = document.getElementById('s-r2-campaign').value;
+  const r2d       = parseInt(document.getElementById('s-r2-days').value)||8;
+  const gap2      = parseInt(document.getElementById('s-gap2-days').value)||1;
+  const r3c       = document.getElementById('s-r3-campaign').value;
+  const r3d       = parseInt(document.getElementById('s-r3-days').value)||8;
+  const msg       = document.getElementById('s-msg');
+
+  if(!name)      {msg.textContent='Name required';msg.className='status-msg err';return;}
+  if(!startDate) {msg.textContent='Start date required';msg.className='status-msg err';return;}
+  if(!r1c||!r2c||!r3c){msg.textContent='Select all 3 campaigns';msg.className='status-msg err';return;}
+
+  msg.textContent='Saving...';msg.className='status-msg';
+  try{
+    const res=await fetch(SCHEDULE_API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        id: editSchedId||undefined,
+        name, start_date:startDate,
+        filters_json: sFilters,
+        r1_campaign:r1c, r1_days:r1d,
+        gap1_days:gap1,
+        r2_campaign:r2c, r2_days:r2d,
+        gap2_days:gap2,
+        r3_campaign:r3c, r3_days:r3d,
+        active:true
+      })
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    await loadSchedules(); resetScheduleForm();
+    msg.className='status-msg ok'; msg.textContent='✓ Saved';
+    setTimeout(()=>msg.textContent='',3000);
+  }catch(e){msg.className='status-msg err';msg.textContent='Failed: '+e.message;}
+}
+
+async function toggleSchedule(id){
+  const s=schedules.find(s=>s.id===id); if(!s) return;
+  try{
+    await fetch(`${SCHEDULE_API}/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:!s.active})});
+    await loadSchedules();
+  }catch(e){alert('Failed: '+e.message);}
+}
+
+async function deleteSchedule(id){
+  if(!confirm('Delete this schedule?')) return;
+  try{
+    await fetch(`${SCHEDULE_API}/${id}`,{method:'DELETE'});
+    schedules=schedules.filter(s=>s.id!==id); renderSchedules();
+  }catch(e){alert('Failed: '+e.message);}
+}
+
+function editSchedule(id){
+  const s=schedules.find(s=>s.id===id); if(!s) return;
+  editSchedId=id;
+  document.getElementById('s-name').value=s.name;
+  document.getElementById('s-start-date').value=s.start_date;
+  document.getElementById('s-r1-days').value=s.r1_days;
+  document.getElementById('s-gap1-days').value=s.gap1_days;
+  document.getElementById('s-r2-days').value=s.r2_days;
+  document.getElementById('s-gap2-days').value=s.gap2_days;
+  document.getElementById('s-r3-days').value=s.r3_days;
+  sFilters=Array.isArray(s.filters_json)?s.filters_json.map(f=>({...f})):[];
+  populateScheduleCampaigns();
+  setTimeout(()=>{
+    document.getElementById('s-r1-campaign').value=s.r1_campaign;
+    document.getElementById('s-r2-campaign').value=s.r2_campaign;
+    document.getElementById('s-r3-campaign').value=s.r3_campaign;
+  },100);
+  renderScheduleFilters();
+  document.getElementById('sched-form-title').textContent='Edit Schedule';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function getPhaseStatus(s){
+  const start=new Date(s.start_date); start.setHours(0,0,0,0);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const dayNum=Math.floor((today-start)/(1000*60*60*24))+1;
+  const r1End=s.r1_days, gap1End=r1End+s.gap1_days;
+  const r2End=gap1End+s.r2_days, gap2End=r2End+s.gap2_days;
+  const r3End=gap2End+s.r3_days;
+  if(dayNum<1)        return {label:'Not Started',color:'var(--muted)',day:dayNum};
+  if(dayNum<=r1End)   return {label:`R1 — Day ${dayNum}/${s.r1_days}`,color:'var(--blue)',day:dayNum};
+  if(dayNum<=gap1End) return {label:'Gap Day',color:'var(--muted)',day:dayNum};
+  if(dayNum<=r2End)   return {label:`R2 — Day ${dayNum-gap1End}/${s.r2_days}`,color:'#7c3aed',day:dayNum};
+  if(dayNum<=gap2End) return {label:'Gap Day',color:'var(--muted)',day:dayNum};
+  if(dayNum<=r3End)   return {label:`R3 — Day ${dayNum-gap2End}/${s.r3_days}`,color:'var(--green)',day:dayNum};
+  return {label:'Completed',color:'var(--muted2)',day:dayNum};
+}
+
+function renderSchedules(){
+  const list=document.getElementById('schedules-list');
+  document.getElementById('s-count').textContent=schedules.length?`(${schedules.length})`:'';
+  if(!schedules.length){list.innerHTML='<div class="empty-box">No schedules yet.</div>';return;}
+  list.innerHTML=schedules.map(s=>{
+    const ps=getPhaseStatus(s);
+    return `<div class="campaign-card ${s.active?'active-c':''}">
+      <div class="cc-header">
+        <div>
+          <div class="cc-name">${escHtml(s.name)}</div>
+          <div style="font-size:10px;color:var(--sky);margin-top:2px">Start: ${s.start_date}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="cc-badge ${s.active?'active':'paused'}" onclick="toggleSchedule('${s.id}')">${s.active?'ACTIVE':'PAUSED'}</span>
+          <span style="font-size:10px;font-weight:700;color:${ps.color}">${ps.label}</span>
+        </div>
+      </div>
+      <div class="cc-body" style="font-size:12px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+          <div style="background:#e8f0ff;border-radius:6px;padding:8px 10px;text-align:center">
+            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R1 · ${s.r1_days}d</div>
+            <div style="font-size:11px;color:var(--navy);font-weight:700">${s.r1_campaign}</div>
+          </div>
+          <div style="background:#f3e8ff;border-radius:6px;padding:8px 10px;text-align:center">
+            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R2 · ${s.r2_days}d</div>
+            <div style="font-size:11px;color:#7c3aed;font-weight:700">${s.r2_campaign}</div>
+          </div>
+          <div style="background:#e8f5e9;border-radius:6px;padding:8px 10px;text-align:center">
+            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R3 · ${s.r3_days}d</div>
+            <div style="font-size:11px;color:var(--green);font-weight:700">${s.r3_campaign}</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">Gap 1: ${s.gap1_days}d &nbsp;|&nbsp; Gap 2: ${s.gap2_days}d &nbsp;|&nbsp; Total: ${s.r1_days+s.gap1_days+s.r2_days+s.gap2_days+s.r3_days} days</div>
+      </div>
+      <div class="cc-footer">
+        <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editSchedule('${s.id}')">Edit</button>
+        <button class="btn-danger" onclick="deleteSchedule('${s.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function resetScheduleForm(){
+  editSchedId=null; sFilters=[];
+  document.getElementById('s-name').value='';
+  document.getElementById('s-start-date').value='';
+  document.getElementById('s-r1-days').value=8;
+  document.getElementById('s-gap1-days').value=1;
+  document.getElementById('s-r2-days').value=8;
+  document.getElementById('s-gap2-days').value=1;
+  document.getElementById('s-r3-days').value=8;
+  document.getElementById('sched-form-title').textContent='Create Schedule';
+  document.getElementById('s-msg').textContent='';
+  renderScheduleFilters();
 }
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
