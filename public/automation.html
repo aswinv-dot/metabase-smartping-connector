@@ -466,7 +466,7 @@ let campaigns=[],rules=[],filters=[],params=[],testParams=[],editCampName=null,e
 let leadsCache=null,fieldValCache={},fetchedOnce=false,logs=[];
 
 window.onload=()=>{
-  loadCampaigns(); loadRules();
+  loadCampaigns(); loadRules(); loadSchedules();
   addParam(); addParam();
   addFilter(true); addFilter(false);
 };
@@ -942,97 +942,144 @@ async function testCampaign(name) {
 const SUPABASE_URL = "https://oagsgovnxgiszofgytre.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI";
 
+function getPhaseForDay(s, dayNum) {
+  const r1End=s.r1_days, gap1End=r1End+s.gap1_days;
+  const r2End=gap1End+s.r2_days, gap2End=r2End+s.gap2_days, r3End=gap2End+s.r3_days;
+  if(dayNum<1)          return {phase:'NOT_STARTED', campaign:'', label:'Not started'};
+  if(dayNum<=r1End)     return {phase:'R1', campaign:s.r1_campaign, label:`R1 Day ${dayNum}/${s.r1_days}`};
+  if(dayNum<=gap1End)   return {phase:'GAP', campaign:'', label:'Gap Day'};
+  if(dayNum<=r2End)     return {phase:'R2', campaign:s.r2_campaign, label:`R2 Day ${dayNum-gap1End}/${s.r2_days}`};
+  if(dayNum<=gap2End)   return {phase:'GAP', campaign:'', label:'Gap Day'};
+  if(dayNum<=r3End)     return {phase:'R3', campaign:s.r3_campaign, label:`R3 Day ${dayNum-gap2End}/${s.r3_days}`};
+  return {phase:'DONE', campaign:'', label:'Complete'};
+}
+
+function getDayNum(s, dateObj) {
+  const start=new Date(s.start_date); start.setHours(0,0,0,0);
+  const d=new Date(dateObj); d.setHours(0,0,0,0);
+  return Math.floor((d-start)/(1000*60*60*24))+1;
+}
+
 async function loadCampaignLog() {
   const wrap = document.getElementById('campaign-progress');
+  if(!wrap) return;
   wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div>';
+
   try {
-    // fetch sent_log grouped by date, time_slot, phase, campaign
+    // fetch sent_log
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/sent_log?select=sent_at,time_slot,phase,campaign,status&status=eq.success&order=sent_at.desc&limit=1000`,
+      `${SUPABASE_URL}/rest/v1/sent_log?select=sent_at,time_slot,phase,campaign,status,schedule_id&status=eq.success&order=sent_at.desc&limit=2000`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const rows = await res.json();
-    if (!rows.length) {
-      wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No sends yet.</div>';
-      return;
-    }
 
     // group by date + time_slot + phase + campaign
     const grouped = {};
     rows.forEach(r => {
-      const date = r.sent_at ? new Date(r.sent_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
-      const key  = `${date}||${r.time_slot||'—'}||${r.phase||'—'}||${r.campaign||'—'}`;
+      const d = new Date(r.sent_at);
+      const dateKey = d.toISOString().split('T')[0];
+      const key = `${dateKey}||${r.time_slot||'—'}||${r.phase||'—'}||${r.campaign||'—'}`;
       grouped[key] = (grouped[key]||0) + 1;
     });
 
-    // sort by date desc
-    const entries = Object.entries(grouped).map(([key,count]) => {
+    // group by date for daily totals
+    const byDate = {};
+    Object.entries(grouped).forEach(([key,count]) => {
       const [date,slot,phase,campaign] = key.split('||');
-      return {date,slot,phase,campaign,count};
-    }).sort((a,b) => new Date(b.date)-new Date(a.date));
-
-    // render
-    const phaseColors = { R1:'#255CC1', R2:'#7c3aed', R3:'#1a9e5c', '—':'var(--muted2)' };
-    let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead>
-          <tr style="background:#f0f5ff">
-            <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--navy);border-bottom:1px solid var(--border);font-weight:700">Date</th>
-            <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--navy);border-bottom:1px solid var(--border);font-weight:700">Time Slot</th>
-            <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--navy);border-bottom:1px solid var(--border);font-weight:700">Phase</th>
-            <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--navy);border-bottom:1px solid var(--border);font-weight:700">Campaign</th>
-            <th style="padding:8px 12px;text-align:right;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--navy);border-bottom:1px solid var(--border);font-weight:700">Sent</th>
-          </tr>
-        </thead>
-        <tbody>`;
-
-    entries.forEach(e => {
-      const pColor = phaseColors[e.phase]||'var(--muted)';
-      html += `<tr style="border-bottom:1px solid #f0f4fb">
-        <td style="padding:9px 12px;color:var(--text);font-weight:600">${e.date}</td>
-        <td style="padding:9px 12px;color:var(--muted)">${e.slot}</td>
-        <td style="padding:9px 12px"><span style="background:${pColor}22;color:${pColor};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid ${pColor}44">${e.phase}</span></td>
-        <td style="padding:9px 12px;color:var(--muted);font-size:11px">${e.campaign}</td>
-        <td style="padding:9px 12px;text-align:right;font-weight:800;color:var(--navy);font-size:14px">${e.count.toLocaleString()}</td>
-      </tr>`;
+      if(!byDate[date]) byDate[date]=[];
+      byDate[date].push({slot,phase,campaign,count});
     });
 
-    // totals
-    const total = entries.reduce((s,e)=>s+e.count,0);
-    html += `<tr style="background:#f0f5ff;font-weight:700">
-      <td colspan="4" style="padding:9px 12px;font-size:11px;color:var(--navy)">TOTAL</td>
-      <td style="padding:9px 12px;text-align:right;font-size:16px;font-weight:800;color:var(--blue)">${total.toLocaleString()}</td>
-    </tr>`;
+    // build timeline — yesterday, today, tomorrow
+    const today = new Date(); today.setHours(0,0,0,0);
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+    const tomorrow  = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
 
-    html += '</tbody></table></div>';
+    const s = schedules[0]; // use first active schedule
+    
+    const phaseColors = {R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)',NOT_STARTED:'var(--muted2)'};
 
-    // schedule status
-    if (schedules.length) {
-      const s = schedules[0];
-      const start = new Date(s.start_date); start.setHours(0,0,0,0);
-      const today = new Date(); today.setHours(0,0,0,0);
-      const dayNum = Math.floor((today-start)/(1000*60*60*24))+1;
-      const r1End=s.r1_days, gap1End=r1End+s.gap1_days;
-      const r2End=gap1End+s.r2_days, gap2End=r2End+s.gap2_days, r3End=gap2End+s.r3_days;
-      let todayLabel='', nextLabel='';
-      if(dayNum<1)        { todayLabel='Not started yet'; nextLabel=`Starts on ${s.start_date}`; }
-      else if(dayNum<=r1End)   { todayLabel=`R1 Day ${dayNum}/${s.r1_days} → ${s.r1_campaign}`; nextLabel=dayNum<r1End?`R1 Day ${dayNum+1}/${s.r1_days}`:`Gap Day tomorrow`; }
-      else if(dayNum<=gap1End) { todayLabel='Gap Day — no messages'; nextLabel=`R2 starts tomorrow → ${s.r2_campaign}`; }
-      else if(dayNum<=r2End)   { todayLabel=`R2 Day ${dayNum-gap1End}/${s.r2_days} → ${s.r2_campaign}`; nextLabel=dayNum<r2End?`R2 Day ${dayNum-gap1End+1}/${s.r2_days}`:`Gap Day tomorrow`; }
-      else if(dayNum<=gap2End) { todayLabel='Gap Day — no messages'; nextLabel=`R3 starts tomorrow → ${s.r3_campaign}`; }
-      else if(dayNum<=r3End)   { todayLabel=`R3 Day ${dayNum-gap2End}/${s.r3_days} → ${s.r3_campaign}`; nextLabel=dayNum<r3End?`R3 Day ${dayNum-gap2End+1}/${s.r3_days}`:`Campaign complete tomorrow`; }
-      else { todayLabel='Campaign Complete'; nextLabel='All phases done'; }
+    function renderTimelineCard(dateObj, label, isCurrent) {
+      const dateKey = dateObj.toISOString().split('T')[0];
+      const entries = byDate[dateKey]||[];
+      const totalSent = entries.reduce((s,e)=>s+e.count,0);
+      let phaseInfo = s ? getPhaseForDay(s, getDayNum(s, dateObj)) : null;
+      const bg = isCurrent ? 'background:linear-gradient(135deg,#e8f0ff,#f0f8ff);border-color:var(--blue)' : 'background:#fafcff';
+      const phaseColor = phaseInfo ? (phaseColors[phaseInfo.phase]||'var(--muted)') : 'var(--muted)';
 
-      html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div style="background:#e8f0ff;border:1px solid var(--border);border-radius:6px;padding:12px 14px">
-          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">TODAY</div>
-          <div style="font-size:12px;font-weight:700;color:var(--navy)">${todayLabel}</div>
+      let slotRows = '';
+      if(entries.length) {
+        slotRows = entries.map(e=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f0f4fb;font-size:11px">
+            <span style="color:var(--muted)">${e.slot}</span>
+            <span style="color:var(--muted);font-size:10px">${e.campaign}</span>
+            <span style="font-weight:700;color:var(--navy)">${e.count.toLocaleString()}</span>
+          </div>`).join('');
+      } else if(phaseInfo?.phase==='GAP') {
+        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">Gap day — no messages</div>`;
+      } else if(phaseInfo?.phase==='NOT_STARTED') {
+        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">Not started yet</div>`;
+      } else if(phaseInfo?.phase==='DONE') {
+        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">Campaign complete</div>`;
+      } else {
+        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">${isCurrent?'Scheduled for 4:30, 6:00, 7:30 PM':'No data'}</div>`;
+      }
+
+      return `<div style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;${bg}">
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px">${label}</div>
+            <div style="font-size:13px;font-weight:800;color:var(--navy);margin-top:1px">${dateObj.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}</div>
+          </div>
+          <div style="text-align:right">
+            ${phaseInfo?`<div style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${phaseColor}22;color:${phaseColor};border:1px solid ${phaseColor}44">${phaseInfo.label}</div>`:''}
+            ${totalSent?`<div style="font-size:18px;font-weight:800;color:var(--navy);margin-top:2px">${totalSent.toLocaleString()} <span style="font-size:10px;color:var(--muted);font-weight:600">sent</span></div>`:''}
+          </div>
         </div>
-        <div style="background:#f0f8ff;border:1px solid var(--border);border-radius:6px;padding:12px 14px">
-          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">NEXT</div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted)">${nextLabel}</div>
-        </div>
-      </div>` + html;
+        <div style="padding:8px 14px">${slotRows}</div>
+      </div>`;
+    }
+
+    let html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      ${renderTimelineCard(yesterday,'YESTERDAY',false)}
+      ${renderTimelineCard(today,'TODAY',true)}
+      ${renderTimelineCard(tomorrow,'TOMORROW',false)}
+    </div>`;
+
+    // Full history table
+    if(Object.keys(byDate).length) {
+      const allDates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+      html += `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+        <div style="padding:8px 12px;background:#f0f5ff;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px">Full History</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#f8faff">
+            <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Date</th>
+            <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Time</th>
+            <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Phase</th>
+            <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Campaign</th>
+            <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Sent</th>
+          </tr></thead>
+          <tbody>`;
+
+      let grandTotal = 0;
+      allDates.forEach(date => {
+        byDate[date].forEach(e => {
+          const pc = phaseColors[e.phase]||'var(--muted)';
+          html += `<tr style="border-bottom:1px solid #f0f4fb">
+            <td style="padding:8px 12px;font-weight:600;color:var(--text)">${new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td>
+            <td style="padding:8px 12px;color:var(--muted)">${e.slot}</td>
+            <td style="padding:8px 12px"><span style="background:${pc}22;color:${pc};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${e.phase}</span></td>
+            <td style="padding:8px 12px;color:var(--muted);font-size:11px">${e.campaign}</td>
+            <td style="padding:8px 12px;text-align:right;font-weight:800;color:var(--navy)">${e.count.toLocaleString()}</td>
+          </tr>`;
+          grandTotal += e.count;
+        });
+      });
+
+      html += `<tr style="background:#f0f5ff">
+        <td colspan="4" style="padding:9px 12px;font-size:11px;font-weight:700;color:var(--navy)">TOTAL SENT</td>
+        <td style="padding:9px 12px;text-align:right;font-size:16px;font-weight:800;color:var(--blue)">${grandTotal.toLocaleString()}</td>
+      </tr></tbody></table></div>`;
     }
 
     wrap.innerHTML = html;
@@ -1041,7 +1088,7 @@ async function loadCampaignLog() {
   }
 }
 
-// ── SCHEDULE ──────────────────────────────────────────────────
+// ── SCHEDULE ──────────────────────────────────────────────────// ── SCHEDULE ──────────────────────────────────────────────────
 const SCHEDULE_API = "/api/schedule";
 let schedules=[], sFilters=[], sLeadsCache=null, sFetchedOnce=false, sFieldValCache={}, editSchedId=null;
 
