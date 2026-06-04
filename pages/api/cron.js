@@ -1,10 +1,17 @@
 // pages/api/cron.js
-import { getAllRules, getCampaigns, addLog } from "../../lib/gas";
+import {
+  getAllRules, getCampaigns,
+  batchAddSentLog, getSentPhones, getPhoneSendCounts,
+  getReactivatedPhones, batchAddReactivated,
+  getFailedPhones, batchAddFailed,
+  getCapReachedPhones, batchAddCapReached,
+} from "../../lib/supabase";
 
 const SMARTPING_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
 const SMARTPING_URL     = "https://backend.api-wa.co/campaign/smartping/api/v2";
 const METABASE_URL      = "https://metabase.terratern.com/api/public/card/7e84f141-e90d-4852-a158-4d6a75bf4833/query/json";
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxOF8IfE40PFWYQQ37cLc9SBFyjoWuBoJ2pGzpl205eEH-3IkeMF9oOC2mfbV9gKTs1/exec";
+const SEND_CAP          = 3;
+
 const DYNAMIC_PARAMS = {
   ghc_mkt02_api: (row) => [
     firstName(row.fullname),
@@ -17,6 +24,17 @@ function firstName(full) {
   return String(full||"there").trim().split(/\s+/)[0];
 }
 
+function getTimeSlot() {
+  const h = new Date().getUTCHours();
+  const istH = (h + 5) % 24 + (new Date().getUTCMinutes() >= 30 ? 0.5 : 0);
+  if (istH >= 8.5  && istH < 10)  return "9AM";
+  if (istH >= 12.5 && istH < 14)  return "1PM";
+  if (istH >= 16.5 && istH < 17.5) return "5PM";
+  if (istH >= 17.5 && istH < 18.5) return "6PM";
+  if (istH >= 18.5 && istH < 19.5) return "7PM";
+  return "other";
+}
+
 export default async function handler(req, res) {
   const isCron   = req.headers["x-vercel-cron"] === "1";
   const isManual = req.method === "POST" &&
@@ -24,171 +42,162 @@ export default async function handler(req, res) {
   if (!isCron && !isManual) return res.status(401).json({ error:"Unauthorized" });
 
   const startTime = Date.now();
+  const timeSlot  = getTimeSlot();
 
-  // ── STEP 1: Load everything in parallel (3 calls total) ──────
-  let leads=[], activeRules=[], campaignMap={}, dedupSet=new Set();
+  // ── STEP 1: Load everything in parallel ───────────────────────
+  let leads=[], activeRules=[], campaignMap={};
+  let reactivatedPhones, capReachedPhones;
 
   try {
-    const [mbRes, rulesData, campsData, dedupData] = await Promise.all([
+    const [mbRes, rulesData, campsData, reactivated, capReached] = await Promise.all([
       fetch(METABASE_URL),
       getAllRules(),
       getCampaigns(),
-      gasGetDedup(),
+      getReactivatedPhones(),
+      getCapReachedPhones(),
     ]);
 
-    leads = await mbRes.json();
+    leads           = await mbRes.json();
     if (!Array.isArray(leads)) throw new Error("Bad Metabase response");
-
-    activeRules = rulesData.filter(r => r.active===true || r.active==="TRUE");
+    activeRules     = rulesData.filter(r => r.active===true);
     campsData.filter(c=>c.active).forEach(c => campaignMap[c.campaign_name]=c);
-
-    // build dedup set in memory: "phone|campaign" → sentAt timestamp
-    dedupData.forEach(row => {
-      if (row.phone && row.campaign && row.sent_at) {
-        const key = `${row.phone}|${row.campaign}`;
-        const existing = dedupSet[key];
-        if (!existing || new Date(row.sent_at) > new Date(existing)) {
-          dedupSet[key] = row.sent_at;
-        }
-      }
-    });
+    reactivatedPhones = reactivated;
+    capReachedPhones  = capReached;
 
   } catch(e) {
-    await addLog({ campaign:"cron", status:"error", note:"Init failed: "+e.message });
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error:"Init failed: "+e.message });
   }
 
-  if (!activeRules.length) {
-    await addLog({ campaign:"cron", status:"skipped", note:"No active rules" });
-    return res.status(200).json({ message:"No active rules" });
-  }
+  if (!activeRules.length) return res.status(200).json({ message:"No active rules" });
 
-  // ── STEP 2: Process all leads in memory ───────────────────────
-  const results     = { sent:0, skipped_dedup:0, skipped_no_match:0, failed:0 };
-  const newLogs     = [];
-  const newDedup    = [];
-  const now         = Date.now();
-  const dedupWindow = 24 * 60 * 60 * 1000; // 24h
+  const results = { sent:0, skipped_dedup:0, skipped_reactivated:0, skipped_cap:0, skipped_no_match:0, failed:0 };
 
-  // Send all matched leads via Smartping (parallel batches of 10)
-  const toSend = [];
+  // process each rule separately with its own batch_size
+  for (const rule of activeRules) {
+    const campaign = campaignMap[rule.campaign];
+    if (!campaign) continue;
 
-  for (const row of leads) {
-    const phone = normalizePhone(row.mobile||"");
-    const name  = row.fullname||"User";
-    if (!phone) { results.skipped_no_match++; continue; }
+    const batchSize  = rule.batch_size || 500;
+    const filters    = Array.isArray(rule.filters_json) ? rule.filters_json : [];
 
-    const matchedRule = activeRules.find(rule => {
-      const filters = Array.isArray(rule.filters_json) ? rule.filters_json :
-                      Array.isArray(rule.filters) ? rule.filters : [];
-      return applyFilters([row], filters).length > 0;
-    });
-    if (!matchedRule) { results.skipped_no_match++; continue; }
+    // get already sent + failed for this campaign
+    const [sentPhones, failedPhones, sendCounts] = await Promise.all([
+      getSentPhones(rule.campaign),
+      getFailedPhones(rule.campaign),
+      getPhoneSendCounts(),
+    ]);
 
-    const campaign = campaignMap[matchedRule.campaign];
-    if (!campaign) {
-      newLogs.push({ campaign:matchedRule.campaign, status:"error", note:"Campaign not in sheet", phone });
-      results.failed++; continue;
-    }
+    // filter leads
+    const matched = applyFilters(leads, filters);
 
-    // dedup check in memory
-    const dedupKey  = `${phone}|${matchedRule.campaign}`;
-    const lastSent  = dedupSet[dedupKey];
-    if (lastSent && (now - new Date(lastSent).getTime()) < dedupWindow) {
-      results.skipped_dedup++;
-      newLogs.push({ campaign:matchedRule.campaign, rule:matchedRule.name, phone, status:"skipped", note:"dedup" });
-      continue;
-    }
+    // classify and build today's batch
+    const toSend          = [];
+    const newReactivated  = [];
+    const newFailed       = [];
+    const newCapReached   = [];
 
-    const dynamicFn       = DYNAMIC_PARAMS[matchedRule.campaign];
-    const templateParams  = dynamicFn
-      ? dynamicFn(row)
-      : (campaign.template_params||[]);
+    for (const row of matched) {
+      const phone = normalizePhone(row.mobile||"");
+      if (!phone) { results.skipped_no_match++; continue; }
 
-    toSend.push({ row, phone, name, matchedRule, campaign, templateParams });
-  }
-
-  // ── STEP 3: Send in batches of 10 (parallel) ──────────────────
-  const BATCH = 10;
-  for (let i=0; i<toSend.length; i+=BATCH) {
-    const batch = toSend.slice(i, i+BATCH);
-    await Promise.all(batch.map(async ({row, phone, name, matchedRule, campaign, templateParams}) => {
-      const payload = {
-        apiKey:       SMARTPING_API_KEY,
-        campaignName: matchedRule.campaign,
-        destination:  phone,
-        userName:     name,
-        templateParams,
-        source:       "cron-auto",
-        media:        campaign.media_url ? {url:campaign.media_url, filename:"media"} : {},
-        buttons:[], carouselCards:[], location:{}, attributes:{},
-        paramsFallbackValue: { FirstName: firstName(row.fullname) },
-      };
-      try {
-        const response = await fetch(SMARTPING_URL, {
-          method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)
-        });
-        if (response.ok) {
-          results.sent++;
-          newLogs.push({ campaign:matchedRule.campaign, rule:matchedRule.name, phone, name, status:"success", note:"sent" });
-          newDedup.push({ phone, campaign:matchedRule.campaign, sent_at:new Date().toISOString() });
-        } else {
-          const data = await response.json().catch(()=>({}));
-          results.failed++;
-          newLogs.push({ campaign:matchedRule.campaign, rule:matchedRule.name, phone, status:"error", note:JSON.stringify(data).slice(0,200) });
+      // reactivated check
+      if (row.latest_utm_campaign && String(row.latest_utm_campaign).trim() !== "") {
+        if (!reactivatedPhones.has(phone)) {
+          newReactivated.push({ phone, campaign:rule.campaign, utm_campaign:row.latest_utm_campaign });
+          reactivatedPhones.add(phone);
         }
-      } catch(e) {
-        results.failed++;
-        newLogs.push({ campaign:matchedRule.campaign, rule:matchedRule.name, phone, status:"error", note:e.message });
+        results.skipped_reactivated++;
+        continue;
       }
-    }));
+
+      // cap reached check
+      if (capReachedPhones.has(phone)) { results.skipped_cap++; continue; }
+
+      // send count check
+      const count = sendCounts[phone] || 0;
+      if (count >= SEND_CAP) {
+        newCapReached.push({ phone, send_count: count });
+        capReachedPhones.add(phone);
+        results.skipped_cap++;
+        continue;
+      }
+
+      // already sent for this campaign
+      if (sentPhones.has(phone)) { results.skipped_dedup++; continue; }
+
+      // failed for this campaign
+      if (failedPhones.has(phone)) { results.skipped_no_match++; continue; }
+
+      toSend.push(row);
+      if (toSend.length >= batchSize) break;
+    }
+
+    // write new reactivated + cap reached to Supabase
+    await Promise.all([
+      newReactivated.length ? batchAddReactivated(newReactivated) : Promise.resolve(),
+      newCapReached.length  ? batchAddCapReached(newCapReached)   : Promise.resolve(),
+    ]);
+
+    // ── STEP 2: Send in parallel batches of 10 ────────────────
+    const newSentLog = [];
+    const newFailLog = [];
+    const BATCH      = 10;
+
+    for (let i=0; i<toSend.length; i+=BATCH) {
+      const batch = toSend.slice(i, i+BATCH);
+      await Promise.all(batch.map(async (row) => {
+        const phone  = normalizePhone(row.mobile||"");
+        const name   = row.fullname||"User";
+        const dynFn  = DYNAMIC_PARAMS[rule.campaign];
+        const params = dynFn ? dynFn(row) : (campaign.template_params||[]);
+
+        const payload = {
+          apiKey:         SMARTPING_API_KEY,
+          campaignName:   rule.campaign,
+          destination:    phone,
+          userName:       name,
+          templateParams: params,
+          source:         "cron-auto",
+          media:          campaign.media_url ? {url:campaign.media_url, filename:"media"} : {},
+          buttons:[], carouselCards:[], location:{}, attributes:{},
+          paramsFallbackValue: { FirstName: firstName(row.fullname) },
+        };
+
+        try {
+          const response = await fetch(SMARTPING_URL, {
+            method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            results.sent++;
+            newSentLog.push({
+              phone, campaign:rule.campaign, rule_name:rule.name,
+              sent_at: new Date().toISOString(), time_slot: timeSlot, status:"success"
+            });
+          } else {
+            const data = await response.json().catch(()=>({}));
+            results.failed++;
+            newFailLog.push({ phone, campaign:rule.campaign, error:JSON.stringify(data).slice(0,200) });
+          }
+        } catch(e) {
+          results.failed++;
+          newFailLog.push({ phone, campaign:rule.campaign, error:e.message });
+        }
+      }));
+    }
+
+    // ── STEP 3: Write logs to Supabase ────────────────────────
+    await Promise.all([
+      newSentLog.length ? batchAddSentLog(newSentLog)   : Promise.resolve(),
+      newFailLog.length ? batchAddFailed(newFailLog)    : Promise.resolve(),
+    ]);
   }
 
-  // ── STEP 4: Write all logs + dedup in 2 batch calls ───────────
   const duration = Math.round((Date.now()-startTime)/1000);
-  newLogs.push({
-    campaign:"cron", status:"success",
-    note:`Done in ${duration}s: sent=${results.sent} dedup=${results.skipped_dedup} no_match=${results.skipped_no_match} failed=${results.failed}`
-  });
-
-  // write logs and dedup in parallel
-  await Promise.all([
-    gasBatchLogs(newLogs),
-    newDedup.length ? gasBatchDedup(newDedup) : Promise.resolve(),
-  ]);
-
   return res.status(200).json({
-    success:true, leads_total:leads.length, duration_seconds:duration, ...results
+    success:true, leads_total:leads.length,
+    time_slot:timeSlot, duration_seconds:duration, ...results
   });
-}
-
-// ── BATCH GAS WRITERS ─────────────────────────────────────────
-async function gasGetDedup() {
-  try {
-    const res  = await fetch(`${GAS_URL}?action=getAllDedup`);
-    const data = await res.json();
-    return data.rows || [];
-  } catch(e) { return []; }
-}
-
-async function gasBatchLogs(logs) {
-  if (!logs.length) return;
-  try {
-    await fetch(GAS_URL, {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"batchAddLogs", logs })
-    });
-  } catch(e) { console.error("gasBatchLogs failed:", e.message); }
-}
-
-async function gasBatchDedup(entries) {
-  if (!entries.length) return;
-  try {
-    await fetch(GAS_URL, {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"batchMarkSent", entries })
-    });
-  } catch(e) { console.error("gasBatchDedup failed:", e.message); }
 }
 
 // ── FILTER ENGINE ─────────────────────────────────────────────
