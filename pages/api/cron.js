@@ -18,6 +18,9 @@ const DYNAMIC_PARAMS = {
     "+917094956963",
     row.bde || "Shreya Pandey"
   ],
+  overseas_jobupdate_api: (row) => [
+    firstName(row.fullname),
+  ],
 };
 
 function firstName(full) {
