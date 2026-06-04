@@ -72,10 +72,10 @@ export default async function handler(req, res) {
   try {
     const [mbRes, schedulesData, campsData, reactivated, capReached] = await Promise.all([
       fetch(METABASE_URL),
-      getSchedules(),
-      getCampaigns(),
-      getReactivatedPhones(),
-      getCapReachedPhones(),
+      getSchedules().catch(()=>[]),
+      getCampaigns().catch(()=>[]),
+      getReactivatedPhones().catch(()=>new Set()),
+      getCapReachedPhones().catch(()=>new Set()),
     ]);
 
     leads             = await mbRes.json();
@@ -114,11 +114,14 @@ export default async function handler(req, res) {
     const matchedAll  = applyFilters(leads, filters);
     const phaseDays   = phase==="R1" ? schedule.r1_days : phase==="R2" ? schedule.r2_days : schedule.r3_days;
     const batchSize   = Math.ceil(matchedAll.length / phaseDays);
+    const perRunCap   = Math.ceil(batchSize / 3); // split across 3 daily slots
 
-    // Get already sent for this schedule+phase (dedup)
-    const [sentPhones, failedPhones] = await Promise.all([
-      getSentPhonesByPhase(schedule.id, phase),
-      getFailedPhones(campaignName),
+    // Load all needed phone sets upfront in parallel
+    const prevPhase = phase==="R2" ? "R1" : phase==="R3" ? "R2" : null;
+    const [sentPhones, failedPhones, prevPhaseSent] = await Promise.all([
+      getSentPhonesByPhase(schedule.id, phase).catch(()=>new Set()),
+      getFailedPhones(campaignName).catch(()=>new Set()),
+      prevPhase ? getSentPhonesByPhase(schedule.id, prevPhase).catch(()=>new Set()) : Promise.resolve(new Set()),
     ]);
 
     // Build today's batch
@@ -127,7 +130,7 @@ export default async function handler(req, res) {
     const results        = { sent:0, skipped_reactivated:0, skipped_cap:0, skipped_dedup:0, skipped_failed:0, failed:0 };
 
     for (const row of matchedAll) {
-      if (toSend.length >= batchSize) break;
+      if (toSend.length >= perRunCap) break;
 
       const phone = normalizePhone(row.mobile||"");
       if (!phone) continue;
@@ -151,15 +154,9 @@ export default async function handler(req, res) {
       // failed for this campaign
       if (failedPhones.has(phone)) { results.skipped_failed++; continue; }
 
-      // R2/R3 — must have been sent in previous phase
-      if (phase === "R2") {
-        const r1Sent = await getSentPhonesByPhase(schedule.id, "R1");
-        if (!r1Sent.has(phone)) continue; // not yet in R1 → skip
-      }
-      if (phase === "R3") {
-        const r2Sent = await getSentPhonesByPhase(schedule.id, "R2");
-        if (!r2Sent.has(phone)) continue; // not yet in R2 → skip
-      }
+      // R2/R3 eligibility — checked via prevPhaseSent loaded upfront
+      if (phase === "R2" && !prevPhaseSent.has(phone)) continue;
+      if (phase === "R3" && !prevPhaseSent.has(phone)) continue;
 
       toSend.push(row);
     }
@@ -170,7 +167,7 @@ export default async function handler(req, res) {
     // ── STEP 3: Send in batches of 10 ─────────────────────────
     const newSentLog = [];
     const newFailLog = [];
-    const BATCH      = 10;
+    const BATCH      = 20;
 
     for (let i=0; i<toSend.length; i+=BATCH) {
       const batch = toSend.slice(i, i+BATCH);
