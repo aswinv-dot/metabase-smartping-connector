@@ -59,7 +59,8 @@ export default async function handler(req, res) {
   const isCron   = req.headers["x-vercel-cron"] === "1";
   const isManual = req.method === "POST" &&
     req.headers["authorization"] === `Bearer ${process.env.WEBHOOK_SECRET}`;
-  if (!isCron && !isManual) return res.status(401).json({ error:"Unauthorized" });
+  const isVercelGet = req.method === "GET" && req.headers["x-vercel-cron"] === "1";
+  if (!isCron && !isManual && !isVercelGet) return res.status(401).json({ error:"Unauthorized" });
 
   const startTime = Date.now();
   const timeSlot  = getTimeSlot();
