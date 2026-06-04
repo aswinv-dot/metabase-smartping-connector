@@ -108,11 +108,14 @@ const SMARTPING_URL  = "https://backend.api-wa.co/campaign/smartping/api/v2";
 
 // Dynamic param resolvers per campaign
 const DYNAMIC_PARAMS = {
-  ghc_mkt02_api: (lead) => [
-    firstName(lead.fullname),
-    "08064124242",
-    lead.bde || "Shreya Pandey"
+  ghc_mkt02_api: (row) => [
+    firstName(row.fullname),
+    "+917094956963",
+    row.bde || "Shreya Pandey"
   ],
+  overseas_jobupdate_api: (row) => [firstName(row.fullname)],
+  update_overseas_api:    (row) => [firstName(row.fullname)],
+  hiring_jobupdate_api:   (row) => [firstName(row.fullname)],
 };
 
 let currentLead = null;
