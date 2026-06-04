@@ -1,5 +1,5 @@
 // pages/api/campaigns/index.js
-import { getCampaigns, saveCampaign } from "../../../lib/gas";
+import { getCampaigns, saveCampaign } from "../../../lib/supabase";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin","*");
@@ -13,10 +13,9 @@ export default async function handler(req, res) {
   }
 
   if (req.method==="POST") {
-    const body = req.body;
-    if (!body.campaign_name) return res.status(400).json({ error:"campaign_name is required" });
-    const result = await saveCampaign(body);
-    return res.status(200).json(result);
+    if (!req.body.campaign_name) return res.status(400).json({ error:"campaign_name required" });
+    const result = await saveCampaign(req.body);
+    return res.status(200).json({ success:true, result });
   }
 
   return res.status(405).json({ error:"Method not allowed" });
