@@ -25,14 +25,26 @@ function firstName(full) {
 }
 
 function getTimeSlot() {
-  const now  = new Date();
-  const istH = (now.getUTCHours() + 5) + (now.getUTCMinutes() >= 30 ? 0.5 : 0);
-  if (istH >= 8.5  && istH < 10)   return "9AM";
-  if (istH >= 12.5 && istH < 14)   return "1PM";
-  if (istH >= 16.5 && istH < 17.5) return "5PM";
-  if (istH >= 17.5 && istH < 18.5) return "6PM";
-  if (istH >= 18.5 && istH < 19.5) return "7PM";
-  return "other";
+  const now     = new Date();
+  const utcH    = now.getUTCHours();
+  const utcM    = now.getUTCMinutes();
+  const totalM  = utcH * 60 + utcM;
+  // IST = UTC + 5:30
+  const istTotalM = totalM + 330;
+  const istH    = Math.floor(istTotalM / 60) % 24;
+  const istMin  = istTotalM % 60;
+
+  // 4:30 PM IST = 16:30
+  if (istH === 16 && istMin >= 25 && istMin <= 40) return "4:30PM";
+  // 6:00 PM IST = 18:00
+  if (istH === 18 && istMin >= 0  && istMin <= 10) return "6:00PM";
+  // 7:30 PM IST = 19:30
+  if (istH === 19 && istMin >= 25 && istMin <= 45) return "7:30PM";
+  // fallback — return actual IST time string
+  const h12  = istH % 12 || 12;
+  const ampm = istH >= 12 ? 'PM' : 'AM';
+  const mm   = String(istMin).padStart(2,'0');
+  return `${h12}:${mm}${ampm}`;
 }
 
 // Reactivated = utm_campaign contains whatsapp/sms/email/ivr
