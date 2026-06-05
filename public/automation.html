@@ -483,6 +483,20 @@ window.onload=()=>{
 };
 
 // ── TABS ──────────────────────────────────────────────────────
+let cronRefreshInterval = null;
+
+function startCronAutoRefresh() {
+  if (cronRefreshInterval) clearInterval(cronRefreshInterval);
+  cronRefreshInterval = setInterval(() => {
+    loadCampaignLog();
+    loadTodayDetail();
+  }, 60000); // refresh every 60 seconds
+}
+
+function stopCronAutoRefresh() {
+  if (cronRefreshInterval) { clearInterval(cronRefreshInterval); cronRefreshInterval = null; }
+}
+
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach((t,i)=>{
     const names=['campaigns','rules','schedule','cron'];
@@ -490,8 +504,9 @@ function switchTab(name) {
   });
   document.querySelectorAll('.tab-content').forEach(c=>c.className='tab-content');
   document.getElementById('tab-'+name).className='tab-content active';
+  if(name!=='cron') stopCronAutoRefresh();
   if(name==='schedule') { loadSchedules(); populateScheduleCampaigns(); }
-  if(name==='cron') { loadCampaignLog(); loadTodayDetail(); }
+  if(name==='cron') { loadCampaignLog(); loadTodayDetail(); startCronAutoRefresh(); }
 }
 
 // ── CAMPAIGNS ─────────────────────────────────────────────────
@@ -980,8 +995,10 @@ async function loadTodayDetail() {
     const s = schedules[0];
     if(!s) { wrap.innerHTML='<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No active schedule.</div>'; return; }
 
-    const today = new Date(); today.setHours(0,0,0,0);
-    const todayISO = today.toISOString().split('T')[0];
+    // Use IST date for today
+    const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
+    const todayISO = nowIST.toISOString().split('T')[0];
+    const today = new Date(todayISO);
     const dayNum = getDayNum(s, today);
     const phaseInfo = getPhaseForDay(s, dayNum);
     const phaseDays = phaseInfo.phase==='R1'?s.r1_days:phaseInfo.phase==='R2'?s.r2_days:s.r3_days;
@@ -1187,7 +1204,10 @@ async function loadCampaignLog() {
     const grouped = {};
     rows.forEach(r => {
       const d = new Date(r.sent_at);
-      const dateKey = d.toISOString().split('T')[0];
+      // Convert UTC to IST (UTC+5:30)
+      const istMs = d.getTime() + (5.5 * 60 * 60 * 1000);
+      const istDate = new Date(istMs);
+      const dateKey = istDate.toISOString().split('T')[0];
       const key = `${dateKey}||${r.time_slot||'—'}||${r.phase||'—'}||${r.campaign||'—'}`;
       grouped[key] = (grouped[key]||0) + 1;
     });
