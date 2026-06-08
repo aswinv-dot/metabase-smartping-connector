@@ -403,10 +403,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
           <div style="font-size:12px;color:var(--muted);line-height:1.8">
             1. Fetches all leads from Metabase<br>
             2. Loads active schedule from Supabase<br>
-            3. Matches each lead to first matching rule<br>
+            3. Applies filters → removes reactivated/failed/cap leads<br>
             4. Skips leads messaged in last 24h (dedup)<br>
             5. Sends WhatsApp via Smartping<br>
-            6. Logs everything to Supabase
+            6. Logs to Supabase sent_log
           </div>
         </div>
       </div>
@@ -886,14 +886,14 @@ function evalFilter(lead,f){
 async function runCron(){
   const btn=document.getElementById('cron-btn');
   const box=document.getElementById('cron-result');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Running...';
-  box.style.display='block'; box.textContent='Running...';
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Triggering...';
+  box.style.display='block'; box.textContent='Triggering Railway cron...';
   try{
-    const res=await fetch('/api/cron',{method:'POST',headers:{'Authorization':`Bearer ${WEBHOOK_SECRET}`}});
+    const res=await fetch('/api/trigger',{method:'POST',headers:{'Authorization':`Bearer ${WEBHOOK_SECRET}`,'Content-Type':'application/json'}});
     const data=await res.json();
     box.textContent=JSON.stringify(data,null,2);
-    if(data.sent>0) addLog('cron',`Sent ${data.sent} messages`,'success');
-    else addLog('cron',`Done: no_match=${data.skipped_no_match||0} dedup=${data.skipped_dedup||0}`,'skipped');
+    if(data.success) addLog('cron','Railway cron triggered','success');
+    else addLog('cron','Trigger failed: '+(data.error||'unknown'),'error');
   }catch(e){box.textContent='Error: '+e.message;addLog('cron','Failed: '+e.message,'error');}
   btn.disabled=false; btn.innerHTML='▶ Run Now';
 }
