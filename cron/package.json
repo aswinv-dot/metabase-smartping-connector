@@ -1,0 +1,13 @@
+{
+  "name": "terratern-cron",
+  "version": "1.0.0",
+  "description": "TerraTern WhatsApp automation cron service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "node-cron": "^3.0.3",
+    "node-fetch": "^2.7.0"
+  }
+}
