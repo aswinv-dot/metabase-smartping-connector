@@ -216,7 +216,7 @@ const server = http.createServer(async (req, res) => {
     // Run async after response
     const istMin=(new Date().getUTCHours()*60+new Date().getUTCMinutes())+330;
     const istH=Math.floor(istMin/60)%24, istM=istMin%60;
-    const slot = istH===16&&istM>=25?'4:30PM':istH===18&&istM<=10?'6:00PM':istH===19&&istM>=25?'7:30PM':'manual';
+    const slot = istH===17&&istM>=0&&istM<=10?'5:00PM':istH===18&&istM>=0&&istM<=10?'6:00PM':istH===19&&istM>=0&&istM<=10?'7:00PM':'manual';
     runCron(slot).catch(console.error);
     return;
   }
