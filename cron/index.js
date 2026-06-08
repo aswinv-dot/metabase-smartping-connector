@@ -228,10 +228,10 @@ server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 
 // ── SCHEDULE ──────────────────────────────────────────────────
 log('TerraTern Cron Service started');
-log('Scheduled: 4:30 PM, 6:00 PM, 7:30 PM IST daily');
+log('Scheduled: 5:00 PM, 6:00 PM, 7:00 PM IST daily');
 
-cron.schedule('0 11 * * *',  () => runCron('4:30PM'), { timezone:'UTC' });
+cron.schedule('30 11 * * *', () => runCron('5:00PM'), { timezone:'UTC' });
 cron.schedule('30 12 * * *', () => runCron('6:00PM'), { timezone:'UTC' });
-cron.schedule('0 14 * * *',  () => runCron('7:30PM'), { timezone:'UTC' });
+cron.schedule('30 13 * * *', () => runCron('7:00PM'), { timezone:'UTC' });
 
 log('Service running — waiting for scheduled times...');
