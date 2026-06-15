@@ -46,13 +46,32 @@ async function sbPost(path, data, params='') {
   });
   return res.ok;
 }
+async function sbPatch(path, data, params='') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${params}`, {
+    method:'PATCH', headers:{...sbHeaders,'Prefer':'return=minimal'}, body:JSON.stringify(data)
+  });
+  return res.ok;
+}
 
 async function getSchedules()         { return sbGet('campaign_schedule','?active=eq.true'); }
 async function getCampaigns()         { return sbGet('campaigns','?active=eq.true'); }
 async function getReactivatedPhones() { const r=await sbGet('reactivated_list','?select=phone'); return new Set(r.map(x=>x.phone)); }
 async function getCapReachedPhones()  { const r=await sbGet('cap_reached_list','?select=phone'); return new Set(r.map(x=>x.phone)); }
-async function getSentPhones(schedId,phase) { const r=await sbGet('sent_log',`?schedule_id=eq.${schedId}&phase=eq.${phase}&status=eq.success&select=phone`); return new Set(r.map(x=>x.phone)); }
 async function getFailedPhones(campaign) { const r=await sbGet('failed_list',`?campaign=eq.${encodeURIComponent(campaign)}&select=phone`); return new Set(r.map(x=>x.phone)); }
+
+// FIX: fetch sent phones across ALL schedule IDs for the same campaign name (handles renamed/duplicate schedules)
+async function getSentPhones(schedId, phase, scheduleName) {
+  // Primary: by schedule_id
+  const r1 = await sbGet('sent_log',`?schedule_id=eq.${schedId}&phase=eq.${phase}&status=eq.success&select=phone`);
+  const phones = new Set(r1.map(x=>x.phone));
+  // Fallback: also fetch by rule_name to catch sends from old schedule IDs
+  if (scheduleName) {
+    const r2 = await sbGet('sent_log',`?rule_name=eq.${encodeURIComponent(scheduleName)}&phase=eq.${phase}&status=eq.success&select=phone`);
+    r2.forEach(x => phones.add(x.phone));
+  }
+  log(`getSentPhones(${schedId}, ${phase}): ${phones.size} phones (including name-matched)`);
+  return phones;
+}
 
 // ── FILTER ENGINE ─────────────────────────────────────────────
 function applyFilters(rows, filterList) {
@@ -136,11 +155,17 @@ async function runCron(timeSlot) {
       log(`Matched: ${matched.length} | Batch/day: ${batchSize} | Per slot: ${perSlot}`);
 
       const prevPhase = phase==='R2'?'R1':phase==='R3'?'R2':null;
-      const [sentPhones,failedPhones,prevPhaseSent] = await Promise.all([
-        getSentPhones(schedule.id,phase).catch(()=>new Set()),
+      const [sentPhones, failedPhones, prevPhaseSent] = await Promise.all([
+        getSentPhones(schedule.id, phase, schedule.name).catch(()=>new Set()),
         getFailedPhones(campaignName).catch(()=>new Set()),
-        prevPhase?getSentPhones(schedule.id,prevPhase).catch(()=>new Set()):Promise.resolve(new Set()),
+        prevPhase ? getSentPhones(schedule.id, prevPhase, schedule.name).catch(()=>new Set()) : Promise.resolve(new Set()),
       ]);
+
+      // FIX: if prevPhaseSent is empty for R2/R3, warn and skip the gate rather than blocking all sends
+      const prevPhaseEmpty = prevPhase && prevPhaseSent.size === 0;
+      if (prevPhaseEmpty) {
+        log(`WARNING: prevPhaseSent(${prevPhase}) returned 0 phones — R2 gate disabled for this run to prevent blocking all sends`);
+      }
 
       const toSend=[], newReactivated=[];
       for (const row of matched) {
@@ -149,8 +174,11 @@ async function runCron(timeSlot) {
         if (!phone) continue;
         if (isReactivated(row)) { if(!reactivatedPhones.has(phone)){newReactivated.push({phone,campaign:campaignName,utm_campaign:row.latest_utm_campaign});reactivatedPhones.add(phone);} result.skipped++; continue; }
         if (capReachedPhones.has(phone)||sentPhones.has(phone)||failedPhones.has(phone)) { result.skipped++; continue; }
-        if (phase==='R2'&&!prevPhaseSent.has(phone)) continue;
-        if (phase==='R3'&&!prevPhaseSent.has(phone)) continue;
+        // FIX: only apply prev-phase gate if we actually have prev phase data
+        if (!prevPhaseEmpty) {
+          if (phase==='R2'&&!prevPhaseSent.has(phone)) continue;
+          if (phase==='R3'&&!prevPhaseSent.has(phone)) continue;
+        }
         toSend.push(row);
       }
 
@@ -176,8 +204,21 @@ async function runCron(timeSlot) {
           };
           try {
             const r=await fetch(SMARTPING_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-            if(r.ok){sent++;newSentLog.push({phone,campaign:campaignName,rule_name:schedule.name,sent_at:new Date().toISOString(),time_slot:timeSlot,status:'success',phase,schedule_id:schedule.id});}
-            else{failed++;newFailLog.push({phone,campaign:campaignName,error:'Smartping error'});}
+            const rJson = await r.json().catch(()=>({}));
+            // FIX: capture message_id from Smartping response
+            const messageId = rJson?.msgid || rJson?.messageId || rJson?.id || null;
+            if(r.ok){
+              sent++;
+              newSentLog.push({
+                phone, campaign:campaignName, rule_name:schedule.name,
+                sent_at:new Date().toISOString(), time_slot:timeSlot,
+                status:'success', phase, schedule_id:schedule.id,
+                message_id:messageId, delivery_status:'sent'
+              });
+            } else {
+              failed++;
+              newFailLog.push({phone,campaign:campaignName,error:'Smartping error: '+(rJson?.message||r.status)});
+            }
           }catch(e){failed++;newFailLog.push({phone,campaign:campaignName,error:e.message});}
         }));
         log(`Progress: ${Math.min(i+BATCH,toSend.length)}/${toSend.length}`);
@@ -202,24 +243,58 @@ async function runCron(timeSlot) {
   return result;
 }
 
-// ── HTTP SERVER (for manual trigger) ─────────────────────────
+// ── HTTP SERVER ───────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Type','application/json');
+  res.setHeader('Access-Control-Allow-Origin','*');
+
   if (req.method==='GET'&&req.url==='/health') {
     res.writeHead(200);
     res.end(JSON.stringify({status:'ok',service:'terratern-cron',time:new Date().toISOString()}));
     return;
   }
+
   if (req.method==='POST'&&req.url==='/trigger') {
-    res.writeHead(200);
-    res.end(JSON.stringify({success:true,message:'Cron triggered manually'}));
-    // Run async after response
     const istMin=(new Date().getUTCHours()*60+new Date().getUTCMinutes())+330;
-    const istH=Math.floor(istMin/60)%24, istM=istMin%60;
-    const slot = istH===17&&istM>=0&&istM<=10?'5:00PM':istH===18&&istM>=0&&istM<=10?'6:00PM':istH===19&&istM>=0&&istM<=10?'7:00PM':'manual';
+    const istH=Math.floor(istMin/60)%24;
+    const slot = istH===17?'5:00PM':istH===18?'6:00PM':istH===19?'7:00PM':'manual';
+    res.writeHead(200);
+    res.end(JSON.stringify({success:true,message:`Cron triggered: ${slot}`}));
     runCron(slot).catch(console.error);
     return;
   }
+
+  // FIX: Smartping delivery callback endpoint
+  if (req.method==='POST'&&req.url==='/smartping-callback') {
+    let body='';
+    req.on('data',chunk=>body+=chunk);
+    req.on('end',async()=>{
+      try {
+        const data = JSON.parse(body);
+        log(`Smartping callback: ${JSON.stringify(data)}`);
+        const messageId = data?.msgid || data?.messageId || data?.id;
+        const status    = data?.status || data?.deliveryStatus;
+        if (messageId && status) {
+          const deliveryStatus = String(status).toLowerCase().includes('deliver') ? 'delivered'
+            : String(status).toLowerCase().includes('read') ? 'read'
+            : String(status).toLowerCase().includes('fail') ? 'failed' : status;
+          await sbPatch('sent_log',
+            { delivery_status: deliveryStatus, delivered_at: new Date().toISOString() },
+            `?message_id=eq.${encodeURIComponent(messageId)}`
+          );
+          log(`Updated delivery_status=${deliveryStatus} for message_id=${messageId}`);
+        }
+        res.writeHead(200);
+        res.end(JSON.stringify({success:true}));
+      } catch(e) {
+        log(`Callback error: ${e.message}`);
+        res.writeHead(200); // always 200 to Smartping
+        res.end(JSON.stringify({success:true}));
+      }
+    });
+    return;
+  }
+
   res.writeHead(404);
   res.end(JSON.stringify({error:'Not found'}));
 });
