@@ -151,21 +151,13 @@ async function runCron(timeSlot) {
       const matched   = applyFilters(leads,filters);
       const phaseDays = phase==='R1'?schedule.r1_days:phase==='R2'?schedule.r2_days:schedule.r3_days;
       const batchSize = Math.ceil(matched.length/phaseDays);
-      const perSlot   = Math.ceil(batchSize/3);
+      const perSlot   = batchSize; // single slot per day — full batch goes out at 7PM
       log(`Matched: ${matched.length} | Batch/day: ${batchSize} | Per slot: ${perSlot}`);
 
-      const prevPhase = phase==='R2'?'R1':phase==='R3'?'R2':null;
-      const [sentPhones, failedPhones, prevPhaseSent] = await Promise.all([
+      const [sentPhones, failedPhones] = await Promise.all([
         getSentPhones(schedule.id, phase, schedule.name).catch(()=>new Set()),
         getFailedPhones(campaignName).catch(()=>new Set()),
-        prevPhase ? getSentPhones(schedule.id, prevPhase, schedule.name).catch(()=>new Set()) : Promise.resolve(new Set()),
       ]);
-
-      // FIX: if prevPhaseSent is empty for R2/R3, warn and skip the gate rather than blocking all sends
-      const prevPhaseEmpty = prevPhase && prevPhaseSent.size === 0;
-      if (prevPhaseEmpty) {
-        log(`WARNING: prevPhaseSent(${prevPhase}) returned 0 phones — R2 gate disabled for this run to prevent blocking all sends`);
-      }
 
       const toSend=[], newReactivated=[];
       for (const row of matched) {
@@ -174,11 +166,6 @@ async function runCron(timeSlot) {
         if (!phone) continue;
         if (isReactivated(row)) { if(!reactivatedPhones.has(phone)){newReactivated.push({phone,campaign:campaignName,utm_campaign:row.latest_utm_campaign});reactivatedPhones.add(phone);} result.skipped++; continue; }
         if (capReachedPhones.has(phone)||sentPhones.has(phone)||failedPhones.has(phone)) { result.skipped++; continue; }
-        // FIX: only apply prev-phase gate if we actually have prev phase data
-        if (!prevPhaseEmpty) {
-          if (phase==='R2'&&!prevPhaseSent.has(phone)) continue;
-          if (phase==='R3'&&!prevPhaseSent.has(phone)) continue;
-        }
         toSend.push(row);
       }
 
@@ -303,8 +290,10 @@ server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 
 // ── SCHEDULE ──────────────────────────────────────────────────
 log('TerraTern Cron Service started');
-log('Scheduled: 7:00 PM IST daily');
+log('Scheduled: 5:00 PM, 6:00 PM, 7:00 PM IST daily');
 
+cron.schedule('30 11 * * *', () => runCron('5:00PM'), { timezone:'UTC' });
+cron.schedule('30 12 * * *', () => runCron('6:00PM'), { timezone:'UTC' });
 cron.schedule('30 13 * * *', () => runCron('7:00PM'), { timezone:'UTC' });
 
 log('Service running — waiting for scheduled times...');
