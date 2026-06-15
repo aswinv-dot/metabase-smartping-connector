@@ -1025,9 +1025,9 @@ async function loadTodayDetail() {
     // counts
     const sentSuccess = sentRows.filter(r=>r.status==='success').length;
     const sentFailed  = sentRows.filter(r=>r.status==='error').length;
-    const by430  = sentRows.filter(r=>r.time_slot==='4:30PM').length;
+    const by430  = sentRows.filter(r=>r.time_slot==='5:00PM').length;
     const by600  = sentRows.filter(r=>r.time_slot==='6:00PM').length;
-    const by730  = sentRows.filter(r=>r.time_slot==='7:30PM').length;
+    const by730  = sentRows.filter(r=>r.time_slot==='7:00PM').length;
     const byOther= sentSuccess - by430 - by600 - by730;
 
     // fetch all sent for this phase to calculate remaining
@@ -1069,7 +1069,7 @@ async function loadTodayDetail() {
     // next slot
     const nowH = new Date().getHours() + new Date().getMinutes()/60;
     const istH = nowH; // already IST since we're displaying
-    let nextSlot = nowH < 16.5 ? '4:30 PM' : nowH < 18 ? '6:00 PM' : nowH < 19.5 ? '7:30 PM' : 'Tomorrow 4:30 PM';
+    let nextSlot = nowH < 17.1 ? '5:00 PM' : nowH < 18 ? '6:00 PM' : nowH < 19.5 ? '7:00 PM' : 'Tomorrow 5:00 PM';
 
     if(phaseInfo.phase === 'GAP') {
       wrap.innerHTML = `<div style="background:#f8faff;border:1.5px solid var(--border);border-radius:8px;padding:20px;text-align:center">
@@ -1120,7 +1120,7 @@ async function loadTodayDetail() {
             <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">TODAY'S SENDS</div>
             <div style="display:flex;flex-direction:column;gap:5px">
               <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">4:30 PM</span>
+                <span style="color:var(--muted)">5:00 PM</span>
                 <span style="font-weight:700;color:var(--navy)">${by430.toLocaleString()}</span>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:12px">
@@ -1128,7 +1128,7 @@ async function loadTodayDetail() {
                 <span style="font-weight:700;color:var(--navy)">${by600.toLocaleString()}</span>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">7:30 PM</span>
+                <span style="color:var(--muted)">7:00 PM</span>
                 <span style="font-weight:700;color:var(--navy)">${by730.toLocaleString()}</span>
               </div>
               ${byOther>0?`<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Other</span><span style="font-weight:700;color:var(--navy)">${byOther.toLocaleString()}</span></div>`:''}
@@ -1252,7 +1252,7 @@ async function loadCampaignLog() {
       } else if(phaseInfo?.phase==='DONE') {
         slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">Campaign complete</div>`;
       } else {
-        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">${isCurrent?'Scheduled for 4:30, 6:00, 7:30 PM':'No data'}</div>`;
+        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">${isCurrent?'Scheduled for 5:00, 6:00, 7:00 PM':'No data'}</div>`;
       }
 
       return `<div style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;${bg}">
