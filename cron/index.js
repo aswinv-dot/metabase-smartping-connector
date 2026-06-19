@@ -259,17 +259,29 @@ const server = http.createServer(async (req, res) => {
       try {
         const data = JSON.parse(body);
         log(`Smartping callback: ${JSON.stringify(data)}`);
-        const messageId = data?.msgid || data?.messageId || data?.id;
-        const status    = data?.status || data?.deliveryStatus;
-        if (messageId && status) {
-          const deliveryStatus = String(status).toLowerCase().includes('deliver') ? 'delivered'
-            : String(status).toLowerCase().includes('read') ? 'read'
-            : String(status).toLowerCase().includes('fail') ? 'failed' : status;
+
+        // FIX: real AiSensy payload nests message data under data.data.message
+        // e.g. {"topic":"message.status.updated","data":{"message":{"messageId":"...","status":"DELIVERED",...}}}
+        // Fallback to flat top-level fields kept in case Smartping ever sends an unwrapped shape.
+        const topic = data?.topic;
+        const msg   = data?.data?.message || {};
+        const messageId = msg.messageId || msg.id || data?.msgid || data?.messageId || null;
+        const rawStatus  = msg.status    || data?.status || data?.deliveryStatus || null;
+
+        // Only act on events that actually carry a delivery/read/failed status update.
+        // Other topics (e.g. message.sender.user, message.created) won't have a useful status here.
+        if (messageId && rawStatus) {
+          const status = String(rawStatus).toLowerCase();
+          const deliveryStatus = status.includes('deliver') ? 'delivered'
+            : status.includes('read') ? 'read'
+            : status.includes('fail') ? 'failed' : status;
           await sbPatch('sent_log',
             { delivery_status: deliveryStatus, delivered_at: new Date().toISOString() },
             `?message_id=eq.${encodeURIComponent(messageId)}`
           );
-          log(`Updated delivery_status=${deliveryStatus} for message_id=${messageId}`);
+          log(`Updated delivery_status=${deliveryStatus} for message_id=${messageId} (topic=${topic})`);
+        } else {
+          log(`Callback skipped — no messageId/status found (topic=${topic})`);
         }
         res.writeHead(200);
         res.end(JSON.stringify({success:true}));
