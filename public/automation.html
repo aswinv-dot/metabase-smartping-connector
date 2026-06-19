@@ -377,92 +377,85 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
   <!-- TAB: CRON ───────────────────────────────────────────── -->
   <div class="tab-content" id="tab-cron">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
 
-      <div class="card">
-        <div class="sec-label">Cron Schedule</div>
-        <div class="cron-card">
-          <div class="cron-schedule">
-            <div>
-              <div style="display:flex;gap:12px;align-items:center">
-                <div class="cron-time" style="font-size:20px">5:00 PM</div>
-                <div style="font-size:16px;color:var(--muted)">+</div>
-                <div class="cron-time" style="font-size:20px">6:00 PM</div>
-                <div style="font-size:16px;color:var(--muted)">+</div>
-                <div class="cron-time" style="font-size:20px">7:00 PM</div>
-                <div style="font-size:13px;color:var(--muted);font-weight:600">IST</div>
-              </div>
-              <div style="font-size:12px;color:var(--muted);margin-top:4px">Every day — auto-runs without action</div>
-            </div>
-            <button class="btn-amber" id="cron-btn" onclick="runCron()">▶ Run Now</button>
-          </div>
-          <pre class="cron-result" id="cron-result"></pre>
-        </div>
-        <div style="margin-top:16px;padding:14px 16px;background:#f8faff;border-radius:6px;border:1px solid var(--border)">
-          <div style="font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">What cron does</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.8">
-            1. Fetches all leads from Metabase<br>
-            2. Loads active schedule from Supabase<br>
-            3. Applies filters → removes reactivated/failed/cap leads<br>
-            4. Skips leads messaged in last 24h (dedup)<br>
-            5. Sends WhatsApp via Smartping<br>
-            6. Logs to Supabase sent_log
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="sec-label" style="margin-bottom:0">Campaign Progress</div>
-          <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="loadCampaignLog()">↻ Refresh</button>
-        </div>
-        <div id="campaign-progress"><div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div></div>
-        <div style="margin-top:16px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div class="sec-label" style="margin-bottom:0">Today in Detail</div>
-            <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="loadTodayDetail()">↻ Refresh</button>
-          </div>
-          <div id="today-detail"><div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="sec-label" style="margin-bottom:0">Delivery Status</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden">
-              <button class="ds-toggle-btn active" id="ds-toggle-today" style="border:none;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff" onclick="setDeliveryScope('today')">Today</button>
-              <button class="ds-toggle-btn" id="ds-toggle-all" style="border:none;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted)" onclick="setDeliveryScope('all')">All-time</button>
-            </div>
-            <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="loadDeliveryStatus()">↻ Refresh</button>
-          </div>
-        </div>
-        <div id="delivery-status"><div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div></div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div class="sec-label" style="margin-bottom:0">Session Log</div>
-          <button onclick="clearLogs()" style="font-size:11px;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:var(--font)">Clear</button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
-          <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
-            <div style="font-size:20px;font-weight:800;color:var(--navy)" id="stat-total">0</div>
-            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Total</div>
-          </div>
-          <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
-            <div style="font-size:20px;font-weight:800;color:var(--green)" id="stat-sent">0</div>
-            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Sent</div>
-          </div>
-          <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
-            <div style="font-size:20px;font-weight:800;color:var(--red)" id="stat-failed">0</div>
-            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Failed</div>
-          </div>
-        </div>
-        <div class="log-feed" id="log-feed"><div class="log-empty">No activity yet</div></div>
-      </div>
-
+    <!-- HEALTH STRIP -->
+    <div id="health-strip" style="display:flex;align-items:center;gap:24px;padding:12px 20px;background:var(--navy);border-radius:var(--radius);margin-bottom:20px;color:#fff;flex-wrap:wrap">
+      <div style="font-size:12px;color:var(--muted2)">Loading status...</div>
     </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="sec-label">Cron Schedule</div>
+      <div class="cron-card">
+        <div class="cron-schedule">
+          <div>
+            <div style="display:flex;gap:12px;align-items:center">
+              <div class="cron-time" style="font-size:20px">5:00 PM</div>
+              <div style="font-size:16px;color:var(--muted)">+</div>
+              <div class="cron-time" style="font-size:20px">6:00 PM</div>
+              <div style="font-size:16px;color:var(--muted)">+</div>
+              <div class="cron-time" style="font-size:20px">7:00 PM</div>
+              <div style="font-size:13px;color:var(--muted);font-weight:600">IST</div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Every day — auto-runs without action</div>
+          </div>
+          <button class="btn-amber" id="cron-btn" onclick="runCron()">▶ Run Now</button>
+        </div>
+        <pre class="cron-result" id="cron-result"></pre>
+      </div>
+      <details style="margin-top:14px">
+        <summary style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer">ⓘ What cron does</summary>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-top:10px;padding:14px 16px;background:#f8faff;border-radius:6px;border:1px solid var(--border)">
+          1. Fetches all leads from Metabase<br>
+          2. Loads active schedule from Supabase<br>
+          3. Applies filters → removes reactivated/failed/cap leads<br>
+          4. Skips leads messaged in last 24h (dedup)<br>
+          5. Sends WhatsApp via Smartping<br>
+          6. Logs to Supabase sent_log
+        </div>
+      </details>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div class="sec-label" style="margin-bottom:0">Campaign Analytics</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden">
+            <button class="ds-toggle-btn active" id="ds-toggle-today" style="border:none;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff" onclick="setDeliveryScope('today')">Today</button>
+            <button class="ds-toggle-btn" id="ds-toggle-all" style="border:none;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted)" onclick="setDeliveryScope('all')">All-time</button>
+          </div>
+          <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="loadAnalyticsTable()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="analytics-table"><div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div></div>
+
+      <details style="margin-top:16px">
+        <summary style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer">ⓘ Dead lists &amp; eligible pool</summary>
+        <div id="today-detail" style="margin-top:10px"><div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div></div>
+      </details>
+    </div>
+
+    <details class="card" style="margin-bottom:0">
+      <summary style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none">
+        <span class="sec-label" style="margin-bottom:0">Session Log</span>
+        <span onclick="event.preventDefault();event.stopPropagation();clearLogs()" style="font-size:11px;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px">Clear</span>
+      </summary>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0">
+        <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--navy)" id="stat-total">0</div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Total</div>
+        </div>
+        <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--green)" id="stat-sent">0</div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Sent</div>
+        </div>
+        <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--red)" id="stat-failed">0</div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Failed</div>
+        </div>
+      </div>
+      <div class="log-feed" id="log-feed"><div class="log-empty">No activity yet</div></div>
+    </details>
+
   </div>
 
 </div>
@@ -502,9 +495,9 @@ let cronRefreshInterval = null;
 function startCronAutoRefresh() {
   if (cronRefreshInterval) clearInterval(cronRefreshInterval);
   cronRefreshInterval = setInterval(() => {
-    loadCampaignLog();
+    loadHealthStrip();
+    loadAnalyticsTable();
     loadTodayDetail();
-    loadDeliveryStatus();
   }, 60000); // refresh every 60 seconds
 }
 
@@ -521,7 +514,7 @@ function switchTab(name) {
   document.getElementById('tab-'+name).className='tab-content active';
   if(name!=='cron') stopCronAutoRefresh();
   if(name==='schedule') { loadSchedules(); populateScheduleCampaigns(); }
-  if(name==='cron') { loadCampaignLog(); loadTodayDetail(); loadDeliveryStatus(); startCronAutoRefresh(); }
+  if(name==='cron') { loadHealthStrip(); loadAnalyticsTable(); loadTodayDetail(); startCronAutoRefresh(); }
 }
 
 // ── CAMPAIGNS ─────────────────────────────────────────────────
@@ -1210,7 +1203,7 @@ async function loadTodayDetail() {
   }
 }
 
-// ── DELIVERY STATUS CARD ─────────────────────────────────────
+// ── MERGED ANALYTICS TABLE ───────────────────────────────────
 let deliveryScope = 'today'; // 'today' | 'all'
 
 function setDeliveryScope(scope) {
@@ -1219,11 +1212,11 @@ function setDeliveryScope(scope) {
   document.getElementById('ds-toggle-today').style.color = scope==='today' ? '#fff' : 'var(--muted)';
   document.getElementById('ds-toggle-all').style.background = scope==='all' ? 'var(--blue)' : '#fff';
   document.getElementById('ds-toggle-all').style.color = scope==='all' ? '#fff' : 'var(--muted)';
-  loadDeliveryStatus();
+  loadAnalyticsTable();
 }
 
-async function loadDeliveryStatus() {
-  const wrap = document.getElementById('delivery-status');
+async function loadAnalyticsTable() {
+  const wrap = document.getElementById('analytics-table');
   if(!wrap) return;
   wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div>';
 
@@ -1231,79 +1224,113 @@ async function loadDeliveryStatus() {
     const s = schedules[0];
     if(!s) { wrap.innerHTML='<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No active schedule.</div>'; return; }
 
-    // Build query — scoped to today (IST) or all-time, always filtered to this schedule
-    let query = `${SUPABASE_URL}/rest/v1/sent_log?select=sent_at,campaign,delivery_status&status=eq.success&schedule_id=eq.${s.id}&order=sent_at.desc&limit=2000`;
+    let sentQuery = `${SUPABASE_URL}/rest/v1/sent_log?select=sent_at,campaign,phase,delivery_status&status=eq.success&schedule_id=eq.${s.id}&order=sent_at.desc&limit=2000`;
+    let replyQuery = `${SUPABASE_URL}/rest/v1/reply_log?select=replied_at,campaign&order=replied_at.desc&limit=2000`;
     if (deliveryScope === 'today') {
       const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
       const todayISO = nowIST.toISOString().split('T')[0];
-      query += `&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59`;
+      sentQuery  += `&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59`;
+      replyQuery += `&replied_at=gte.${todayISO}T00:00:00&replied_at=lt.${todayISO}T23:59:59`;
     }
 
-    const res = await fetch(query, {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});
-    const rows = await res.json();
+    const [sentRes, replyRes] = await Promise.all([
+      fetch(sentQuery,  {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
+      fetch(replyQuery, {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}).catch(()=>null),
+    ]);
+    const rows = await sentRes.json();
+    const replyRows = replyRes ? await replyRes.json().catch(()=>[]) : [];
 
     if (!rows.length) {
       wrap.innerHTML = `<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No sends ${deliveryScope==='today'?'today':'yet'}.</div>`;
       return;
     }
 
-    // Group by IST date + campaign (mirrors Full History's date+campaign grouping)
-    const byDate = {}; // dateKey -> { campaign -> {sent,delivered,read,failed,pending} }
+    const toISTDate = (raw) => {
+      const istMs = new Date(raw).getTime() + (5.5 * 60 * 60 * 1000);
+      return new Date(istMs).toISOString().split('T')[0];
+    };
+
+    // Group sends by IST date + campaign
+    const byDate = {}; // dateKey -> { campaign -> {phase,total,sent,delivered,read,failed,pending,replied} }
     rows.forEach(r => {
-      const d = new Date(r.sent_at);
-      const istMs = d.getTime() + (5.5 * 60 * 60 * 1000);
-      const dateKey = new Date(istMs).toISOString().split('T')[0];
+      const dateKey = toISTDate(r.sent_at);
       const campaign = r.campaign || '—';
       if (!byDate[dateKey]) byDate[dateKey] = {};
-      if (!byDate[dateKey][campaign]) byDate[dateKey][campaign] = {sent:0, delivered:0, read:0, failed:0, pending:0};
+      if (!byDate[dateKey][campaign]) byDate[dateKey][campaign] = {phase:r.phase||'—', total:0, sent:0, delivered:0, read:0, failed:0, pending:0, replied:0};
       const c = byDate[dateKey][campaign];
       c.sent++;
       const ds = (r.delivery_status || 'sent').toLowerCase();
       if (ds === 'delivered') c.delivered++;
       else if (ds === 'read') c.read++;
       else if (ds === 'failed') c.failed++;
-      else c.pending++; // 'sent' or null = awaiting callback
+      else c.pending++;
     });
 
-    const allDates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+    // Fold in replies, matched by date + campaign
+    replyRows.forEach(r => {
+      if (!r.replied_at) return;
+      const dateKey = toISTDate(r.replied_at);
+      const campaign = r.campaign || '—';
+      if (byDate[dateKey] && byDate[dateKey][campaign]) byDate[dateKey][campaign].replied++;
+    });
 
-    let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
+    // Total = live matched-lead count for this schedule (same filters as cron uses)
+    let liveMatchedTotal = null;
+    try {
+      if (!leadsCache) { const lr = await fetch(METABASE_PROXY); leadsCache = await lr.json(); }
+      const sFilters = Array.isArray(s.filters_json) ? s.filters_json : [];
+      liveMatchedTotal = applyFilters(leadsCache, sFilters).length;
+    } catch(e) { console.warn('Live total fetch failed', e.message); }
+
+    const allDates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+    const phaseColors = {R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)'};
+
+    let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:760px">
         <thead><tr style="background:#f8faff">
           <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Date</th>
           <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Campaign</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Sent</th>
+          <th style="padding:8px 12px;text-align:center;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Phase</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Total</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--navy);font-weight:700;border-bottom:1px solid var(--border)">Sent</th>
           <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--blue);font-weight:700;border-bottom:1px solid var(--border)">Delivered</th>
           <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--green);font-weight:700;border-bottom:1px solid var(--border)">Read</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;color:#7c3aed;font-weight:700;border-bottom:1px solid var(--border)">Replied</th>
           <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--red);font-weight:700;border-bottom:1px solid var(--border)">Failed</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--amber);font-weight:700;border-bottom:1px solid var(--border)">Pending</th>
         </tr></thead>
         <tbody>`;
 
-    let gSent=0, gDel=0, gRead=0, gFail=0, gPend=0;
-    allDates.forEach(date => {
+    let gTotal=0, gSent=0, gDel=0, gRead=0, gReplied=0, gFail=0;
+    allDates.forEach((date, dateIdx) => {
       const dateLabel = new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
       Object.entries(byDate[date]).forEach(([campaign, c]) => {
+        const pc = phaseColors[c.phase]||'var(--muted)';
+        // Total shown only on the most recent date row (live count is "right now", not historical)
+        const totalDisplay = dateIdx===0 && liveMatchedTotal!==null ? liveMatchedTotal.toLocaleString() : '—';
         html += `<tr style="border-bottom:1px solid #f0f4fb">
           <td style="padding:8px 12px;font-weight:600;color:var(--text)">${dateLabel}</td>
           <td style="padding:8px 12px;color:var(--muted);font-size:11px">${campaign}</td>
+          <td style="padding:8px 12px;text-align:center"><span style="background:${pc}22;color:${pc};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${c.phase}</span></td>
+          <td style="padding:8px 12px;text-align:right;color:var(--muted2);font-size:11px">${totalDisplay}</td>
           <td style="padding:8px 12px;text-align:right;font-weight:800;color:var(--navy)">${c.sent.toLocaleString()}</td>
           <td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--blue)">${c.delivered.toLocaleString()}</td>
           <td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--green)">${c.read.toLocaleString()}</td>
+          <td style="padding:8px 12px;text-align:right;font-weight:700;color:#7c3aed">${c.replied.toLocaleString()}</td>
           <td style="padding:8px 12px;text-align:right;font-weight:700;color:${c.failed>0?'var(--red)':'var(--muted2)'}">${c.failed.toLocaleString()}</td>
-          <td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--amber)">${c.pending.toLocaleString()}</td>
         </tr>`;
-        gSent+=c.sent; gDel+=c.delivered; gRead+=c.read; gFail+=c.failed; gPend+=c.pending;
+        gSent+=c.sent; gDel+=c.delivered; gRead+=c.read; gReplied+=c.replied; gFail+=c.failed;
       });
     });
+    if (liveMatchedTotal!==null) gTotal = liveMatchedTotal;
 
     html += `<tr style="background:#f0f5ff">
-      <td colspan="2" style="padding:9px 12px;font-size:11px;font-weight:700;color:var(--navy)">TOTAL</td>
+      <td colspan="3" style="padding:9px 12px;font-size:11px;font-weight:700;color:var(--navy)">TOTAL</td>
+      <td style="padding:9px 12px;text-align:right;font-size:12px;font-weight:800;color:var(--muted2)">${gTotal?gTotal.toLocaleString():'—'}</td>
       <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--navy)">${gSent.toLocaleString()}</td>
       <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--blue)">${gDel.toLocaleString()}</td>
       <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--green)">${gRead.toLocaleString()}</td>
+      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:#7c3aed">${gReplied.toLocaleString()}</td>
       <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:${gFail>0?'var(--red)':'var(--muted2)'}">${gFail.toLocaleString()}</td>
-      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--amber)">${gPend.toLocaleString()}</td>
     </tr></tbody></table></div>`;
 
     wrap.innerHTML = html;
@@ -1313,138 +1340,50 @@ async function loadDeliveryStatus() {
   }
 }
 
-async function loadCampaignLog() {
-  const wrap = document.getElementById('campaign-progress');
+// ── HEALTH STRIP ──────────────────────────────────────────────
+async function loadHealthStrip() {
+  const wrap = document.getElementById('health-strip');
   if(!wrap) return;
-  wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div>';
 
   try {
-    // fetch sent_log
+    const s = schedules[0];
+    if(!s) { wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2)">No active schedule.</div>'; return; }
+
+    const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
+    const todayISO = nowIST.toISOString().split('T')[0];
+    const dayNum = getDayNum(s, new Date(todayISO));
+    const phaseInfo = getPhaseForDay(s, dayNum);
+    const phaseColors = {R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)'};
+    const pc = phaseColors[phaseInfo.phase]||'var(--muted2)';
+
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/sent_log?select=sent_at,time_slot,phase,campaign,status,schedule_id&status=eq.success&order=sent_at.desc&limit=2000`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      `${SUPABASE_URL}/rest/v1/sent_log?select=status,sent_at&schedule_id=eq.${s.id}&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59`,
+      {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}
     );
-    const rows = await res.json();
+    const todayRows = await res.json();
+    const todaySent = todayRows.filter(r=>r.status==='success').length;
+    const lastRun = todayRows.length ? new Date(Math.max(...todayRows.map(r=>new Date(r.sent_at).getTime()))) : null;
 
-    // group by date + time_slot + phase + campaign
-    const grouped = {};
-    rows.forEach(r => {
-      const d = new Date(r.sent_at);
-      // Convert UTC to IST (UTC+5:30)
-      const istMs = d.getTime() + (5.5 * 60 * 60 * 1000);
-      const istDate = new Date(istMs);
-      const dateKey = istDate.toISOString().split('T')[0];
-      const key = `${dateKey}||${r.time_slot||'—'}||${r.phase||'—'}||${r.campaign||'—'}`;
-      grouped[key] = (grouped[key]||0) + 1;
-    });
+    // figure out next slot (IST)
+    const nowH = nowIST.getUTCHours() + nowIST.getUTCMinutes()/60;
+    const nextSlot = nowH < 17 ? '5:00 PM' : nowH < 18 ? '6:00 PM' : nowH < 19 ? '7:00 PM' : 'Tomorrow 5:00 PM';
 
-    // group by date for daily totals
-    const byDate = {};
-    Object.entries(grouped).forEach(([key,count]) => {
-      const [date,slot,phase,campaign] = key.split('||');
-      if(!byDate[date]) byDate[date]=[];
-      byDate[date].push({slot,phase,campaign,count});
-    });
-
-    // build timeline — yesterday, today, tomorrow
-    const today = new Date(); today.setHours(0,0,0,0);
-    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
-    const tomorrow  = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
-
-    const s = schedules[0]; // use first active schedule
-    
-    const phaseColors = {R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)',NOT_STARTED:'var(--muted2)'};
-
-    function renderTimelineCard(dateObj, label, isCurrent) {
-      const dateKey = dateObj.toISOString().split('T')[0];
-      const entries = byDate[dateKey]||[];
-      const totalSent = entries.reduce((s,e)=>s+e.count,0);
-      let phaseInfo = s ? getPhaseForDay(s, getDayNum(s, dateObj)) : null;
-      const bg = isCurrent ? 'background:linear-gradient(135deg,#e8f0ff,#f0f8ff);border-color:var(--blue)' : 'background:#fafcff';
-      const phaseColor = phaseInfo ? (phaseColors[phaseInfo.phase]||'var(--muted)') : 'var(--muted)';
-
-      let slotRows = '';
-      if(entries.length) {
-        slotRows = entries.map(e=>`
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f0f4fb;font-size:11px">
-            <span style="color:var(--muted)">${e.slot}</span>
-            <span style="color:var(--muted);font-size:10px">${e.campaign}</span>
-            <span style="font-weight:700;color:var(--navy)">${e.count.toLocaleString()}</span>
-          </div>`).join('');
-      } else if(phaseInfo?.phase==='GAP') {
-        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">Gap day — no messages</div>`;
-      } else if(phaseInfo?.phase==='NOT_STARTED') {
-        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">Not started yet</div>`;
-      } else if(phaseInfo?.phase==='DONE') {
-        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">Campaign complete</div>`;
-      } else {
-        slotRows = `<div style="font-size:11px;color:var(--muted2);text-align:center;padding:8px">${isCurrent?'Scheduled for 5:00, 6:00, 7:00 PM':'No data'}</div>`;
-      }
-
-      return `<div style="border:1.5px solid var(--border);border-radius:8px;overflow:hidden;${bg}">
-        <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px">${label}</div>
-            <div style="font-size:13px;font-weight:800;color:var(--navy);margin-top:1px">${dateObj.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}</div>
-          </div>
-          <div style="text-align:right">
-            ${phaseInfo?`<div style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${phaseColor}22;color:${phaseColor};border:1px solid ${phaseColor}44">${phaseInfo.label}</div>`:''}
-            ${totalSent?`<div style="font-size:18px;font-weight:800;color:var(--navy);margin-top:2px">${totalSent.toLocaleString()} <span style="font-size:10px;color:var(--muted);font-weight:600">sent</span></div>`:''}
-          </div>
-        </div>
-        <div style="padding:8px 14px">${slotRows}</div>
-      </div>`;
-    }
-
-    let html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-      ${renderTimelineCard(yesterday,'YESTERDAY',false)}
-      ${renderTimelineCard(today,'TODAY',true)}
-      ${renderTimelineCard(tomorrow,'TOMORROW',false)}
-    </div>`;
-
-    // Full history table
-    if(Object.keys(byDate).length) {
-      const allDates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
-      html += `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
-        <div style="padding:8px 12px;background:#f0f5ff;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px">Full History</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:#f8faff">
-            <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Date</th>
-            <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Time</th>
-            <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Phase</th>
-            <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Campaign</th>
-            <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Sent</th>
-          </tr></thead>
-          <tbody>`;
-
-      let grandTotal = 0;
-      allDates.forEach(date => {
-        byDate[date].forEach(e => {
-          const pc = phaseColors[e.phase]||'var(--muted)';
-          html += `<tr style="border-bottom:1px solid #f0f4fb">
-            <td style="padding:8px 12px;font-weight:600;color:var(--text)">${new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td>
-            <td style="padding:8px 12px;color:var(--muted)">${e.slot}</td>
-            <td style="padding:8px 12px"><span style="background:${pc}22;color:${pc};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${e.phase}</span></td>
-            <td style="padding:8px 12px;color:var(--muted);font-size:11px">${e.campaign}</td>
-            <td style="padding:8px 12px;text-align:right;font-weight:800;color:var(--navy)">${e.count.toLocaleString()}</td>
-          </tr>`;
-          grandTotal += e.count;
-        });
-      });
-
-      html += `<tr style="background:#f0f5ff">
-        <td colspan="4" style="padding:9px 12px;font-size:11px;font-weight:700;color:var(--navy)">TOTAL SENT</td>
-        <td style="padding:9px 12px;text-align:right;font-size:16px;font-weight:800;color:var(--blue)">${grandTotal.toLocaleString()}</td>
-      </tr></tbody></table></div>`;
-    }
-
-    wrap.innerHTML = html;
+    wrap.innerHTML = `
+      <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Phase</span><br>
+        <span style="font-size:14px;font-weight:800;padding:2px 10px;border-radius:20px;background:${pc};color:#fff">${phaseInfo.label}</span></div>
+      <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Sent Today</span><br>
+        <span style="font-size:18px;font-weight:800">${todaySent.toLocaleString()}</span></div>
+      <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Last Run</span><br>
+        <span style="font-size:14px;font-weight:700">${lastRun ? lastRun.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) + ' IST ✅' : 'No runs yet today'}</span></div>
+      <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Next Run</span><br>
+        <span style="font-size:14px;font-weight:700">${nextSlot}</span></div>
+    `;
   } catch(e) {
-    wrap.innerHTML = `<div style="font-size:12px;color:var(--red);padding:12px">Failed: ${e.message}</div>`;
+    wrap.innerHTML = `<div style="font-size:12px;color:#fca5a5">Health check failed: ${e.message}</div>`;
   }
 }
 
-// ── SCHEDULE ──────────────────────────────────────────────────// ── SCHEDULE ──────────────────────────────────────────────────
+// ── SCHEDULE ──────────────────────────────────────────────────
 const SCHEDULE_API = "/api/schedule";
 let schedules=[], sFilters=[], sLeadsCache=null, sFetchedOnce=false, sFieldValCache={}, editSchedId=null;
 
