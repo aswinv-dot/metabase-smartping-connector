@@ -111,24 +111,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .cc-body{padding:12px 16px;background:#fafcff;font-size:12px}
 .cc-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:#fff}
 
-/* RULE CARDS */
-.rule-card{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
-.rule-card.active-rule{border-color:var(--blue)}
-.rule-card-header{background:linear-gradient(135deg,var(--navy),var(--blue));padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.rule-card-name{font-size:13px;font-weight:700;color:#fff}
-.rule-card-campaign{font-size:10px;color:var(--sky);margin-top:2px}
-.status-badge{font-size:9px;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid transparent;font-weight:700;letter-spacing:1px}
-.status-badge.active{background:rgba(241,200,25,.2);color:var(--yellow);border-color:rgba(241,200,25,.4)}
-.status-badge.paused{background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.2)}
-.rule-card-body{padding:12px 16px;display:flex;flex-direction:column;gap:4px;background:#fafcff}
-.rule-filter-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;background:#e8f0ff;border:1px solid var(--border);border-radius:20px;padding:3px 10px;color:var(--muted)}
-.rule-filter-pill .rfield{color:var(--navy);font-weight:600}
-.rule-filter-pill .rop{color:var(--blue);font-size:10px}
-.rule-filter-pill .rval{color:var(--blue);font-weight:600}
-.rule-logic-sep{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:2px 0 2px 6px;font-weight:600}
-.rule-card-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fff}
-.rule-actions{display:flex;gap:8px}
-
 /* CRON */
 .cron-card{background:linear-gradient(135deg,#e8f0ff,#f0f8ff);border:1.5px solid var(--sky);border-radius:var(--radius);padding:20px 24px}
 .cron-schedule{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
@@ -150,10 +132,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 .empty-box{padding:48px;text-align:center;color:var(--muted2);font-size:13px;border:1.5px dashed var(--border);border-radius:var(--radius)}
 
+/* TIME PICKER (schedule send times) */
+.time-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.time-slot-box{display:flex;flex-direction:column;gap:4px}
+.time-slot-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 .spin-blue{border-color:rgba(37,92,193,.2);border-top-color:var(--blue)}
-@media(max-width:1000px){.layout2{grid-template-columns:1fr}.wrap{padding:16px}}
+@media(max-width:1000px){.layout2{grid-template-columns:1fr}.wrap{padding:16px}.time-slots{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -166,7 +153,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <div class="tabs">
   <div class="tab active" onclick="switchTab('campaigns')">Campaigns</div>
-  <div class="tab" onclick="switchTab('rules')">Rules</div>
   <div class="tab" onclick="switchTab('schedule')">Schedule</div>
   <div class="tab" onclick="switchTab('cron')">Cron & Logs</div>
 </div>
@@ -229,57 +215,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
   </div>
 
-  <!-- TAB: RULES ──────────────────────────────────────────── -->
-  <div class="tab-content" id="tab-rules">
-    <div class="layout2">
-
-      <div class="card">
-        <div class="sec-label" id="rule-form-title">Create Rule</div>
-        <div class="form-group">
-          <label class="form-label">Rule Name</label>
-          <input class="form-input" id="rule-name" placeholder="e.g. Germany Not Interested"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Campaign</label>
-          <select class="form-select" id="rule-campaign">
-            <option value="">Loading...</option>
-          </select>
-        </div>
-        <div class="fetch-bar" style="flex-wrap:wrap;gap:8px">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:1">
-            <label style="font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap">Created</label>
-            <input type="date" id="fetch-date-from" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--font);font-size:11px;color:var(--text);background:#fff;outline:none"/>
-            <label style="font-size:11px;color:var(--muted);font-weight:600">to</label>
-            <input type="date" id="fetch-date-to" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-family:var(--font);font-size:11px;color:var(--text);background:#fff;outline:none"/>
-            <span class="fetch-status" id="fetch-status">Set date range then fetch</span>
-          </div>
-          <button class="fetch-btn" id="fetch-btn" onclick="fetchAllValues()">↻ Fetch Values</button>
-        </div>
-        <div class="form-label" style="margin-bottom:10px">Filters</div>
-        <div class="filter-list" id="filter-list"></div>
-        <button class="add-filter-btn" onclick="addFilter()">+ Add Filter</button>
-        <div class="btn-row">
-          <button class="btn-ghost" style="border-color:var(--yellow);color:var(--amber)" id="preview-btn" onclick="previewLeads()">◑ Preview</button>
-        </div>
-        <div id="preview-area"></div>
-        <div class="divider"></div>
-        <div class="btn-row">
-          <button class="btn" onclick="saveRule()">Save Rule</button>
-          <button class="btn-ghost" onclick="resetRuleForm()">Clear</button>
-          <span class="status-msg" id="rule-msg" style="margin-top:0"></span>
-        </div>
-      </div>
-
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="sec-label" style="margin-bottom:0">Rules <span id="rule-count" style="color:var(--blue)"></span></div>
-          <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadRules()">↻ Refresh</button>
-        </div>
-        <div id="rules-list"><div class="empty-box">Loading...</div></div>
-      </div>
-    </div>
-  </div>
-
   <!-- TAB: SCHEDULE ──────────────────────────────────────── -->
   <div class="tab-content" id="tab-schedule">
     <div class="layout2">
@@ -296,6 +231,25 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div class="form-group">
           <label class="form-label">Start Date</label>
           <input type="date" class="form-input" id="s-start-date"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Daily Send Times <span style="color:var(--muted2);font-weight:400">(IST)</span></label>
+          <div class="time-slots">
+            <div class="time-slot-box">
+              <span class="time-slot-label">Slot 1</span>
+              <input type="time" class="form-input" id="s-time-1" value="17:00"/>
+            </div>
+            <div class="time-slot-box">
+              <span class="time-slot-label">Slot 2</span>
+              <input type="time" class="form-input" id="s-time-2" value="18:00"/>
+            </div>
+            <div class="time-slot-box">
+              <span class="time-slot-label">Slot 3</span>
+              <input type="time" class="form-input" id="s-time-3" value="19:00"/>
+            </div>
+          </div>
+          <div class="form-hint">Cron checks every 5 min — each batch goes out at slot 1; slots 2 &amp; 3 reserved for future multi-batch sends.</div>
         </div>
 
         <div class="divider"></div>
@@ -388,17 +342,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <div class="cron-card">
         <div class="cron-schedule">
           <div>
-            <div style="display:flex;gap:12px;align-items:center">
-              <div class="cron-time" style="font-size:20px">5:00 PM</div>
-              <div style="font-size:16px;color:var(--muted)">+</div>
-              <div class="cron-time" style="font-size:20px">6:00 PM</div>
-              <div style="font-size:16px;color:var(--muted)">+</div>
-              <div class="cron-time" style="font-size:20px">7:00 PM</div>
-              <div style="font-size:13px;color:var(--muted);font-weight:600">IST</div>
-            </div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px">Every day — auto-runs without action</div>
+            <div style="font-size:12px;color:var(--muted)">Send times are now set per-schedule in the <a href="#" onclick="switchTab('schedule');return false" style="color:var(--blue);font-weight:600">Schedule</a> tab.</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Cron polls every 5 minutes and fires each schedule at its own configured time(s), IST.</div>
           </div>
-          <button class="btn-amber" id="cron-btn" onclick="runCron()">▶ Run Now</button>
+          <button class="btn-amber" id="cron-btn" onclick="runCron()">▶ Run Now (all active)</button>
         </div>
         <pre class="cron-result" id="cron-result"></pre>
       </div>
@@ -406,9 +353,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <summary style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer">ⓘ What cron does</summary>
         <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-top:10px;padding:14px 16px;background:#f8faff;border-radius:6px;border:1px solid var(--border)">
           1. Fetches all leads from Metabase<br>
-          2. Loads active schedule from Supabase<br>
+          2. Loads active schedules from Supabase<br>
           3. Applies filters → removes reactivated/failed/cap leads<br>
-          4. Skips leads messaged in last 24h (dedup)<br>
+          4. Skips leads already messaged this phase (dedup)<br>
           5. Sends WhatsApp via Smartping<br>
           6. Logs to Supabase sent_log
         </div>
@@ -462,7 +409,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <script>
 const WEBHOOK_SECRET = "terratern_smartping_2026";
-const RULES_API      = "/api/rules";
 const CAMPAIGNS_API  = "/api/campaigns";
 const METABASE_PROXY = "/api/metabase-proxy";
 
@@ -480,13 +426,14 @@ const OPERATORS = [
   {value:'date_between', label:'between (dates)',  needsVal:true,  isDate:true},
 ];
 
-let campaigns=[],rules=[],filters=[],params=[],testParams=[],editCampName=null,editRuleId=null;
-let leadsCache=null,fieldValCache={},fetchedOnce=false,logs=[];
+let campaigns=[],editCampName=null;
+let leadsCache=null;
+let logs=[];
+let params=[], testParams=[];
 
 window.onload=()=>{
-  loadCampaigns(); loadRules(); loadSchedules();
+  loadCampaigns(); loadSchedules();
   addParam(); addParam();
-  addFilter(true); addFilter(false);
 };
 
 // ── TABS ──────────────────────────────────────────────────────
@@ -498,7 +445,7 @@ function startCronAutoRefresh() {
     loadHealthStrip();
     loadAnalyticsTable();
     loadTodayDetail();
-  }, 60000); // refresh every 60 seconds
+  }, 60000);
 }
 
 function stopCronAutoRefresh() {
@@ -507,7 +454,7 @@ function stopCronAutoRefresh() {
 
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    const names=['campaigns','rules','schedule','cron'];
+    const names=['campaigns','schedule','cron'];
     t.className='tab'+(names[i]===name?' active':'');
   });
   document.querySelectorAll('.tab-content').forEach(c=>c.className='tab-content');
@@ -524,15 +471,8 @@ async function loadCampaigns(){
     const data=await res.json();
     campaigns=data.campaigns||[];
     renderCampaigns();
-    loadCampaignDropdown();
+    populateScheduleCampaigns();
   }catch(e){ document.getElementById('campaigns-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`; }
-}
-
-function loadCampaignDropdown(){
-  const sel=document.getElementById('rule-campaign');
-  const active=campaigns.filter(c=>c.active);
-  if(!active.length){ sel.innerHTML='<option value="">No active campaigns</option>'; return; }
-  sel.innerHTML=active.map(c=>`<option value="${c.campaign_name}">${c.campaign_name}</option>`).join('');
 }
 
 async function saveCampaign(){
@@ -644,252 +584,6 @@ function resetCampForm(){
 }
 function showCampMsg(txt,type){const el=document.getElementById('c-msg');el.textContent=txt;el.className='status-msg '+type;setTimeout(()=>el.textContent='',3000);}
 
-// ── RULES ─────────────────────────────────────────────────────
-async function loadRules(){
-  try{
-    const res=await fetch(RULES_API);
-    const data=await res.json();
-    rules=data.rules||[];
-    renderRules();
-  }catch(e){document.getElementById('rules-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;}
-}
-
-async function fetchAllValues(){
-  const btn=document.getElementById('fetch-btn');
-  const status=document.getElementById('fetch-status');
-  const df=document.getElementById('fetch-date-from').value;
-  const dt=document.getElementById('fetch-date-to').value;
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Fetching...';
-  status.className='fetch-status'; status.textContent='Fetching...';
-  try{
-    leadsCache=null;
-    const res=await fetch(METABASE_PROXY);
-    let leads=await res.json();
-    if(!Array.isArray(leads)) throw new Error('Bad response');
-    // apply date filter client-side
-    if(df||dt){
-      leads=leads.filter(row=>{
-        const d=row.created_at?new Date(row.created_at):null;
-        if(!d) return true;
-        if(df&&d<new Date(df)) return false;
-        if(dt&&d>new Date(dt+"T23:59:59")) return false;
-        return true;
-      });
-    }
-    leadsCache=leads;
-    fieldValCache={};
-    FIELDS.forEach(field=>{
-      const seen=new Set(); const nonNull=[]; let hasEmpty=false;
-      leads.forEach(r=>{
-        const raw=r[field];
-        const v=(raw===null||raw===undefined||String(raw).trim()==='') ? null : String(raw).trim();
-        if(v===null) hasEmpty=true;
-        else if(!seen.has(v)){seen.add(v);nonNull.push(v);}
-      });
-      nonNull.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base',numeric:true}));
-      fieldValCache[field]=hasEmpty?[...nonNull,'']:nonNull;
-    });
-    fetchedOnce=true;
-    status.className='fetch-status ok';
-    status.textContent=`✓ Fetched ${leads.length} leads${(df||dt)?' (date filtered)':''}`;
-    renderFilterList();
-  }catch(e){status.className='fetch-status err';status.textContent='Failed: '+e.message;}
-  btn.disabled=false; btn.innerHTML='↻ Fetch Values';
-}
-
-function addFilter(){filters.push({logic:'AND',field:FIELDS[0],op:'is',val:''});renderFilterList();}
-function renderFilterList(){
-  const list=document.getElementById('filter-list');
-  if(!filters.length){list.innerHTML='';return;}
-  if(fetchedOnce){
-    filters.forEach(f=>{
-      const vals=fieldValCache[f.field]||[];
-      const curOp=OPERATORS.find(o=>o.value===f.op);
-      if(curOp?.needsVal&&vals.length&&!vals.includes(f.val)) f.val=vals[0];
-    });
-  }
-  list.innerHTML=filters.map((f,i)=>{
-    const fieldOpts=FIELDS.map(ff=>`<option value="${ff}" ${f.field===ff?'selected':''}>${ff}</option>`).join('');
-    const opOpts=OPERATORS.map(o=>`<option value="${o.value}" ${f.op===o.value?'selected':''}>${o.label}</option>`).join('');
-    const curOp=OPERATORS.find(o=>o.value===f.op);
-    const needVal=curOp?curOp.needsVal:true;
-    let valEl='';
-    const isDateField = DATE_FIELDS.includes(f.field);
-    const curOpObj = OPERATORS.find(o=>o.value===f.op);
-    if(!needVal){
-      valEl=`<select disabled><option>—</option></select>`;
-    } else if(curOpObj?.isDate || isDateField) {
-      // date input(s)
-      if(f.op==='date_between'){
-        const [v1,v2]=(f.val||'').split('|');
-        valEl=`<div style="display:flex;gap:4px;align-items:center">
-          <input type="date" value="${v1||''}" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:11px;font-family:var(--font);color:var(--text);outline:none;flex:1" oninput="updateFilterBetween(${i},'from',this.value)"/>
-          <span style="font-size:10px;color:var(--muted)">to</span>
-          <input type="date" value="${v2||''}" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:11px;font-family:var(--font);color:var(--text);outline:none;flex:1" oninput="updateFilterBetween(${i},'to',this.value)"/>
-        </div>`;
-      } else {
-        valEl=`<input type="date" value="${f.val||''}" style="border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:11px;font-family:var(--font);color:var(--text);outline:none;width:100%" oninput="updateFilter(${i},'val',this.value)"/>`;
-      }
-    } else if(!fetchedOnce){
-      valEl=`<select disabled><option>— fetch first —</option></select>`;
-    } else{
-      const vals=fieldValCache[f.field]||[];
-      if(!vals.length){valEl=`<select disabled><option>— no values —</option></select>`;}
-      else{
-        const opts=vals.map(v=>`<option value="${escHtml(v)}" ${f.val===v?'selected':''}>${v===''?'(empty)':escHtml(v)}</option>`).join('');
-        valEl=`<select onchange="updateFilter(${i},'val',this.value)">${opts}</select>`;
-      }
-    }
-    const logicEl=i===0?`<div class="lt-spacer"></div>`:`<div class="logic-toggle"><button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setFL(${i},'AND')">AND</button><button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setFL(${i},'OR')">OR</button></div>`;
-    return `<div class="filter-row">
-      <div class="filter-top">${logicEl}<select style="flex:1" onchange="updateFilter(${i},'field',this.value)">${fieldOpts}</select><select style="flex:1" onchange="updateFilter(${i},'op',this.value)">${opOpts}</select></div>
-      <div class="filter-bottom">${valEl}<button class="remove-btn" onclick="removeFilter(${i})">×</button></div>
-    </div>`;
-  }).join('');
-}
-function updateFilter(i,k,v){filters[i][k]=v;if(k==='field'){const vals=fieldValCache[v]||[];filters[i].val=vals.length?vals[0]:'';renderFilterList();}if(k==='op'){const vals=fieldValCache[filters[i].field]||[];filters[i].val=vals.length?vals[0]:'';renderFilterList();}}
-function setFL(i,v){filters[i].logic=v;renderFilterList();}
-function updateFilterBetween(i,part,v){
-  const parts=(filters[i].val||'').split('|');
-  if(part==='from') parts[0]=v;
-  else parts[1]=v;
-  filters[i].val=parts.join('|');
-}
-function removeFilter(i){filters.splice(i,1);renderFilterList();}
-
-async function previewLeads(){
-  const area=document.getElementById('preview-area');
-  const btn=document.getElementById('preview-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spin spin-blue"></span>Fetching...'; area.innerHTML='';
-  try{
-    if(!leadsCache){const res=await fetch(METABASE_PROXY);leadsCache=await res.json();}
-    const matched=applyFilters(leadsCache,filters);
-    area.innerHTML=`<div class="preview-box">
-      <div class="preview-count">${matched.length}</div>
-      <div class="preview-sublabel">leads matched</div>
-      ${matched.length?`<div class="preview-table-wrap"><table class="preview-table">
-        <thead><tr><th>Name</th><th>Mobile</th><th>Status</th><th>Application</th></tr></thead>
-        <tbody>${matched.slice(0,30).map(r=>`<tr>
-          <td>${escHtml(r.fullname||'—')}</td><td>${escHtml(r.mobile||'—')}</td>
-          <td>${escHtml(r.current_lead_status||'—')}</td>
-          <td style="font-size:10px">${escHtml(String(r.application||'—').slice(0,24))}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>`:''}
-    </div>`;
-  }catch(e){area.innerHTML=`<div style="font-size:12px;color:var(--red);margin-top:10px">Error: ${e.message}</div>`;}
-  btn.disabled=false; btn.innerHTML='◑ Preview';
-}
-
-async function saveRule(){
-  const name=document.getElementById('rule-name').value.trim();
-  const campaign=document.getElementById('rule-campaign').value;
-  const msg=document.getElementById('rule-msg');
-  if(!name){msg.textContent='Name required';msg.className='status-msg err';return;}
-  if(!campaign){msg.textContent='Select campaign';msg.className='status-msg err';return;}
-  const valid=filters.filter(f=>{const op=OPERATORS.find(o=>o.value===f.op);return op&&(op.needsVal===false||f.val!=='');});
-  if(!valid.length){msg.textContent='Add filters';msg.className='status-msg err';return;}
-  msg.textContent='Saving...';msg.className='status-msg';
-  try{
-    const rule={id:editRuleId||Date.now().toString(36),name,campaign,filters:valid,active:true,created_at:new Date().toISOString()};
-    const res=await fetch(RULES_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rule)});
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    await loadRules(); resetRuleForm();
-    msg.className='status-msg ok'; msg.textContent='✓ Saved';
-    setTimeout(()=>msg.textContent='',3000);
-  }catch(e){msg.className='status-msg err';msg.textContent='Failed: '+e.message;}
-}
-
-async function toggleRule(id){
-  const rule=rules.find(r=>r.id===id); if(!rule) return;
-  try{await fetch(`${RULES_API}/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:!rule.active})});await loadRules();}
-  catch(e){alert('Failed: '+e.message);}
-}
-
-async function deleteRule(id){
-  if(!confirm('Delete this rule?')) return;
-  try{await fetch(`${RULES_API}/${id}`,{method:'DELETE'});rules=rules.filter(r=>r.id!==id);renderRules();}
-  catch(e){alert('Failed: '+e.message);}
-}
-
-function editRule(id){
-  const rule=rules.find(r=>r.id===id); if(!rule) return;
-  editRuleId=id;
-  document.getElementById('rule-name').value=rule.name;
-  document.getElementById('rule-campaign').value=rule.campaign;
-  filters=(rule.filters||rule.filters_json||[]).map(f=>({...f}));
-  renderFilterList();
-  document.getElementById('rule-form-title').textContent='Edit Rule';
-  switchTab('rules');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function renderRules(){
-  const list=document.getElementById('rules-list');
-  document.getElementById('rule-count').textContent=rules.length?`(${rules.length})`:'';
-  if(!rules.length){list.innerHTML='<div class="empty-box">No rules yet.</div>';return;}
-  list.innerHTML=rules.map(rule=>{
-    const pills=(rule.filters||rule.filters_json||[]).map((f,i)=>{
-      const opLabel=OPERATORS.find(o=>o.value===f.op)?.label||f.op;
-      const needVal=OPERATORS.find(o=>o.value===f.op)?.needsVal;
-      const valPart=needVal?`<span class="rval">${f.val===''?'(empty)':escHtml(f.val)}</span>`:'';
-      const sep=i<rule.filters.length-1?`<div class="rule-logic-sep">${rule.filters[i+1].logic}</div>`:'';
-      return `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
-        <div class="rule-filter-pill"><span class="rfield">${f.field}</span><span class="rop">${opLabel}</span>${valPart}</div>${sep}
-      </div>`;
-    }).join('');
-    return `<div class="rule-card ${rule.active?'active-rule':''}">
-      <div class="rule-card-header">
-        <div><div class="rule-card-name">${escHtml(rule.name)}</div><div class="rule-card-campaign">▶ ${rule.campaign}</div></div>
-        <span class="status-badge ${rule.active?'active':'paused'}" onclick="toggleRule('${rule.id}')">${rule.active?'ACTIVE':'PAUSED'}</span>
-      </div>
-      <div class="rule-card-body">${pills}</div>
-      <div class="rule-card-footer">
-        <span style="font-size:11px;color:var(--muted)">${fmtDate(rule.created_at)}</span>
-        <div class="rule-actions">
-          <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editRule('${rule.id}')">Edit</button>
-          <button class="btn-danger" onclick="deleteRule('${rule.id}')">Delete</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function resetRuleForm(){
-  editRuleId=null; filters=[];
-  document.getElementById('rule-name').value='';
-  document.getElementById('rule-form-title').textContent='Create Rule';
-  document.getElementById('preview-area').innerHTML='';
-  document.getElementById('rule-msg').textContent='';
-  addFilter(true); addFilter(false); renderFilterList();
-}
-
-function applyFilters(leads,filterList){
-  if(!filterList?.length) return leads;
-  return leads.filter(lead=>{
-    let result=evalFilter(lead,filterList[0]);
-    for(let i=1;i<filterList.length;i++){const test=evalFilter(lead,filterList[i]);result=filterList[i].logic==='OR'?result||test:result&&test;}
-    return result;
-  });
-}
-function evalFilter(lead,f){
-  const raw=lead[f.field];
-  const cell=String(raw??'').toLowerCase().trim();
-  const val=String(f.val??'').toLowerCase().trim();
-  // date operators
-  if(f.op==='date_after'||f.op==='date_before'||f.op==='date_between'){
-    const d=raw?new Date(raw):null;
-    if(!d||isNaN(d)) return false;
-    if(f.op==='date_after')  return d>=new Date(f.val);
-    if(f.op==='date_before') return d<=new Date(f.val+'T23:59:59');
-    if(f.op==='date_between'){
-      const [from,to]=(f.val||'').split('|');
-      return (!from||d>=new Date(from))&&(!to||d<=new Date(to+'T23:59:59'));
-    }
-  }
-  switch(f.op){case 'is':return cell===val;case 'is_not':return cell!==val;case 'contains':return cell.includes(val);case 'not_contains':return !cell.includes(val);case 'has_value':return raw!==null&&raw!==undefined&&String(raw).trim()!=='';case 'is_empty':return raw===null||raw===undefined||String(raw).trim()==='';default:return true;}
-}
-
 // ── CRON ──────────────────────────────────────────────────────
 async function runCron(){
   const btn=document.getElementById('cron-btn');
@@ -903,7 +597,7 @@ async function runCron(){
     if(data.success) addLog('cron','Railway cron triggered','success');
     else addLog('cron','Trigger failed: '+(data.error||'unknown'),'error');
   }catch(e){box.textContent='Error: '+e.message;addLog('cron','Failed: '+e.message,'error');}
-  btn.disabled=false; btn.innerHTML='▶ Run Now';
+  btn.disabled=false; btn.innerHTML='▶ Run Now (all active)';
 }
 
 // ── LOGS ──────────────────────────────────────────────────────
@@ -934,7 +628,6 @@ async function testCampaign(name) {
   btn.disabled=true; btn.textContent='Sending...';
   result.style.display='block'; result.style.color='var(--muted)'; result.textContent='Firing test message...';
 
-  // use test_params if defined, else fall back to template_params
   const params = (c.test_params && c.test_params.length > 0)
     ? c.test_params
     : (c.template_params||[]);
@@ -1003,7 +696,6 @@ async function loadTodayDetail() {
     const s = schedules[0];
     if(!s) { wrap.innerHTML='<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No active schedule.</div>'; return; }
 
-    // Use IST date for today
     const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
     const todayISO = nowIST.toISOString().split('T')[0];
     const today = new Date(todayISO);
@@ -1013,7 +705,6 @@ async function loadTodayDetail() {
     const phaseColors = {R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)'};
     const pc = phaseColors[phaseInfo.phase]||'var(--muted)';
 
-    // fetch today's sent_log
     const [sentRes, reactivatedRes, failedRes, capRes] = await Promise.all([
       fetch(`${SUPABASE_URL}/rest/v1/sent_log?select=time_slot,status&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59&schedule_id=eq.${s.id}`,
         {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
@@ -1030,22 +721,20 @@ async function loadTodayDetail() {
     const failedRows     = await failedRes.json();
     const capRows        = await capRes.json();
 
-    // counts
     const sentSuccess = sentRows.filter(r=>r.status==='success').length;
     const sentFailed  = sentRows.filter(r=>r.status==='error').length;
-    const by430  = sentRows.filter(r=>r.time_slot==='5:00PM').length;
-    const by600  = sentRows.filter(r=>r.time_slot==='6:00PM').length;
-    const by730  = sentRows.filter(r=>r.time_slot==='7:00PM').length;
-    const byOther= sentSuccess - by430 - by600 - by730;
+    const slotLabels = Array.isArray(s.send_times)&&s.send_times.length===3 ? s.send_times : ['17:00','18:00','19:00'];
+    const bySlot1 = sentRows.filter(r=>r.time_slot===slotLabels[0]).length;
+    const bySlot2 = sentRows.filter(r=>r.time_slot===slotLabels[1]).length;
+    const bySlot3 = sentRows.filter(r=>r.time_slot===slotLabels[2]).length;
+    const byOther = sentSuccess - bySlot1 - bySlot2 - bySlot3;
 
-    // fetch all sent for this phase to calculate remaining
     const allPhaseSentRes = await fetch(
       `${SUPABASE_URL}/rest/v1/sent_log?select=phone&phase=eq.${phaseInfo.phase}&schedule_id=eq.${s.id}&status=eq.success`,
       {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}
     );
     const allPhaseSent = await allPhaseSentRes.json();
 
-    // fetch total reactivated + failed + cap (all time)
     const [totalReactRes, totalFailRes] = await Promise.all([
       fetch(`${SUPABASE_URL}/rest/v1/reactivated_list?select=phone`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
       fetch(`${SUPABASE_URL}/rest/v1/failed_list?select=phone`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
@@ -1053,7 +742,6 @@ async function loadTodayDetail() {
     const totalReact = await totalReactRes.json();
     const totalFail  = await totalFailRes.json();
 
-    // FIX: live matched-lead count from Metabase, filtered by this schedule's rules (was hardcoded)
     let totalMatched = 0;
     try {
       if (!leadsCache) { const lr = await fetch(METABASE_PROXY); leadsCache = await lr.json(); }
@@ -1061,16 +749,14 @@ async function loadTodayDetail() {
       totalMatched = applyFilters(leadsCache, filters).length;
     } catch(e) {
       console.warn('Eligible pool: live Metabase fetch failed, falling back', e.message);
-      totalMatched = 22842; // fallback if Metabase proxy is unreachable
+      totalMatched = 22842;
     }
     const totalDead      = totalReact.length + totalFail.length + capRows.length;
     const totalEligible  = Math.max(0, totalMatched - totalDead);
     const phaseSentTotal = allPhaseSent.length;
     const batchPerDay    = Math.ceil(totalEligible / phaseDays);
-    const batchPerSlot   = Math.ceil(batchPerDay / 3);
     const remaining      = Math.max(0, batchPerDay - sentSuccess);
 
-    // phase progress
     const phaseProgress  = Math.min(100, Math.round((phaseSentTotal / totalEligible) * 100));
     const overallDay     = dayNum;
     const totalDays      = s.r1_days + s.gap1_days + s.r2_days + s.gap2_days + s.r3_days;
@@ -1082,10 +768,10 @@ async function loadTodayDetail() {
       </div>`;
     }
 
-    // next slot
-    const nowH = new Date().getHours() + new Date().getMinutes()/60;
-    const istH = nowH; // already IST since we're displaying
-    let nextSlot = nowH < 17.1 ? '5:00 PM' : nowH < 18 ? '6:00 PM' : nowH < 19.5 ? '7:00 PM' : 'Tomorrow 5:00 PM';
+    const nowMin = nowIST.getUTCHours()*60 + nowIST.getUTCMinutes();
+    const slotMins = slotLabels.map(t=>{const [h,m]=t.split(':').map(Number);return h*60+m;});
+    let nextSlot = `Tomorrow ${slotLabels[0]}`;
+    for (let i=0;i<slotMins.length;i++){ if(nowMin < slotMins[i]) { nextSlot = slotLabels[i]+' IST'; break; } }
 
     if(phaseInfo.phase === 'GAP') {
       wrap.innerHTML = `<div style="background:#f8faff;border:1.5px solid var(--border);border-radius:8px;padding:20px;text-align:center">
@@ -1136,16 +822,16 @@ async function loadTodayDetail() {
             <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">TODAY'S SENDS</div>
             <div style="display:flex;flex-direction:column;gap:5px">
               <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">5:00 PM</span>
-                <span style="font-weight:700;color:var(--navy)">${by430.toLocaleString()}</span>
+                <span style="color:var(--muted)">${slotLabels[0]}</span>
+                <span style="font-weight:700;color:var(--navy)">${bySlot1.toLocaleString()}</span>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">6:00 PM</span>
-                <span style="font-weight:700;color:var(--navy)">${by600.toLocaleString()}</span>
+                <span style="color:var(--muted)">${slotLabels[1]}</span>
+                <span style="font-weight:700;color:var(--navy)">${bySlot2.toLocaleString()}</span>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">7:00 PM</span>
-                <span style="font-weight:700;color:var(--navy)">${by730.toLocaleString()}</span>
+                <span style="color:var(--muted)">${slotLabels[2]}</span>
+                <span style="font-weight:700;color:var(--navy)">${bySlot3.toLocaleString()}</span>
               </div>
               ${byOther>0?`<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Other</span><span style="font-weight:700;color:var(--navy)">${byOther.toLocaleString()}</span></div>`:''}
               <div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--border);padding-top:5px;margin-top:2px">
@@ -1182,7 +868,6 @@ async function loadTodayDetail() {
           <div style="padding:12px 18px;text-align:center;border-right:1px solid var(--border)">
             <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">BATCH/DAY</div>
             <div style="font-size:20px;font-weight:800;color:var(--navy)">${batchPerDay.toLocaleString()}</div>
-            <div style="font-size:10px;color:var(--muted)">${batchPerSlot.toLocaleString()}/slot</div>
           </div>
           <div style="padding:12px 18px;text-align:center;border-right:1px solid var(--border)">
             <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">REMAINING TODAY</div>
@@ -1204,7 +889,7 @@ async function loadTodayDetail() {
 }
 
 // ── MERGED ANALYTICS TABLE ───────────────────────────────────
-let deliveryScope = 'today'; // 'today' | 'all'
+let deliveryScope = 'today';
 
 function setDeliveryScope(scope) {
   deliveryScope = scope;
@@ -1250,8 +935,7 @@ async function loadAnalyticsTable() {
       return new Date(istMs).toISOString().split('T')[0];
     };
 
-    // Group sends by IST date + campaign
-    const byDate = {}; // dateKey -> { campaign -> {phase,total,sent,delivered,read,failed,pending,replied} }
+    const byDate = {};
     rows.forEach(r => {
       const dateKey = toISTDate(r.sent_at);
       const campaign = r.campaign || '—';
@@ -1266,7 +950,6 @@ async function loadAnalyticsTable() {
       else c.pending++;
     });
 
-    // Fold in replies, matched by date + campaign
     replyRows.forEach(r => {
       if (!r.replied_at) return;
       const dateKey = toISTDate(r.replied_at);
@@ -1274,7 +957,6 @@ async function loadAnalyticsTable() {
       if (byDate[dateKey] && byDate[dateKey][campaign]) byDate[dateKey][campaign].replied++;
     });
 
-    // Total = live matched-lead count for this schedule (same filters as cron uses)
     let liveMatchedTotal = null;
     try {
       if (!leadsCache) { const lr = await fetch(METABASE_PROXY); leadsCache = await lr.json(); }
@@ -1305,7 +987,6 @@ async function loadAnalyticsTable() {
       const dateLabel = new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
       Object.entries(byDate[date]).forEach(([campaign, c]) => {
         const pc = phaseColors[c.phase]||'var(--muted)';
-        // Total shown only on the most recent date row (live count is "right now", not historical)
         const totalDisplay = dateIdx===0 && liveMatchedTotal!==null ? liveMatchedTotal.toLocaleString() : '—';
         html += `<tr style="border-bottom:1px solid #f0f4fb">
           <td style="padding:8px 12px;font-weight:600;color:var(--text)">${dateLabel}</td>
@@ -1364,9 +1045,11 @@ async function loadHealthStrip() {
     const todaySent = todayRows.filter(r=>r.status==='success').length;
     const lastRun = todayRows.length ? new Date(Math.max(...todayRows.map(r=>new Date(r.sent_at).getTime()))) : null;
 
-    // figure out next slot (IST)
-    const nowH = nowIST.getUTCHours() + nowIST.getUTCMinutes()/60;
-    const nextSlot = nowH < 17 ? '5:00 PM' : nowH < 18 ? '6:00 PM' : nowH < 19 ? '7:00 PM' : 'Tomorrow 5:00 PM';
+    const slotLabels = Array.isArray(s.send_times)&&s.send_times.length===3 ? s.send_times : ['17:00','18:00','19:00'];
+    const nowMin = nowIST.getUTCHours()*60 + nowIST.getUTCMinutes();
+    const slotMins = slotLabels.map(t=>{const [h,m]=t.split(':').map(Number);return h*60+m;});
+    let nextSlot = `Tomorrow ${slotLabels[0]}`;
+    for (let i=0;i<slotMins.length;i++){ if(nowMin < slotMins[i]) { nextSlot = slotLabels[i]+' IST'; break; } }
 
     wrap.innerHTML = `
       <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Phase</span><br>
@@ -1401,6 +1084,7 @@ async function loadSchedules(){
 function populateScheduleCampaigns(){
   ['s-r1-campaign','s-r2-campaign','s-r3-campaign'].forEach(id=>{
     const sel=document.getElementById(id);
+    if(!sel) return;
     const current=sel.value;
     sel.innerHTML='<option value="">Select campaign...</option>'+
       campaigns.map(c=>`<option value="${c.campaign_name}" ${current===c.campaign_name?'selected':''}>${c.campaign_name}</option>`).join('');
@@ -1480,6 +1164,9 @@ function removeSFilter(i){sFilters.splice(i,1);renderScheduleFilters();}
 async function saveSchedule(){
   const name      = document.getElementById('s-name').value.trim();
   const startDate = document.getElementById('s-start-date').value;
+  const t1        = document.getElementById('s-time-1').value || '17:00';
+  const t2        = document.getElementById('s-time-2').value || '18:00';
+  const t3        = document.getElementById('s-time-3').value || '19:00';
   const r1c       = document.getElementById('s-r1-campaign').value;
   const r1d       = parseInt(document.getElementById('s-r1-days').value)||8;
   const gap1      = parseInt(document.getElementById('s-gap1-days').value)||1;
@@ -1500,6 +1187,7 @@ async function saveSchedule(){
       body:JSON.stringify({
         id: editSchedId||undefined,
         name, start_date:startDate,
+        send_times: [t1,t2,t3],
         filters_json: sFilters,
         r1_campaign:r1c, r1_days:r1d,
         gap1_days:gap1,
@@ -1538,6 +1226,10 @@ function editSchedule(id){
   editSchedId=id;
   document.getElementById('s-name').value=s.name;
   document.getElementById('s-start-date').value=s.start_date;
+  const slotLabels = Array.isArray(s.send_times)&&s.send_times.length===3 ? s.send_times : ['17:00','18:00','19:00'];
+  document.getElementById('s-time-1').value=slotLabels[0];
+  document.getElementById('s-time-2').value=slotLabels[1];
+  document.getElementById('s-time-3').value=slotLabels[2];
   document.getElementById('s-r1-days').value=s.r1_days;
   document.getElementById('s-gap1-days').value=s.gap1_days;
   document.getElementById('s-r2-days').value=s.r2_days;
@@ -1552,6 +1244,7 @@ function editSchedule(id){
   },100);
   renderScheduleFilters();
   document.getElementById('sched-form-title').textContent='Edit Schedule';
+  switchTab('schedule');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1577,11 +1270,12 @@ function renderSchedules(){
   if(!schedules.length){list.innerHTML='<div class="empty-box">No schedules yet.</div>';return;}
   list.innerHTML=schedules.map(s=>{
     const ps=getPhaseStatus(s);
+    const slotLabels = Array.isArray(s.send_times)&&s.send_times.length===3 ? s.send_times : ['17:00','18:00','19:00'];
     return `<div class="campaign-card ${s.active?'active-c':''}">
       <div class="cc-header">
         <div>
           <div class="cc-name">${escHtml(s.name)}</div>
-          <div style="font-size:10px;color:var(--sky);margin-top:2px">Start: ${s.start_date}</div>
+          <div style="font-size:10px;color:var(--sky);margin-top:2px">Start: ${s.start_date} · Sends: ${slotLabels.join(', ')} IST</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
           <span class="cc-badge ${s.active?'active':'paused'}" onclick="toggleSchedule('${s.id}')">${s.active?'ACTIVE':'PAUSED'}</span>
@@ -1620,13 +1314,11 @@ async function checkOverlap(){
   resultDiv.style.display='none';
 
   try {
-    // fetch leads if not cached
     if(!sLeadsCache){
       const res=await fetch(METABASE_PROXY);
       sLeadsCache=await res.json();
     }
 
-    // apply current form filters
     const currentMatched = applyFilters(sLeadsCache, sFilters);
     const currentPhones  = new Set(currentMatched.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
 
@@ -1639,7 +1331,6 @@ async function checkOverlap(){
       return;
     }
 
-    // check against all existing active schedules
     const existingSchedules = schedules.filter(s => s.active && s.id !== editSchedId);
 
     if(!existingSchedules.length){
@@ -1652,7 +1343,6 @@ async function checkOverlap(){
       return;
     }
 
-    // compare with each existing schedule
     let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
       <div style="padding:8px 12px;background:#f0f5ff;font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)">
         Overlap Check — Your filters match ${currentPhones.size.toLocaleString()} leads
@@ -1701,6 +1391,9 @@ function resetScheduleForm(){
   editSchedId=null; sFilters=[];
   document.getElementById('s-name').value='';
   document.getElementById('s-start-date').value='';
+  document.getElementById('s-time-1').value='17:00';
+  document.getElementById('s-time-2').value='18:00';
+  document.getElementById('s-time-3').value='19:00';
   document.getElementById('s-r1-days').value=8;
   document.getElementById('s-gap1-days').value=1;
   document.getElementById('s-r2-days').value=8;
@@ -1709,6 +1402,32 @@ function resetScheduleForm(){
   document.getElementById('sched-form-title').textContent='Create Schedule';
   document.getElementById('s-msg').textContent='';
   renderScheduleFilters();
+}
+
+// ── SHARED FILTER ENGINE (used by schedule overlap/preview/analytics) ──
+function applyFilters(leads,filterList){
+  if(!filterList?.length) return leads;
+  return leads.filter(lead=>{
+    let result=evalFilter(lead,filterList[0]);
+    for(let i=1;i<filterList.length;i++){const test=evalFilter(lead,filterList[i]);result=filterList[i].logic==='OR'?result||test:result&&test;}
+    return result;
+  });
+}
+function evalFilter(lead,f){
+  const raw=lead[f.field];
+  const cell=String(raw??'').toLowerCase().trim();
+  const val=String(f.val??'').toLowerCase().trim();
+  if(f.op==='date_after'||f.op==='date_before'||f.op==='date_between'){
+    const d=raw?new Date(raw):null;
+    if(!d||isNaN(d)) return false;
+    if(f.op==='date_after')  return d>=new Date(f.val);
+    if(f.op==='date_before') return d<=new Date(f.val+'T23:59:59');
+    if(f.op==='date_between'){
+      const [from,to]=(f.val||'').split('|');
+      return (!from||d>=new Date(from))&&(!to||d<=new Date(to+'T23:59:59'));
+    }
+  }
+  switch(f.op){case 'is':return cell===val;case 'is_not':return cell!==val;case 'contains':return cell.includes(val);case 'not_contains':return !cell.includes(val);case 'has_value':return raw!==null&&raw!==undefined&&String(raw).trim()!=='';case 'is_empty':return raw===null||raw===undefined||String(raw).trim()==='';default:return true;}
 }
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
