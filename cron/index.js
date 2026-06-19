@@ -8,7 +8,12 @@ const SMARTPING_URL     = "https://backend.api-wa.co/campaign/smartping/api/v2";
 const METABASE_URL      = "https://metabase.terratern.com/api/public/card/7e84f141-e90d-4852-a158-4d6a75bf4833/query/json";
 const SUPABASE_URL      = "https://oagsgovnxgiszofgytre.supabase.co";
 const SUPABASE_KEY      = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI";
-const PORT              = process.env.PORT || 3001;
+const PORT               = process.env.PORT || 3001;
+
+// FIX: cron now polls every 5 min instead of running 3 fixed UTC jobs.
+// Each schedule defines its own 3 send_times (HH:MM, IST) — the poller
+// fires a schedule only during the 5-min window containing one of its times.
+const POLL_WINDOW_MIN = 5;
 
 const DYNAMIC_PARAMS = {
   overseas_jobupdate_api: (row) => [firstName(row.fullname)],
@@ -32,6 +37,30 @@ function isReactivated(row) {
   return utm.includes('whatsapp')||utm.includes('sms')||utm.includes('email')||utm.includes('ivr');
 }
 function log(msg) { console.log(`[${new Date().toISOString()}] ${msg}`); }
+
+// ── IST TIME HELPERS ──────────────────────────────────────────
+function nowIST() {
+  return new Date(Date.now() + 330 * 60000); // UTC + 5:30
+}
+function istHHMM(d) {
+  const h = String(d.getUTCHours()).padStart(2,'0');
+  const m = String(d.getUTCMinutes()).padStart(2,'0');
+  return `${h}:${m}`;
+}
+function toMinutes(hhmm) {
+  const [h,m] = String(hhmm||'0:0').split(':').map(Number);
+  return (h||0)*60 + (m||0);
+}
+// returns the matching send_time label (e.g. "17:00") if `now` falls within
+// POLL_WINDOW_MIN minutes after one of the schedule's send_times, else null
+function matchSlot(sendTimes, now) {
+  const nowMin = toMinutes(istHHMM(now));
+  for (const t of (sendTimes||[])) {
+    const tMin = toMinutes(t);
+    if (nowMin >= tMin && nowMin < tMin + POLL_WINDOW_MIN) return t;
+  }
+  return null;
+}
 
 // ── SUPABASE ──────────────────────────────────────────────────
 const sbHeaders = { 'Content-Type':'application/json', 'apikey':SUPABASE_KEY, 'Authorization':`Bearer ${SUPABASE_KEY}` };
@@ -59,12 +88,10 @@ async function getReactivatedPhones() { const r=await sbGet('reactivated_list','
 async function getCapReachedPhones()  { const r=await sbGet('cap_reached_list','?select=phone'); return new Set(r.map(x=>x.phone)); }
 async function getFailedPhones(campaign) { const r=await sbGet('failed_list',`?campaign=eq.${encodeURIComponent(campaign)}&select=phone`); return new Set(r.map(x=>x.phone)); }
 
-// FIX: fetch sent phones across ALL schedule IDs for the same campaign name (handles renamed/duplicate schedules)
+// fetch sent phones across ALL schedule IDs for the same campaign name (handles renamed/duplicate schedules)
 async function getSentPhones(schedId, phase, scheduleName) {
-  // Primary: by schedule_id
   const r1 = await sbGet('sent_log',`?schedule_id=eq.${schedId}&phase=eq.${phase}&status=eq.success&select=phone`);
   const phones = new Set(r1.map(x=>x.phone));
-  // Fallback: also fetch by rule_name to catch sends from old schedule IDs
   if (scheduleName) {
     const r2 = await sbGet('sent_log',`?rule_name=eq.${encodeURIComponent(scheduleName)}&phase=eq.${phase}&status=eq.success&select=phone`);
     r2.forEach(x => phones.add(x.phone));
@@ -116,7 +143,10 @@ function getCurrentPhase(s) {
 }
 
 // ── MAIN CRON JOB ─────────────────────────────────────────────
-async function runCron(timeSlot) {
+// FIX: now accepts an optional `onlyScheduleIds` filter (Set) so the poller
+// can run a schedule only during its own matched time slot, while other
+// active schedules with non-matching times are skipped this cycle.
+async function runCron(timeSlot, onlyScheduleIds = null) {
   const startTime = Date.now();
   log(`=== CRON START: ${timeSlot} ===`);
   const result = { slot:timeSlot, sent:0, failed:0, skipped:0, schedules:[] };
@@ -136,8 +166,9 @@ async function runCron(timeSlot) {
 
     const campaignMap = {};
     allCampaigns.forEach(c => campaignMap[c.campaign_name]=c);
-    const activeSchedules = schedules.filter(s=>s.active);
-    if (!activeSchedules.length) { log('No active schedules'); return result; }
+    let activeSchedules = schedules.filter(s=>s.active);
+    if (onlyScheduleIds) activeSchedules = activeSchedules.filter(s=>onlyScheduleIds.has(s.id));
+    if (!activeSchedules.length) { log('No active schedules to run this cycle'); return result; }
 
     for (const schedule of activeSchedules) {
       const {phase,dayNum,campaign:campaignName} = getCurrentPhase(schedule);
@@ -151,7 +182,7 @@ async function runCron(timeSlot) {
       const matched   = applyFilters(leads,filters);
       const phaseDays = phase==='R1'?schedule.r1_days:phase==='R2'?schedule.r2_days:schedule.r3_days;
       const batchSize = Math.ceil(matched.length/phaseDays);
-      const perSlot   = batchSize; // single slot per day — full batch goes out at 7PM
+      const perSlot   = batchSize; // single slot per day — full batch goes out at the schedule's first matched slot
       log(`Matched: ${matched.length} | Batch/day: ${batchSize} | Per slot: ${perSlot}`);
 
       const [sentPhones, failedPhones] = await Promise.all([
@@ -192,7 +223,6 @@ async function runCron(timeSlot) {
           try {
             const r=await fetch(SMARTPING_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
             const rJson = await r.json().catch(()=>({}));
-            // FIX: capture message_id from Smartping response
             const messageId = rJson?.msgid || rJson?.messageId || rJson?.id || null;
             if(r.ok){
               sent++;
@@ -230,6 +260,37 @@ async function runCron(timeSlot) {
   return result;
 }
 
+// ── POLLER ────────────────────────────────────────────────────
+// FIX: replaces the 3 fixed UTC cron.schedule() calls. Runs every
+// POLL_WINDOW_MIN minutes, checks each active schedule's own send_times
+// (set per-schedule in the UI), and only runs schedules whose time matches
+// the current IST window. A schedule with no send_times falls back to the
+// legacy default ['17:00','18:00','19:00'].
+async function pollAndRun() {
+  const now = nowIST();
+  let schedules;
+  try { schedules = await getSchedules(); } catch(e) { log(`Poller: failed to fetch schedules — ${e.message}`); return; }
+
+  const due = new Map(); // slotLabel -> Set(scheduleIds)
+  for (const s of schedules.filter(x=>x.active)) {
+    const sendTimes = Array.isArray(s.send_times) && s.send_times.length
+      ? s.send_times
+      : ['17:00','18:00','19:00'];
+    const slot = matchSlot(sendTimes, now);
+    if (slot) {
+      if (!due.has(slot)) due.set(slot, new Set());
+      due.get(slot).add(s.id);
+    }
+  }
+
+  if (!due.size) return; // nothing to do this cycle — stay quiet
+
+  for (const [slot, ids] of due) {
+    log(`Poller: ${ids.size} schedule(s) due for slot ${slot} IST`);
+    await runCron(slot, ids).catch(e => log(`Poller run error (${slot}): ${e.message}`));
+  }
+}
+
 // ── HTTP SERVER ───────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Type','application/json');
@@ -242,16 +303,14 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method==='POST'&&req.url==='/trigger') {
-    const istMin=(new Date().getUTCHours()*60+new Date().getUTCMinutes())+330;
-    const istH=Math.floor(istMin/60)%24;
-    const slot = istH===17?'5:00PM':istH===18?'6:00PM':istH===19?'7:00PM':'manual';
+    // Manual trigger — runs ALL active schedules immediately regardless of their configured send_times.
+    const slot = istHHMM(nowIST())+' (manual)';
     res.writeHead(200);
     res.end(JSON.stringify({success:true,message:`Cron triggered: ${slot}`}));
     runCron(slot).catch(console.error);
     return;
   }
 
-  // FIX: Smartping delivery callback endpoint
   if (req.method==='POST'&&req.url==='/smartping-callback') {
     let body='';
     req.on('data',chunk=>body+=chunk);
@@ -260,16 +319,11 @@ const server = http.createServer(async (req, res) => {
         const data = JSON.parse(body);
         log(`Smartping callback: ${JSON.stringify(data)}`);
 
-        // FIX: real AiSensy payload nests message data under data.data.message
-        // e.g. {"topic":"message.status.updated","data":{"message":{"messageId":"...","status":"DELIVERED",...}}}
-        // Fallback to flat top-level fields kept in case Smartping ever sends an unwrapped shape.
         const topic = data?.topic;
         const msg   = data?.data?.message || {};
         const messageId = msg.messageId || msg.id || data?.msgid || data?.messageId || null;
         const rawStatus  = msg.status    || data?.status || data?.deliveryStatus || null;
 
-        // Only act on events that actually carry a delivery/read/failed status update.
-        // Other topics (e.g. message.sender.user, message.created) won't have a useful status here.
         if (messageId && rawStatus) {
           const status = String(rawStatus).toLowerCase();
           const deliveryStatus = status.includes('deliver') ? 'delivered'
@@ -282,8 +336,6 @@ const server = http.createServer(async (req, res) => {
           log(`Updated delivery_status=${deliveryStatus} for message_id=${messageId} (topic=${topic})`);
         }
 
-        // FIX: capture inbound replies (message.sender.user) into reply_log
-        // Real payload seen: {"topic":"message.sender.user","data":{"message":{"phone_number":"918...","message_content":{"text":"Oky"},"sent_at":<ms>}}}
         if (topic === 'message.sender.user') {
           const phone   = msg.phone_number || msg.phoneNumber || null;
           const text    = msg.message_content?.text || msg.message_content?.caption || '';
@@ -291,7 +343,6 @@ const server = http.createServer(async (req, res) => {
           const repliedAt = new Date(Number(sentMs)).toISOString();
 
           if (phone) {
-            // attribute the reply to the most recent campaign sent to this phone
             let campaign = null;
             try {
               const recent = await sbGet('sent_log', `?phone=eq.${encodeURIComponent(phone)}&status=eq.success&order=sent_at.desc&limit=1&select=campaign`);
@@ -330,10 +381,8 @@ server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 
 // ── SCHEDULE ──────────────────────────────────────────────────
 log('TerraTern Cron Service started');
-log('Scheduled: 5:00 PM, 6:00 PM, 7:00 PM IST daily');
+log(`Polling every ${POLL_WINDOW_MIN} min — each schedule fires at its own configured send_times (IST)`);
 
-cron.schedule('30 11 * * *', () => runCron('5:00PM'), { timezone:'UTC' });
-cron.schedule('30 12 * * *', () => runCron('6:00PM'), { timezone:'UTC' });
-cron.schedule('30 13 * * *', () => runCron('7:00PM'), { timezone:'UTC' });
+cron.schedule(`*/${POLL_WINDOW_MIN} * * * *`, () => pollAndRun(), { timezone:'UTC' });
 
 log('Service running — waiting for scheduled times...');
