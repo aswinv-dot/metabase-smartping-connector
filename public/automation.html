@@ -427,6 +427,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       </div>
 
       <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="sec-label" style="margin-bottom:0">Delivery Status</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden">
+              <button class="ds-toggle-btn active" id="ds-toggle-today" style="border:none;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff" onclick="setDeliveryScope('today')">Today</button>
+              <button class="ds-toggle-btn" id="ds-toggle-all" style="border:none;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted)" onclick="setDeliveryScope('all')">All-time</button>
+            </div>
+            <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="loadDeliveryStatus()">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="delivery-status"><div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div></div>
+      </div>
+
+      <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="sec-label" style="margin-bottom:0">Session Log</div>
           <button onclick="clearLogs()" style="font-size:11px;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:var(--font)">Clear</button>
@@ -490,6 +504,7 @@ function startCronAutoRefresh() {
   cronRefreshInterval = setInterval(() => {
     loadCampaignLog();
     loadTodayDetail();
+    loadDeliveryStatus();
   }, 60000); // refresh every 60 seconds
 }
 
@@ -506,7 +521,7 @@ function switchTab(name) {
   document.getElementById('tab-'+name).className='tab-content active';
   if(name!=='cron') stopCronAutoRefresh();
   if(name==='schedule') { loadSchedules(); populateScheduleCampaigns(); }
-  if(name==='cron') { loadCampaignLog(); loadTodayDetail(); startCronAutoRefresh(); }
+  if(name==='cron') { loadCampaignLog(); loadTodayDetail(); loadDeliveryStatus(); startCronAutoRefresh(); }
 }
 
 // ── CAMPAIGNS ─────────────────────────────────────────────────
@@ -1181,6 +1196,84 @@ async function loadTodayDetail() {
         </div>
 
       </div>`;
+
+  } catch(e) {
+    wrap.innerHTML = `<div style="font-size:12px;color:var(--red);padding:12px">Failed: ${e.message}</div>`;
+  }
+}
+
+// ── DELIVERY STATUS CARD ─────────────────────────────────────
+let deliveryScope = 'today'; // 'today' | 'all'
+
+function setDeliveryScope(scope) {
+  deliveryScope = scope;
+  document.getElementById('ds-toggle-today').style.background = scope==='today' ? 'var(--blue)' : '#fff';
+  document.getElementById('ds-toggle-today').style.color = scope==='today' ? '#fff' : 'var(--muted)';
+  document.getElementById('ds-toggle-all').style.background = scope==='all' ? 'var(--blue)' : '#fff';
+  document.getElementById('ds-toggle-all').style.color = scope==='all' ? '#fff' : 'var(--muted)';
+  loadDeliveryStatus();
+}
+
+async function loadDeliveryStatus() {
+  const wrap = document.getElementById('delivery-status');
+  if(!wrap) return;
+  wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div>';
+
+  try {
+    const s = schedules[0];
+    if(!s) { wrap.innerHTML='<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No active schedule.</div>'; return; }
+
+    // Build query — scoped to today (IST) or all-time, always filtered to this schedule
+    let query = `${SUPABASE_URL}/rest/v1/sent_log?select=campaign,delivery_status&status=eq.success&schedule_id=eq.${s.id}`;
+    if (deliveryScope === 'today') {
+      const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
+      const todayISO = nowIST.toISOString().split('T')[0];
+      query += `&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59`;
+    }
+
+    const res = await fetch(query, {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});
+    const rows = await res.json();
+
+    if (!rows.length) {
+      wrap.innerHTML = `<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No sends ${deliveryScope==='today'?'today':'yet'}.</div>`;
+      return;
+    }
+
+    // Group by campaign
+    const byCampaign = {};
+    rows.forEach(r => {
+      const c = r.campaign || 'Unknown';
+      if (!byCampaign[c]) byCampaign[c] = {sent:0, delivered:0, read:0, failed:0, pending:0};
+      byCampaign[c].sent++;
+      const ds = (r.delivery_status || 'sent').toLowerCase();
+      if (ds === 'delivered') byCampaign[c].delivered++;
+      else if (ds === 'read') byCampaign[c].read++;
+      else if (ds === 'failed') byCampaign[c].failed++;
+      else byCampaign[c].pending++; // 'sent' or null = awaiting callback
+    });
+
+    const statCol = (label, val, color) => `
+      <div style="text-align:center;padding:8px 4px">
+        <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${label}</div>
+        <div style="font-size:17px;font-weight:800;color:${color}">${val.toLocaleString()}</div>
+      </div>`;
+
+    let html = '';
+    Object.entries(byCampaign).forEach(([campaign, c]) => {
+      html += `
+        <div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden">
+          <div style="padding:8px 14px;background:#f8faff;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--navy)">${campaign}</div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr)">
+            ${statCol('Sent', c.sent, 'var(--navy)')}
+            ${statCol('Delivered', c.delivered, 'var(--blue)')}
+            ${statCol('Read', c.read, 'var(--green)')}
+            ${statCol('Failed', c.failed, c.failed>0?'var(--red)':'var(--muted2)')}
+            ${statCol('Pending', c.pending, 'var(--amber)')}
+          </div>
+        </div>`;
+    });
+
+    wrap.innerHTML = html;
 
   } catch(e) {
     wrap.innerHTML = `<div style="font-size:12px;color:var(--red);padding:12px">Failed: ${e.message}</div>`;
