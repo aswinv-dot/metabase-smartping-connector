@@ -280,9 +280,37 @@ const server = http.createServer(async (req, res) => {
             `?message_id=eq.${encodeURIComponent(messageId)}`
           );
           log(`Updated delivery_status=${deliveryStatus} for message_id=${messageId} (topic=${topic})`);
-        } else {
+        }
+
+        // FIX: capture inbound replies (message.sender.user) into reply_log
+        // Real payload seen: {"topic":"message.sender.user","data":{"message":{"phone_number":"918...","message_content":{"text":"Oky"},"sent_at":<ms>}}}
+        if (topic === 'message.sender.user') {
+          const phone   = msg.phone_number || msg.phoneNumber || null;
+          const text    = msg.message_content?.text || msg.message_content?.caption || '';
+          const sentMs  = msg.sent_at || Date.now();
+          const repliedAt = new Date(Number(sentMs)).toISOString();
+
+          if (phone) {
+            // attribute the reply to the most recent campaign sent to this phone
+            let campaign = null;
+            try {
+              const recent = await sbGet('sent_log', `?phone=eq.${encodeURIComponent(phone)}&status=eq.success&order=sent_at.desc&limit=1&select=campaign`);
+              campaign = recent?.[0]?.campaign || null;
+            } catch (e) { log(`Reply campaign lookup failed: ${e.message}`); }
+
+            await sbPost('reply_log', [{
+              phone, message_text: text, replied_at: repliedAt, campaign
+            }]);
+            log(`Logged reply from ${phone}: "${text}" (campaign=${campaign})`);
+          } else {
+            log(`Reply skipped — no phone_number found (topic=${topic})`);
+          }
+        }
+
+        if (!messageId && !rawStatus && topic !== 'message.sender.user') {
           log(`Callback skipped — no messageId/status found (topic=${topic})`);
         }
+
         res.writeHead(200);
         res.end(JSON.stringify({success:true}));
       } catch(e) {
