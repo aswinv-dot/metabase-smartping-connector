@@ -1060,8 +1060,16 @@ async function loadTodayDetail() {
     const totalReact = await totalReactRes.json();
     const totalFail  = await totalFailRes.json();
 
-    // estimated total matched (from schedule — we don't re-fetch Metabase here)
-    const totalMatched   = 22842; // approximate — from last fetch
+    // FIX: live matched-lead count from Metabase, filtered by this schedule's rules (was hardcoded)
+    let totalMatched = 0;
+    try {
+      if (!leadsCache) { const lr = await fetch(METABASE_PROXY); leadsCache = await lr.json(); }
+      const filters = Array.isArray(s.filters_json) ? s.filters_json : [];
+      totalMatched = applyFilters(leadsCache, filters).length;
+    } catch(e) {
+      console.warn('Eligible pool: live Metabase fetch failed, falling back', e.message);
+      totalMatched = 22842; // fallback if Metabase proxy is unreachable
+    }
     const totalDead      = totalReact.length + totalFail.length + capRows.length;
     const totalEligible  = Math.max(0, totalMatched - totalDead);
     const phaseSentTotal = allPhaseSent.length;
@@ -1224,7 +1232,7 @@ async function loadDeliveryStatus() {
     if(!s) { wrap.innerHTML='<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No active schedule.</div>'; return; }
 
     // Build query — scoped to today (IST) or all-time, always filtered to this schedule
-    let query = `${SUPABASE_URL}/rest/v1/sent_log?select=campaign,delivery_status&status=eq.success&schedule_id=eq.${s.id}`;
+    let query = `${SUPABASE_URL}/rest/v1/sent_log?select=sent_at,campaign,delivery_status&status=eq.success&schedule_id=eq.${s.id}&order=sent_at.desc&limit=2000`;
     if (deliveryScope === 'today') {
       const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
       const todayISO = nowIST.toISOString().split('T')[0];
@@ -1239,39 +1247,64 @@ async function loadDeliveryStatus() {
       return;
     }
 
-    // Group by campaign
-    const byCampaign = {};
+    // Group by IST date + campaign (mirrors Full History's date+campaign grouping)
+    const byDate = {}; // dateKey -> { campaign -> {sent,delivered,read,failed,pending} }
     rows.forEach(r => {
-      const c = r.campaign || 'Unknown';
-      if (!byCampaign[c]) byCampaign[c] = {sent:0, delivered:0, read:0, failed:0, pending:0};
-      byCampaign[c].sent++;
+      const d = new Date(r.sent_at);
+      const istMs = d.getTime() + (5.5 * 60 * 60 * 1000);
+      const dateKey = new Date(istMs).toISOString().split('T')[0];
+      const campaign = r.campaign || '—';
+      if (!byDate[dateKey]) byDate[dateKey] = {};
+      if (!byDate[dateKey][campaign]) byDate[dateKey][campaign] = {sent:0, delivered:0, read:0, failed:0, pending:0};
+      const c = byDate[dateKey][campaign];
+      c.sent++;
       const ds = (r.delivery_status || 'sent').toLowerCase();
-      if (ds === 'delivered') byCampaign[c].delivered++;
-      else if (ds === 'read') byCampaign[c].read++;
-      else if (ds === 'failed') byCampaign[c].failed++;
-      else byCampaign[c].pending++; // 'sent' or null = awaiting callback
+      if (ds === 'delivered') c.delivered++;
+      else if (ds === 'read') c.read++;
+      else if (ds === 'failed') c.failed++;
+      else c.pending++; // 'sent' or null = awaiting callback
     });
 
-    const statCol = (label, val, color) => `
-      <div style="text-align:center;padding:8px 4px">
-        <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${label}</div>
-        <div style="font-size:17px;font-weight:800;color:${color}">${val.toLocaleString()}</div>
-      </div>`;
+    const allDates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
 
-    let html = '';
-    Object.entries(byCampaign).forEach(([campaign, c]) => {
-      html += `
-        <div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden">
-          <div style="padding:8px 14px;background:#f8faff;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--navy)">${campaign}</div>
-          <div style="display:grid;grid-template-columns:repeat(5,1fr)">
-            ${statCol('Sent', c.sent, 'var(--navy)')}
-            ${statCol('Delivered', c.delivered, 'var(--blue)')}
-            ${statCol('Read', c.read, 'var(--green)')}
-            ${statCol('Failed', c.failed, c.failed>0?'var(--red)':'var(--muted2)')}
-            ${statCol('Pending', c.pending, 'var(--amber)')}
-          </div>
-        </div>`;
+    let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:#f8faff">
+          <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Date</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Campaign</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Sent</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--blue);font-weight:700;border-bottom:1px solid var(--border)">Delivered</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--green);font-weight:700;border-bottom:1px solid var(--border)">Read</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--red);font-weight:700;border-bottom:1px solid var(--border)">Failed</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--amber);font-weight:700;border-bottom:1px solid var(--border)">Pending</th>
+        </tr></thead>
+        <tbody>`;
+
+    let gSent=0, gDel=0, gRead=0, gFail=0, gPend=0;
+    allDates.forEach(date => {
+      const dateLabel = new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+      Object.entries(byDate[date]).forEach(([campaign, c]) => {
+        html += `<tr style="border-bottom:1px solid #f0f4fb">
+          <td style="padding:8px 12px;font-weight:600;color:var(--text)">${dateLabel}</td>
+          <td style="padding:8px 12px;color:var(--muted);font-size:11px">${campaign}</td>
+          <td style="padding:8px 12px;text-align:right;font-weight:800;color:var(--navy)">${c.sent.toLocaleString()}</td>
+          <td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--blue)">${c.delivered.toLocaleString()}</td>
+          <td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--green)">${c.read.toLocaleString()}</td>
+          <td style="padding:8px 12px;text-align:right;font-weight:700;color:${c.failed>0?'var(--red)':'var(--muted2)'}">${c.failed.toLocaleString()}</td>
+          <td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--amber)">${c.pending.toLocaleString()}</td>
+        </tr>`;
+        gSent+=c.sent; gDel+=c.delivered; gRead+=c.read; gFail+=c.failed; gPend+=c.pending;
+      });
     });
+
+    html += `<tr style="background:#f0f5ff">
+      <td colspan="2" style="padding:9px 12px;font-size:11px;font-weight:700;color:var(--navy)">TOTAL</td>
+      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--navy)">${gSent.toLocaleString()}</td>
+      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--blue)">${gDel.toLocaleString()}</td>
+      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--green)">${gRead.toLocaleString()}</td>
+      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:${gFail>0?'var(--red)':'var(--muted2)'}">${gFail.toLocaleString()}</td>
+      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--amber)">${gPend.toLocaleString()}</td>
+    </tr></tbody></table></div>`;
 
     wrap.innerHTML = html;
 
