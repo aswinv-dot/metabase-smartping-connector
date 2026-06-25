@@ -10,10 +10,8 @@ const SUPABASE_URL      = "https://oagsgovnxgiszofgytre.supabase.co";
 const SUPABASE_KEY      = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI";
 const PORT               = process.env.PORT || 3001;
 
-// FIX: cron now polls every 5 min instead of running 3 fixed UTC jobs.
-// Each schedule defines its own 3 send_times (HH:MM, IST) — the poller
-// fires a schedule only during the 5-min window containing one of its times.
-const POLL_WINDOW_MIN = 5;
+// FIX 3: Widened from 5 → 7 min to absorb Railway cold-start / schedule drift
+const POLL_WINDOW_MIN = 7;
 
 const DYNAMIC_PARAMS = {
   overseas_jobupdate_api: (row) => [firstName(row.fullname)],
@@ -128,11 +126,17 @@ function evalFilter(lead, f) {
     default:return true;
   }
 }
+
+// FIX 1: getCurrentPhase now uses IST date derived from nowIST()
+// instead of Railway's local new Date() which is UTC — this was causing
+// day-boundary miscounts and making R2/R3 appear as GAP days.
 function getCurrentPhase(s) {
-  const start=new Date(s.start_date); start.setHours(0,0,0,0);
-  const today=new Date(); today.setHours(0,0,0,0);
-  const dayNum=Math.floor((today-start)/(1000*60*60*24))+1;
-  const r1End=s.r1_days,gap1End=r1End+s.gap1_days,r2End=gap1End+s.r2_days,gap2End=r2End+s.gap2_days,r3End=gap2End+s.r3_days;
+  const todayISO = nowIST().toISOString().split('T')[0]; // "YYYY-MM-DD" in IST
+  const today    = new Date(todayISO);
+  const start    = new Date(s.start_date);
+  today.setHours(0,0,0,0); start.setHours(0,0,0,0);
+  const dayNum   = Math.floor((today - start) / (1000*60*60*24)) + 1;
+  const r1End=s.r1_days, gap1End=r1End+s.gap1_days, r2End=gap1End+s.r2_days, gap2End=r2End+s.gap2_days, r3End=gap2End+s.r3_days;
   if(dayNum<1)        return {phase:'NOT_STARTED',dayNum,campaign:null};
   if(dayNum<=r1End)   return {phase:'R1',dayNum,campaign:s.r1_campaign};
   if(dayNum<=gap1End) return {phase:'GAP',dayNum,campaign:null};
@@ -143,9 +147,6 @@ function getCurrentPhase(s) {
 }
 
 // ── MAIN CRON JOB ─────────────────────────────────────────────
-// FIX: now accepts an optional `onlyScheduleIds` filter (Set) so the poller
-// can run a schedule only during its own matched time slot, while other
-// active schedules with non-matching times are skipped this cycle.
 async function runCron(timeSlot, onlyScheduleIds = null) {
   const startTime = Date.now();
   log(`=== CRON START: ${timeSlot} ===`);
@@ -172,11 +173,19 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
 
     for (const schedule of activeSchedules) {
       const {phase,dayNum,campaign:campaignName} = getCurrentPhase(schedule);
-      log(`Schedule: ${schedule.name} | Phase: ${phase} | Day: ${dayNum}`);
+
+      // FIX 4: IST date + start_date visible in every phase log line
+      const istDate = nowIST().toISOString().split('T')[0];
+      log(`Schedule: ${schedule.name} | Phase: ${phase} | Day: ${dayNum} | IST date: ${istDate} | start_date: ${schedule.start_date}`);
+
       if (phase==='GAP'||phase==='NOT_STARTED'||phase==='DONE') { log(`Skipping — ${phase}`); continue; }
 
       const campaign = campaignMap[campaignName];
-      if (!campaign) { log(`Campaign not found: ${campaignName}`); continue; }
+      // FIX 2: Log all available campaign names when a match fails — makes mismatches instantly visible
+      if (!campaign) {
+        log(`❌ Campaign not found: "${campaignName}" — available in map: [${Object.keys(campaignMap).join(', ')}]`);
+        continue;
+      }
 
       const filters   = Array.isArray(schedule.filters_json)?schedule.filters_json:[];
       const matched   = applyFilters(leads,filters);
@@ -261,11 +270,6 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
 }
 
 // ── POLLER ────────────────────────────────────────────────────
-// FIX: replaces the 3 fixed UTC cron.schedule() calls. Runs every
-// POLL_WINDOW_MIN minutes, checks each active schedule's own send_times
-// (set per-schedule in the UI), and only runs schedules whose time matches
-// the current IST window. A schedule with no send_times falls back to the
-// legacy default ['17:00','18:00','19:00'].
 async function pollAndRun() {
   const now = nowIST();
   let schedules;
