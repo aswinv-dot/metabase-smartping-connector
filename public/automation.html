@@ -1128,7 +1128,7 @@ function renderScheduleFilters(){
   if(!sFilters.length){list.innerHTML='';return;}
   if(sFetchedOnce){
     sFilters.forEach(f=>{
-      if(f.field==='application') return;
+      if(f.field==='application'||f.field==='utm_adset') return;
       const vals=sFieldValCache[f.field]||[];
       const curOp=OPERATORS.find(o=>o.value===f.op);
       if(curOp?.needsVal&&vals.length&&!vals.includes(f.val)) f.val=vals[0];
@@ -1141,8 +1141,8 @@ function renderScheduleFilters(){
     const needVal=curOp?curOp.needsVal:true;
     let valEl='';
     if(!needVal){valEl=`<select disabled><option>—</option></select>`;}
-    else if(f.field==='application'){
-      // application holds compound comma-separated values — free text works better than exact-match dropdown
+    else if(f.field==='application'||f.field==='utm_adset'){
+      // application/utm_adset: free text instead of dropdown (compound or sparse values)
       valEl=`<input type="text" value="${escHtml(f.val)}" placeholder="e.g. Ausbildung Germany" oninput="sFilters[${i}].val=this.value"/>`;
     }
     else if(!sFetchedOnce){valEl=`<select disabled><option>— fetch first —</option></select>`;}
@@ -1162,7 +1162,7 @@ function renderScheduleFilters(){
   }).join('');
 }
 
-function updateSFilter(i,k,v){sFilters[i][k]=v;if(k==='field'){sFilters[i].val=(v==='application')?'':((sFieldValCache[v]||[]).length?sFieldValCache[v][0]:'');renderScheduleFilters();}if(k==='op'){if(sFilters[i].field!=='application'){const vals=sFieldValCache[sFilters[i].field]||[];sFilters[i].val=vals.length?vals[0]:'';}renderScheduleFilters();}}
+function updateSFilter(i,k,v){sFilters[i][k]=v;if(k==='field'){sFilters[i].val=(v==='application'||v==='utm_adset')?'':((sFieldValCache[v]||[]).length?sFieldValCache[v][0]:'');renderScheduleFilters();}if(k==='op'){if(sFilters[i].field!=='application'&&sFilters[i].field!=='utm_adset'){const vals=sFieldValCache[sFilters[i].field]||[];sFilters[i].val=vals.length?vals[0]:'';}renderScheduleFilters();}}
 function setSFL(i,v){sFilters[i].logic=v;renderScheduleFilters();}
 function removeSFilter(i){sFilters.splice(i,1);renderScheduleFilters();}
 
