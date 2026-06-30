@@ -412,7 +412,7 @@ const WEBHOOK_SECRET = "terratern_smartping_2026";
 const CAMPAIGNS_API  = "/api/campaigns";
 const METABASE_PROXY = "/api/metabase-proxy";
 
-const FIELDS = ['current_lead_status','current_lead_stage','application','mql_status','webinar_booked','webinar_attended','state','utm_source','utm_adset','latest_utm_campaign','bde','otp_verified','created_at','updated_at'];
+const FIELDS = ['current_lead_status','current_lead_stage','application','mql_status','webinar_booked','webinar_attended','state','utm_source','adset','latest_utm_campaign','bde','otp_verified','created_at','updated_at'];
 const DATE_FIELDS = ['created_at','updated_at'];
 const OPERATORS = [
   {value:'is',           label:'is',               needsVal:true,  isDate:false},
@@ -1128,7 +1128,7 @@ function renderScheduleFilters(){
   if(!sFilters.length){list.innerHTML='';return;}
   if(sFetchedOnce){
     sFilters.forEach(f=>{
-      if(f.field==='application'||f.field==='utm_adset') return;
+      if(f.field==='application'||f.field==='adset') return;
       const vals=sFieldValCache[f.field]||[];
       const curOp=OPERATORS.find(o=>o.value===f.op);
       if(curOp?.needsVal&&vals.length&&!vals.includes(f.val)) f.val=vals[0];
@@ -1141,8 +1141,8 @@ function renderScheduleFilters(){
     const needVal=curOp?curOp.needsVal:true;
     let valEl='';
     if(!needVal){valEl=`<select disabled><option>—</option></select>`;}
-    else if(f.field==='application'||f.field==='utm_adset'){
-      // application/utm_adset: free text instead of dropdown (compound or sparse values)
+    else if(f.field==='application'||f.field==='adset'){
+      // application/adset: free text instead of dropdown (compound or sparse values)
       valEl=`<input type="text" value="${escHtml(f.val)}" placeholder="e.g. Ausbildung Germany" oninput="sFilters[${i}].val=this.value"/>`;
     }
     else if(!sFetchedOnce){valEl=`<select disabled><option>— fetch first —</option></select>`;}
@@ -1162,7 +1162,7 @@ function renderScheduleFilters(){
   }).join('');
 }
 
-function updateSFilter(i,k,v){sFilters[i][k]=v;if(k==='field'){sFilters[i].val=(v==='application'||v==='utm_adset')?'':((sFieldValCache[v]||[]).length?sFieldValCache[v][0]:'');renderScheduleFilters();}if(k==='op'){if(sFilters[i].field!=='application'&&sFilters[i].field!=='utm_adset'){const vals=sFieldValCache[sFilters[i].field]||[];sFilters[i].val=vals.length?vals[0]:'';}renderScheduleFilters();}}
+function updateSFilter(i,k,v){sFilters[i][k]=v;if(k==='field'){sFilters[i].val=(v==='application'||v==='adset')?'':((sFieldValCache[v]||[]).length?sFieldValCache[v][0]:'');renderScheduleFilters();}if(k==='op'){if(sFilters[i].field!=='application'&&sFilters[i].field!=='adset'){const vals=sFieldValCache[sFilters[i].field]||[];sFilters[i].val=vals.length?vals[0]:'';}renderScheduleFilters();}}
 function setSFL(i,v){sFilters[i].logic=v;renderScheduleFilters();}
 function removeSFilter(i){sFilters.splice(i,1);renderScheduleFilters();}
 
