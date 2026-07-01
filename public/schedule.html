@@ -68,7 +68,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .s-card-phases{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 8px}
 .phase-box{border-radius:5px;padding:6px 8px;text-align:center}
 .phase-box-label{font-size:9px;color:var(--muted);font-weight:600;margin-bottom:2px}
-.phase-box-val{font-size:10px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phase-box-val{font-size:10px;font-weight:700;overflow:hidden;word-break:break-word;line-height:1.3}
 .s-card-gap{padding:0 12px 8px;font-size:10px;color:var(--muted)}
 .s-card-foot{padding:6px 10px;border-top:1px solid #f0f4fb;display:flex;gap:5px;justify-content:flex-end;background:#fafcff;margin-top:auto}
 
@@ -272,6 +272,34 @@ function inferProgram(name){
   return 'Other';
 }
 
+function renderKanban(){
+  const board=document.getElementById('kanban-board');
+  const progFilter=document.getElementById('sf-program')?.value||'';
+  let filtered=schedules;
+  if(statusFilter==='active') filtered=filtered.filter(s=>s.active);
+  if(statusFilter==='paused') filtered=filtered.filter(s=>!s.active);
+  document.getElementById('s-count').textContent=`${filtered.length} of ${schedules.length}`;
+
+  // debug: log inferred programs
+  console.log('Schedules:', filtered.map(s=>({name:s.name,active:s.active,program:inferProgram(s.name)})));
+
+  const showProgs=progFilter?PROGRAMS.filter(p=>p.key===progFilter):PROGRAMS;
+  board.innerHTML=showProgs.map(prog=>{
+    const cards=filtered.filter(s=>inferProgram(s.name)===prog.key);
+    if(!cards.length&&!progFilter) return ''; // hide empty rows unless filtering
+    return `<div class="prog-row">
+      <div class="prog-row-header bg-${prog.css}">
+        <span class="prog-row-flag">${prog.flag}</span>
+        <span class="prog-row-name">${prog.key}</span>
+        <span class="prog-row-count">${cards.length}</span>
+      </div>
+      <div class="h-card-row">
+        ${cards.length?cards.map(s=>renderCard(s,prog.css)).join(''):'<div class="h-card-empty">No schedules</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function getPhase(s){
   const nowIST=new Date(Date.now()+330*60000);
   const today=new Date(nowIST.toISOString().split('T')[0]); today.setHours(0,0,0,0);
@@ -327,29 +355,6 @@ function populateCampaignSelects(){
 }
 
 // ── RENDER ────────────────────────────────────────────────────
-function renderKanban(){
-  const board=document.getElementById('kanban-board');
-  const progFilter=document.getElementById('sf-program')?.value||'';
-  let filtered=schedules;
-  if(statusFilter==='active') filtered=filtered.filter(s=>s.active);
-  if(statusFilter==='paused') filtered=filtered.filter(s=>!s.active);
-  document.getElementById('s-count').textContent=`${filtered.length} of ${schedules.length}`;
-  const showProgs=progFilter?PROGRAMS.filter(p=>p.key===progFilter):PROGRAMS;
-  board.innerHTML=showProgs.map(prog=>{
-    const cards=filtered.filter(s=>inferProgram(s.name)===prog.key);
-    return `<div class="prog-row">
-      <div class="prog-row-header bg-${prog.css}">
-        <span class="prog-row-flag">${prog.flag}</span>
-        <span class="prog-row-name">${prog.key}</span>
-        <span class="prog-row-count">${cards.length}</span>
-      </div>
-      <div class="h-card-row">
-        ${cards.length?cards.map(s=>renderCard(s,prog.css)).join(''):'<div class="h-card-empty">No schedules</div>'}
-      </div>
-    </div>`;
-  }).join('');
-}
-
 function renderCard(s,css){
   const pi=getPhase(s);
   const pc=PHASE_COLORS[pi.phase]||'var(--muted2)';
