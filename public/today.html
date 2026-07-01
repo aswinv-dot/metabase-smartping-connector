@@ -50,6 +50,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .slot-node.active{background:#fff3cd;border-color:var(--yellow);animation:pulse 1.5s infinite}
 .slot-node.upcoming{background:#f0f5ff;border-color:var(--border)}
 .slot-node.gap{background:#f5f5f5;border-color:#ddd}
+.slot-node.failed{background:#fdecea;border-color:#e03e3e}
+.slot-status.failed{color:#e03e3e;font-weight:700}
+.slot-card.failed-card{border-color:#fca5a5;background:#fff8f8}
+.sc-val.red{color:#e03e3e;font-weight:700}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(241,200,25,.4)}50%{box-shadow:0 0 0 6px rgba(241,200,25,.0)}}
 
 /* SLOT CONTENT */
@@ -264,11 +268,18 @@ async function loadAll() {
     document.getElementById('refresh-info').textContent = `Last refresh: ${istHHMM(ist)} IST`;
 
     // fetch today's sent_log for all schedules in one shot
-    const sentRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/sent_log?select=schedule_id,campaign,time_slot,status,sent_at&status=eq.success&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59&limit=5000`,
-      {headers:sbH}
-    );
-    const sentRows = await sentRes.json();
+    let sentRows = [];
+    try {
+      const sentRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/sent_log?select=schedule_id,campaign,time_slot,status,sent_at&status=eq.success&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59&limit=5000`,
+        {headers:sbH}
+      );
+      const sentData = await sentRes.json();
+      sentRows = Array.isArray(sentData) ? sentData : [];
+    } catch(e) {
+      console.warn('sent_log fetch failed:', e.message);
+      sentRows = [];
+    }
 
     // group sent by schedule_id + time_slot + campaign
     const sentMap = {}; // sentMap[schedId][slot][campaign] = count
@@ -340,21 +351,22 @@ async function loadAll() {
           const emoji  = slotEmoji(status);
           const slotSent = sentMap[s.id]?.[slot]?.[campName]||0;
           const remaining = Math.max(0, perSlot - slotSent);
-          const cardClass = status==='fired'?'fired-card':status==='active'?'active-card':'';
+          const failed = status==='fired' && slotSent===0;
+          const cardClass = failed?'failed-card':status==='fired'?'fired-card':status==='active'?'active-card':'';
 
           html += `<div class="slot-row">
-            <div class="slot-node ${status}">${emoji}</div>
+            <div class="slot-node ${failed?'failed':status}">${failed?'❌':emoji}</div>
             <div class="slot-content">
               <div style="display:flex;align-items:baseline;gap:10px">
                 <div class="slot-time">${slot} IST</div>
-                <div class="slot-status ${status}">${status==='fired'?'Fired':status==='active'?'Running now':'Upcoming'}</div>
+                <div class="slot-status ${failed?'failed':status}">${failed?'Failed — 0 sent':status==='fired'?'Fired':status==='active'?'Running now':'Upcoming'}</div>
               </div>
               <div class="slot-cards">
                 <div class="slot-card ${cardClass}">
                   <div class="sc-campaign">${escHtml(campName)}</div>
                   <div class="sc-stats">
                     <div class="sc-row"><span class="sc-label">Batch/slot</span><span class="sc-val">${perSlot.toLocaleString()}</span></div>
-                    <div class="sc-row"><span class="sc-label">Sent</span><span class="sc-val ${slotSent>0?'green':''}">${slotSent.toLocaleString()}</span></div>
+                    <div class="sc-row"><span class="sc-label">Sent</span><span class="sc-val ${slotSent>0?'green':failed?'red':''}">${slotSent.toLocaleString()}</span></div>
                     <div class="sc-row"><span class="sc-label">Remaining</span><span class="sc-val ${remaining>0?'amber':'green'}">${remaining.toLocaleString()}</span></div>
                     <div class="sc-row"><span class="sc-label">Total today</span><span class="sc-val">${batchPerDay.toLocaleString()}</span></div>
                     <div class="sc-row"><span class="sc-label">Pool</span><span class="sc-val">${matched.toLocaleString()}</span></div>
