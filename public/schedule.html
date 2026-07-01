@@ -10,79 +10,124 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --navy:#00215C;--blue:#255CC1;--sky:#9acbfd;--yellow:#f1c819;
-  --bg:#f4f7fc;--surface:#fff;--border:#dde6f5;
+  --bg:#f0f4fb;--surface:#fff;--border:#dde6f5;
   --text:#00215C;--muted:#5a7ab5;--muted2:#8aa4cc;
   --green:#1a9e5c;--red:#e03e3e;--amber:#b07d00;
-  --font:'Inter',system-ui,sans-serif;--radius:8px;--shadow:0 1px 4px rgba(0,33,92,.08);
+  --font:'Inter',system-ui,sans-serif;--radius:8px;
 }
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:80px}
-.header{background:var(--navy);padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,33,92,.15)}
-.logo img{height:28px;width:auto;vertical-align:middle}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+.header{background:var(--navy);padding:0 24px;height:52px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,33,92,.15);position:sticky;top:0;z-index:50}
+.logo img{height:26px;width:auto;vertical-align:middle}
 .sub{font-size:11px;color:var(--sky);letter-spacing:1px;text-transform:uppercase;flex:1}
-.nav-link{font-size:12px;color:var(--sky);text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:6px 14px;border-radius:6px;transition:all .15s}
-.nav-link:hover{background:rgba(154,203,253,.15);border-color:var(--sky)}
-.wrap{max-width:1300px;margin:0 auto;padding:24px 32px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 24px;margin-bottom:20px}
-.sec-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600}
-.layout2{display:grid;grid-template-columns:420px 1fr;gap:20px}
-.form-group{margin-bottom:14px}
-.form-label{font-size:11px;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;display:block;font-weight:600;text-transform:uppercase}
-.form-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
-.form-input:focus{border-color:var(--blue)}
-.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;outline:none;appearance:none;cursor:pointer}
-.form-select:focus{border-color:var(--blue)}
-.form-hint{font-size:11px;color:var(--muted2);margin-top:4px}
-.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
-.btn{background:var(--blue);color:#fff;border:none;padding:10px 24px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;border-radius:6px;transition:all .15s}
+.nav-link{font-size:11px;color:var(--sky);text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:5px 12px;border-radius:6px;white-space:nowrap}
+.nav-link:hover{background:rgba(154,203,253,.15)}
+
+/* TOOLBAR */
+.toolbar{padding:12px 20px;background:var(--surface);border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:52px;z-index:40}
+.filter-btns{display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden}
+.f-btn{border:none;padding:5px 14px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
+.f-btn.on{background:var(--blue);color:#fff}
+.f-btn.off{background:#fff;color:var(--muted)}
+.prog-select{border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;font-family:var(--font);color:var(--text);background:#fff;outline:none;cursor:pointer}
+.count-label{font-size:11px;color:var(--muted);flex:1}
+.btn{background:var(--blue);color:#fff;border:none;padding:7px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
 .btn:hover{background:var(--navy)}
-.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:9px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
+.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;border-radius:6px;transition:all .15s}
 .btn-ghost:hover{background:var(--blue);color:#fff}
-.btn-amber{background:transparent;color:var(--amber);border:1.5px solid var(--yellow);padding:9px 18px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:700;border-radius:6px;transition:all .15s}
+.btn-amber{background:transparent;color:var(--amber);border:1.5px solid var(--yellow);padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:700;border-radius:6px;width:100%;transition:all .15s}
 .btn-amber:hover{background:var(--yellow);color:var(--navy)}
-.btn-danger{background:transparent;color:var(--red);border:1.5px solid #fca5a5;padding:5px 12px;cursor:pointer;font-family:var(--font);font-size:11px;border-radius:6px;transition:all .15s}
+.btn-danger{background:transparent;color:var(--red);border:1.5px solid #fca5a5;padding:3px 8px;cursor:pointer;font-family:var(--font);font-size:10px;border-radius:5px;transition:all .15s}
 .btn-danger:hover{background:#fdecea}
-.btn-row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
-.status-msg{font-size:12px;font-weight:600;margin-top:8px}
+
+/* PAGE BODY */
+.page-body{display:flex;height:calc(100vh - 104px);overflow:hidden}
+.kanban-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 20px;min-width:0;transition:all .25s}
+
+/* PROGRAM ROW */
+.prog-row{margin-bottom:20px;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.prog-row-header{padding:10px 16px;display:flex;align-items:center;gap:8px}
+.prog-row-flag{font-size:15px}
+.prog-row-name{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.8px;flex:1}
+.prog-row-count{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.2);color:#fff}
+.h-card-row{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px;padding:12px}
+.h-card-empty{padding:12px;font-size:11px;color:var(--muted2);font-style:italic}
+
+/* SCHEDULE CARD */
+.s-card{background:var(--surface);border:1.5px solid var(--border);border-radius:7px;overflow:hidden;min-width:260px;max-width:380px;flex:1;transition:box-shadow .15s,border-color .15s;display:flex;flex-direction:column}
+.s-card:hover{box-shadow:0 2px 12px rgba(0,33,92,.1)}
+.s-card.active-c{border-color:#a5c8f0}
+.s-card-bar{height:3px;width:100%}
+.s-card-head{padding:10px 12px 6px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.s-card-name{font-size:12px;font-weight:800;color:var(--navy);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-card-badges{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.badge{font-size:8px;padding:2px 6px;border-radius:10px;cursor:pointer;font-weight:700;letter-spacing:.8px;white-space:nowrap}
+.badge.active{background:rgba(26,158,92,.15);color:var(--green);border:1px solid rgba(26,158,92,.3)}
+.badge.paused{background:#f5f5f5;color:var(--muted2);border:1px solid #ddd}
+.phase-badge{font-size:9px;padding:2px 6px;border-radius:10px;font-weight:700;letter-spacing:.5px}
+.s-card-meta{padding:0 12px 8px;font-size:10px;color:var(--muted2)}
+.s-card-phases{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 8px}
+.phase-box{border-radius:5px;padding:6px 8px;text-align:center}
+.phase-box-label{font-size:9px;color:var(--muted);font-weight:600;margin-bottom:2px}
+.phase-box-val{font-size:10px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-card-gap{padding:0 12px 8px;font-size:10px;color:var(--muted)}
+.s-card-foot{padding:6px 10px;border-top:1px solid #f0f4fb;display:flex;gap:5px;justify-content:flex-end;background:#fafcff;margin-top:auto}
+
+/* SIDE PANEL */
+.side-panel{width:0;flex-shrink:0;background:var(--surface);border-left:1.5px solid var(--border);overflow:hidden;display:flex;flex-direction:column;transition:width .25s ease}
+.side-panel.open{width:400px}
+.panel-header{background:var(--navy);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0}
+.panel-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--sky);font-weight:700}
+.panel-close{background:transparent;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;line-height:1;padding:0 4px}
+.panel-close:hover{color:#fff}
+.panel-body{padding:16px;overflow-y:auto;flex:1}
+.form-group{margin-bottom:12px}
+.form-label{font-size:10px;letter-spacing:.5px;color:var(--muted);margin-bottom:4px;display:block;font-weight:700;text-transform:uppercase}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--blue)}
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none;appearance:none;cursor:pointer}
+.form-select:focus{border-color:var(--blue)}
+.form-hint{font-size:10px;color:var(--muted2);margin-top:3px;line-height:1.5}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
+.btn-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.status-msg{font-size:11px;font-weight:600;margin-top:6px}
 .status-msg.ok{color:var(--green)}.status-msg.err{color:var(--red)}
-.fetch-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0f7ff;border:1.5px solid var(--sky);border-radius:var(--radius);margin-bottom:16px}
+.time-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.time-slot-box{display:flex;flex-direction:column;gap:3px}
+.time-slot-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.fetch-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f0f7ff;border:1.5px solid var(--sky);border-radius:6px;margin-bottom:10px}
 .fetch-status{font-size:11px;color:var(--muted);flex:1;font-weight:500}
 .fetch-status.ok{color:var(--green)}.fetch-status.err{color:var(--red)}
-.fetch-btn{background:var(--blue);color:#fff;border:none;padding:7px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;white-space:nowrap}
-.fetch-btn:hover{background:var(--navy)}
-.filter-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.filter-row{border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;background:#fafcff}
-.filter-top{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.filter-bottom{display:grid;grid-template-columns:1fr 30px;gap:6px;align-items:center}
-.filter-row select{border:1.5px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-family:var(--font);font-size:12px;outline:none;width:100%;background:#fff;appearance:none}
-.filter-row select:focus{border-color:var(--blue)}
+.fetch-btn{background:var(--blue);color:#fff;border:none;padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;border-radius:5px;white-space:nowrap}
+.filter-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.filter-row{border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;background:#fafcff}
+.filter-top{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.filter-bottom{display:grid;grid-template-columns:1fr 28px;gap:5px;align-items:center}
+.filter-row select,.filter-row input[type="text"]{border:1.5px solid var(--border);border-radius:5px;color:var(--text);padding:6px 8px;font-family:var(--font);font-size:11px;outline:none;width:100%;background:#fff;appearance:none}
+.filter-row select:focus,.filter-row input[type="text"]:focus{border-color:var(--blue)}
 .filter-row select:disabled{opacity:.4;cursor:not-allowed;background:#f5f5f5}
-.filter-row input[type="text"]{border:1.5px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-family:var(--font);font-size:12px;outline:none;width:100%;background:#fff}
-.filter-row input[type="text"]:focus{border-color:var(--blue)}
-.logic-toggle{display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0}
-.lt-btn{background:#fff;border:none;color:var(--muted);padding:5px 10px;cursor:pointer;font-family:var(--font);font-size:10px;font-weight:700;width:36px;text-align:center;transition:all .15s}
+.logic-toggle{display:flex;border:1.5px solid var(--border);border-radius:5px;overflow:hidden;flex-shrink:0}
+.lt-btn{background:#fff;border:none;color:var(--muted);padding:4px 8px;cursor:pointer;font-family:var(--font);font-size:9px;font-weight:700;transition:all .15s}
 .lt-btn.active{background:var(--blue);color:#fff}
-.lt-spacer{width:72px;flex-shrink:0}
-.remove-btn{background:transparent;border:1.5px solid #fca5a5;color:var(--red);width:30px;height:32px;cursor:pointer;font-size:14px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.remove-btn:hover{background:#fdecea}
-.add-filter-btn{background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:8px 14px;cursor:pointer;font-family:var(--font);font-size:12px;border-radius:6px;width:100%;transition:all .15s;margin-bottom:14px}
+.lt-spacer{width:64px;flex-shrink:0}
+.remove-btn{background:transparent;border:1.5px solid #fca5a5;color:var(--red);width:28px;height:30px;cursor:pointer;font-size:13px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.add-filter-btn{background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:6px 10px;cursor:pointer;font-family:var(--font);font-size:11px;border-radius:5px;width:100%;transition:all .15s;margin-bottom:10px}
 .add-filter-btn:hover{border-color:var(--blue);color:var(--blue)}
-.campaign-card{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
-.campaign-card.active-c{border-color:var(--blue)}
-.cc-header{background:linear-gradient(135deg,var(--navy),var(--blue));padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.cc-name{font-size:14px;font-weight:700;color:#fff}
-.cc-badge{font-size:9px;padding:2px 8px;border-radius:20px;cursor:pointer;border:1px solid transparent;font-weight:700;letter-spacing:1px}
-.cc-badge.active{background:rgba(241,200,25,.2);color:var(--yellow);border-color:rgba(241,200,25,.4)}
-.cc-badge.paused{background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.2)}
-.cc-body{padding:12px 16px;background:#fafcff;font-size:12px}
-.cc-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:#fff}
-.empty-box{padding:48px;text-align:center;color:var(--muted2);font-size:13px;border:1.5px dashed var(--border);border-radius:var(--radius)}
-.time-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.time-slot-box{display:flex;flex-direction:column;gap:4px}
-.time-slot-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
-.spin-blue{border-color:rgba(37,92,193,.2);border-top-color:var(--blue)}
-@media(max-width:1000px){.layout2{grid-template-columns:1fr}.wrap{padding:16px}.time-slots{grid-template-columns:1fr}}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+
+/* PROGRAM COLORS — same as campaigns.html */
+.bg-goc  {background:linear-gradient(135deg,#1a3a6b,#255CC1)}
+.bg-ghc  {background:linear-gradient(135deg,#6b1a3a,#c12556)}
+.bg-ausb {background:linear-gradient(135deg,#1a5c3a,#25c178)}
+.bg-apr  {background:linear-gradient(135deg,#6b3a1a,#c17825)}
+.bg-cpr  {background:linear-gradient(135deg,#3a1a6b,#7825c1)}
+.bg-other{background:linear-gradient(135deg,#3a3a3a,#666)}
+.bar-goc  {background:#255CC1}
+.bar-ghc  {background:#c12556}
+.bar-ausb {background:#25c178}
+.bar-apr  {background:#c17825}
+.bar-cpr  {background:#7825c1}
+.bar-other{background:#666}
 </style>
 </head>
 <body>
@@ -96,117 +141,97 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
   <a href="/manual.html" class="nav-link">▶ Manual</a>
 </div>
 
-<div class="wrap">
-  <div class="layout2">
+<div class="toolbar">
+  <div class="filter-btns">
+    <button class="f-btn on"  id="sf-all"    onclick="setFilter('all')">All</button>
+    <button class="f-btn off" id="sf-active" onclick="setFilter('active')">Active</button>
+    <button class="f-btn off" id="sf-paused" onclick="setFilter('paused')">Paused</button>
+  </div>
+  <select class="prog-select" id="sf-program" onchange="renderKanban()">
+    <option value="">All Programs</option>
+    <option value="Germany Opportunity Card">🇩🇪 GOC</option>
+    <option value="Nurses Germany">🇩🇪 Nurses</option>
+    <option value="Ausbildung Germany">🇩🇪 Ausbildung</option>
+    <option value="Australia PR">🇦🇺 Australia PR</option>
+    <option value="Canada PR">🇨🇦 Canada PR</option>
+    <option value="Other">📦 Other</option>
+  </select>
+  <span class="count-label" id="s-count"></span>
+  <button class="btn-ghost" onclick="loadAll()" style="padding:5px 10px;font-size:11px">↻ Refresh</button>
+  <button class="btn" onclick="openPanel()">+ Create Schedule</button>
+</div>
 
-    <!-- LEFT: Schedule Form -->
-    <div class="card">
-      <div class="sec-label" id="sched-form-title">Create Schedule</div>
+<div class="page-body">
+  <!-- KANBAN AREA -->
+  <div class="kanban-area" id="kanban-area">
+    <div id="kanban-board"><div style="padding:40px;color:var(--muted2);font-size:13px">Loading...</div></div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div class="side-panel" id="side-panel">
+    <div class="panel-header">
+      <div class="panel-title" id="panel-title">Create Schedule</div>
+      <button class="panel-close" onclick="closePanel()">×</button>
+    </div>
+    <div class="panel-body">
 
       <div class="form-group">
         <label class="form-label">Schedule Name</label>
-        <input class="form-input" id="s-name" placeholder="e.g. GHC + Ausbildung June 2026"/>
+        <input class="form-input" id="s-name" placeholder="e.g. GHC_July"/>
       </div>
-
       <div class="form-group">
         <label class="form-label">Start Date</label>
         <input type="date" class="form-input" id="s-start-date"/>
       </div>
-
       <div class="form-group">
-        <label class="form-label">Daily Send Times <span style="color:var(--muted2);font-weight:400">(IST)</span></label>
+        <label class="form-label">Daily Send Times (IST)</label>
         <div class="time-slots">
-          <div class="time-slot-box">
-            <span class="time-slot-label">Slot 1</span>
-            <input type="time" class="form-input" id="s-time-1" value="17:00"/>
-          </div>
-          <div class="time-slot-box">
-            <span class="time-slot-label">Slot 2</span>
-            <input type="time" class="form-input" id="s-time-2" value="18:00"/>
-          </div>
-          <div class="time-slot-box">
-            <span class="time-slot-label">Slot 3</span>
-            <input type="time" class="form-input" id="s-time-3" value="19:00"/>
-          </div>
+          <div class="time-slot-box"><span class="time-slot-label">Slot 1</span><input type="time" class="form-input" id="s-time-1" value="17:00"/></div>
+          <div class="time-slot-box"><span class="time-slot-label">Slot 2</span><input type="time" class="form-input" id="s-time-2" value="18:00"/></div>
+          <div class="time-slot-box"><span class="time-slot-label">Slot 3</span><input type="time" class="form-input" id="s-time-3" value="19:00"/></div>
         </div>
-        <div class="form-hint">Cron checks every 7 min — daily batch is split evenly across all 3 slots (IST). Each slot sends its share independently.</div>
+        <div class="form-hint">Batch split evenly across all 3 slots — each fires independently.</div>
       </div>
 
       <div class="divider"></div>
 
-      <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">R1 Campaign</label>
-          <select class="form-select" id="s-r1-campaign"><option value="">Select...</option></select>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">R1 Days</label>
-          <input type="number" class="form-input" id="s-r1-days" value="8" min="1"/>
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 70px;gap:8px;margin-bottom:10px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">R1 Campaign</label><select class="form-select" id="s-r1-campaign"><option value="">Select...</option></select></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">R1 Days</label><input type="number" class="form-input" id="s-r1-days" value="8" min="1"/></div>
       </div>
-
-      <div class="form-group">
-        <label class="form-label">Gap 1 Days</label>
-        <input type="number" class="form-input" id="s-gap1-days" value="1" min="0"/>
+      <div class="form-group"><label class="form-label">Gap 1 Days</label><input type="number" class="form-input" id="s-gap1-days" value="1" min="0"/></div>
+      <div style="display:grid;grid-template-columns:1fr 70px;gap:8px;margin-bottom:10px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">R2 Campaign</label><select class="form-select" id="s-r2-campaign"><option value="">Select...</option></select></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">R2 Days</label><input type="number" class="form-input" id="s-r2-days" value="8" min="1"/></div>
       </div>
-
-      <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">R2 Campaign</label>
-          <select class="form-select" id="s-r2-campaign"><option value="">Select...</option></select>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">R2 Days</label>
-          <input type="number" class="form-input" id="s-r2-days" value="8" min="1"/>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Gap 2 Days</label>
-        <input type="number" class="form-input" id="s-gap2-days" value="1" min="0"/>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">R3 Campaign</label>
-          <select class="form-select" id="s-r3-campaign"><option value="">Select...</option></select>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">R3 Days</label>
-          <input type="number" class="form-input" id="s-r3-days" value="8" min="1"/>
-        </div>
+      <div class="form-group"><label class="form-label">Gap 2 Days</label><input type="number" class="form-input" id="s-gap2-days" value="1" min="0"/></div>
+      <div style="display:grid;grid-template-columns:1fr 70px;gap:8px;margin-bottom:10px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">R3 Campaign</label><select class="form-select" id="s-r3-campaign"><option value="">Select...</option></select></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">R3 Days</label><input type="number" class="form-input" id="s-r3-days" value="8" min="1"/></div>
       </div>
 
       <div class="divider"></div>
 
-      <div class="form-label" style="margin-bottom:10px">Lead Filters</div>
-      <div class="fetch-bar" style="margin-bottom:12px">
+      <div class="form-label" style="margin-bottom:8px">Lead Filters</div>
+      <div class="fetch-bar">
         <span class="fetch-status" id="s-fetch-status">Fetch values to enable dropdowns</span>
-        <button class="fetch-btn" onclick="fetchScheduleValues()">↻ Fetch Values</button>
+        <button class="fetch-btn" onclick="fetchValues()">↻ Fetch</button>
       </div>
       <div class="filter-list" id="s-filter-list"></div>
-      <button class="add-filter-btn" onclick="addScheduleFilter()">+ Add Filter</button>
+      <button class="add-filter-btn" onclick="addFilter()">+ Add Filter</button>
 
-      <div style="margin-top:14px;margin-bottom:10px">
-        <button class="btn-amber" style="width:100%;font-size:12px" onclick="checkOverlap()">⚡ Check Overlap Before Saving</button>
-        <div id="overlap-result" style="display:none;margin-top:10px"></div>
+      <div style="margin-bottom:10px">
+        <button class="btn-amber" onclick="checkOverlap()">⚡ Check Overlap</button>
+        <div id="overlap-result" style="display:none;margin-top:8px"></div>
       </div>
-      <div class="btn-row" style="margin-top:0">
+
+      <div class="divider"></div>
+      <div class="btn-row">
         <button class="btn" onclick="saveSchedule()">Save Schedule</button>
-        <button class="btn-ghost" onclick="resetScheduleForm()">Clear</button>
-        <span class="status-msg" id="s-msg" style="margin-top:0"></span>
+        <button class="btn-ghost" onclick="resetForm()">Clear</button>
       </div>
+      <div class="status-msg" id="s-msg"></div>
     </div>
-
-    <!-- RIGHT: Schedule List -->
-    <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div class="sec-label" style="margin-bottom:0">Schedules <span id="s-count" style="color:var(--blue)"></span></div>
-        <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadSchedules()">↻ Refresh</button>
-      </div>
-      <div id="schedules-list"><div class="empty-box">Loading...</div></div>
-    </div>
-
   </div>
 </div>
 
@@ -217,126 +242,150 @@ const METABASE_PROXY = "/api/metabase-proxy";
 
 const FIELDS = ['current_lead_status','current_lead_stage','application','mql_status','webinar_booked','webinar_attended','state','utm_source','adset','latest_utm_campaign','bde','otp_verified','created_at','updated_at'];
 const OPERATORS = [
-  {value:'is',           label:'is',               needsVal:true,  isDate:false},
-  {value:'is_not',       label:'is not',           needsVal:true,  isDate:false},
-  {value:'contains',     label:'contains',         needsVal:true,  isDate:false},
-  {value:'not_contains', label:'does not contain', needsVal:true,  isDate:false},
-  {value:'has_value',    label:'has any value',    needsVal:false, isDate:false},
-  {value:'is_empty',     label:'is empty / null',  needsVal:false, isDate:false},
-  {value:'date_after',   label:'after (date)',     needsVal:true,  isDate:true},
-  {value:'date_before',  label:'before (date)',    needsVal:true,  isDate:true},
-  {value:'date_between', label:'between (dates)',  needsVal:true,  isDate:true},
+  {value:'is',label:'is',needsVal:true},{value:'is_not',label:'is not',needsVal:true},
+  {value:'contains',label:'contains',needsVal:true},{value:'not_contains',label:'does not contain',needsVal:true},
+  {value:'has_value',label:'has any value',needsVal:false},{value:'is_empty',label:'is empty',needsVal:false},
+  {value:'date_after',label:'after (date)',needsVal:true},{value:'date_before',label:'before (date)',needsVal:true},
+  {value:'date_between',label:'between (dates)',needsVal:true},
 ];
 
-let campaigns=[], schedules=[];
-let sFilters=[], sLeadsCache=null, sFetchedOnce=false, sFieldValCache={}, editSchedId=null;
+const PROGRAMS=[
+  {key:'Germany Opportunity Card',flag:'🇩🇪',css:'goc', kw:['goc']},
+  {key:'Nurses Germany',          flag:'🇩🇪',css:'ghc', kw:['ghc','nurse']},
+  {key:'Ausbildung Germany',      flag:'🇩🇪',css:'ausb',kw:['ausb','ausbildung']},
+  {key:'Australia PR',            flag:'🇦🇺',css:'apr', kw:['apr','australia']},
+  {key:'Canada PR',               flag:'🇨🇦',css:'cpr', kw:['cpr','canada']},
+  {key:'Other',                   flag:'📦', css:'other',kw:[]},
+];
+
+const PHASE_COLORS={R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)',NOT_STARTED:'var(--muted2)'};
+
+let schedules=[], campaigns=[], editSchedId=null;
+let sFilters=[], leadsCache=null, sFetchedOnce=false, sFieldValCache={};
+let statusFilter='all';
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+function inferProgram(name){
+  const n=String(name||'').toLowerCase();
+  for(const p of PROGRAMS) if(p.kw.some(k=>n.includes(k))) return p.key;
+  return 'Other';
+}
+
+function getPhase(s){
+  const nowIST=new Date(Date.now()+330*60000);
+  const today=new Date(nowIST.toISOString().split('T')[0]); today.setHours(0,0,0,0);
+  const start=new Date(s.start_date); start.setHours(0,0,0,0);
+  const d=Math.floor((today-start)/(864e5))+1;
+  const r1e=s.r1_days,g1e=r1e+s.gap1_days,r2e=g1e+s.r2_days,g2e=r2e+s.gap2_days,r3e=g2e+s.r3_days;
+  if(d<1)    return {phase:'NOT_STARTED',label:'Not Started',day:d};
+  if(d<=r1e) return {phase:'R1',label:`R1 · Day ${d}/${s.r1_days}`,day:d};
+  if(d<=g1e) return {phase:'GAP',label:'Gap Day',day:d};
+  if(d<=r2e) return {phase:'R2',label:`R2 · Day ${d-g1e}/${s.r2_days}`,day:d};
+  if(d<=g2e) return {phase:'GAP',label:'Gap Day',day:d};
+  if(d<=r3e) return {phase:'R3',label:`R3 · Day ${d-g2e}/${s.r3_days}`,day:d};
+  return {phase:'DONE',label:'Complete',day:d};
+}
+
+// ── PANEL ─────────────────────────────────────────────────────
+function openPanel(){
+  document.getElementById('side-panel').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('side-panel').classList.remove('open');
+  resetForm();
+}
+
+// ── FILTER ────────────────────────────────────────────────────
+function setFilter(f){
+  statusFilter=f;
+  ['all','active','paused'].forEach(id=>{
+    const b=document.getElementById('sf-'+id);
+    b.className='f-btn '+(id===f?'on':'off');
+  });
+  renderKanban();
+}
+
 // ── LOAD ─────────────────────────────────────────────────────
+async function loadAll(){
+  await Promise.all([loadCampaigns(), loadSchedules()]);
+}
 async function loadCampaigns(){
-  try{
-    const res=await fetch(CAMPAIGNS_API);
-    const data=await res.json();
-    campaigns=data.campaigns||[];
-    populateScheduleCampaigns();
-  }catch(e){console.warn('Failed to load campaigns',e.message);}
+  try{const r=await fetch(CAMPAIGNS_API);const d=await r.json();campaigns=d.campaigns||[];populateCampaignSelects();}
+  catch(e){console.warn('campaigns load failed',e.message);}
 }
-
 async function loadSchedules(){
-  try{
-    const res=await fetch(SCHEDULE_API);
-    const data=await res.json();
-    schedules=data.schedules||[];
-    renderSchedules();
-  }catch(e){
-    document.getElementById('schedules-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;
-  }
+  try{const r=await fetch(SCHEDULE_API);const d=await r.json();schedules=d.schedules||[];renderKanban();}
+  catch(e){document.getElementById('kanban-board').innerHTML=`<div style="padding:40px;color:var(--red);font-size:13px">Failed: ${e.message}</div>`;}
 }
-
-function populateScheduleCampaigns(){
+function populateCampaignSelects(){
   ['s-r1-campaign','s-r2-campaign','s-r3-campaign'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return;
-    const current=sel.value;
-    sel.innerHTML='<option value="">Select campaign...</option>'+
-      campaigns.map(c=>`<option value="${c.campaign_name}" ${current===c.campaign_name?'selected':''}>${c.campaign_name}</option>`).join('');
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Select...</option>'+campaigns.map(c=>`<option value="${c.campaign_name}" ${cur===c.campaign_name?'selected':''}>${c.campaign_name}</option>`).join('');
   });
 }
 
-// ── FILTERS ───────────────────────────────────────────────────
-async function fetchScheduleValues(){
-  const status=document.getElementById('s-fetch-status');
-  status.textContent='Fetching...'; status.className='fetch-status';
-  try{
-    sLeadsCache=null;
-    const res=await fetch(METABASE_PROXY);
-    let leads=await res.json();
-    if(!Array.isArray(leads)) throw new Error('Bad response');
-    sLeadsCache=leads; sFieldValCache={};
-    FIELDS.forEach(field=>{
-      const seen=new Set(); const nonNull=[]; let hasEmpty=false;
-      leads.forEach(r=>{
-        const raw=r[field];
-        const v=(raw===null||raw===undefined||String(raw).trim()==='') ? null : String(raw).trim();
-        if(v===null) hasEmpty=true;
-        else if(!seen.has(v)){seen.add(v);nonNull.push(v);}
-      });
-      nonNull.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base',numeric:true}));
-      sFieldValCache[field]=hasEmpty?[...nonNull,'']:nonNull;
-    });
-    sFetchedOnce=true;
-    status.className='fetch-status ok';
-    status.textContent=`✓ Fetched ${leads.length} leads`;
-    renderScheduleFilters();
-  }catch(e){status.className='fetch-status err';status.textContent='Failed: '+e.message;}
-}
-
-function addScheduleFilter(){
-  sFilters.push({logic:'AND',field:FIELDS[0],op:'is',val:''});
-  renderScheduleFilters();
-}
-
-function renderScheduleFilters(){
-  const list=document.getElementById('s-filter-list');
-  if(!sFilters.length){list.innerHTML='';return;}
-  if(sFetchedOnce){
-    sFilters.forEach(f=>{
-      if(f.field==='application'||f.field==='adset') return;
-      const vals=sFieldValCache[f.field]||[];
-      const curOp=OPERATORS.find(o=>o.value===f.op);
-      if(curOp?.needsVal&&vals.length&&!vals.includes(f.val)) f.val=vals[0];
-    });
-  }
-  list.innerHTML=sFilters.map((f,i)=>{
-    const fieldOpts=FIELDS.map(ff=>`<option value="${ff}" ${f.field===ff?'selected':''}>${ff}</option>`).join('');
-    const opOpts=OPERATORS.map(o=>`<option value="${o.value}" ${f.op===o.value?'selected':''}>${o.label}</option>`).join('');
-    const curOp=OPERATORS.find(o=>o.value===f.op);
-    const needVal=curOp?curOp.needsVal:true;
-    let valEl='';
-    if(!needVal){valEl=`<select disabled><option>—</option></select>`;}
-    else if(f.field==='application'||f.field==='adset'){
-      valEl=`<input type="text" value="${escHtml(f.val)}" placeholder="e.g. Ausbildung Germany" oninput="sFilters[${i}].val=this.value"/>`;
-    }
-    else if(!sFetchedOnce){valEl=`<select disabled><option>— fetch first —</option></select>`;}
-    else{
-      const vals=sFieldValCache[f.field]||[];
-      if(!vals.length){valEl=`<select disabled><option>— no values —</option></select>`;}
-      else{
-        const opts=vals.map(v=>`<option value="${escHtml(v)}" ${f.val===v?'selected':''}>${v===''?'(empty)':escHtml(v)}</option>`).join('');
-        valEl=`<select onchange="updateSFilter(${i},'val',this.value)">${opts}</select>`;
-      }
-    }
-    const logicEl=i===0?`<div class="lt-spacer"></div>`:`<div class="logic-toggle"><button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setSFL(${i},'AND')">AND</button><button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setSFL(${i},'OR')">OR</button></div>`;
-    return `<div class="filter-row">
-      <div class="filter-top">${logicEl}<select style="flex:1" onchange="updateSFilter(${i},'field',this.value)">${fieldOpts}</select><select style="flex:1" onchange="updateSFilter(${i},'op',this.value)">${opOpts}</select></div>
-      <div class="filter-bottom">${valEl}<button class="remove-btn" onclick="removeSFilter(${i})">×</button></div>
+// ── RENDER ────────────────────────────────────────────────────
+function renderKanban(){
+  const board=document.getElementById('kanban-board');
+  const progFilter=document.getElementById('sf-program')?.value||'';
+  let filtered=schedules;
+  if(statusFilter==='active') filtered=filtered.filter(s=>s.active);
+  if(statusFilter==='paused') filtered=filtered.filter(s=>!s.active);
+  document.getElementById('s-count').textContent=`${filtered.length} of ${schedules.length}`;
+  const showProgs=progFilter?PROGRAMS.filter(p=>p.key===progFilter):PROGRAMS;
+  board.innerHTML=showProgs.map(prog=>{
+    const cards=filtered.filter(s=>inferProgram(s.name)===prog.key);
+    return `<div class="prog-row">
+      <div class="prog-row-header bg-${prog.css}">
+        <span class="prog-row-flag">${prog.flag}</span>
+        <span class="prog-row-name">${prog.key}</span>
+        <span class="prog-row-count">${cards.length}</span>
+      </div>
+      <div class="h-card-row">
+        ${cards.length?cards.map(s=>renderCard(s,prog.css)).join(''):'<div class="h-card-empty">No schedules</div>'}
+      </div>
     </div>`;
   }).join('');
 }
 
-function updateSFilter(i,k,v){sFilters[i][k]=v;if(k==='field'){sFilters[i].val=(v==='application'||v==='adset')?'':((sFieldValCache[v]||[]).length?sFieldValCache[v][0]:'');renderScheduleFilters();}if(k==='op'){if(sFilters[i].field!=='application'&&sFilters[i].field!=='adset'){const vals=sFieldValCache[sFilters[i].field]||[];sFilters[i].val=vals.length?vals[0]:'';}renderScheduleFilters();}}
-function setSFL(i,v){sFilters[i].logic=v;renderScheduleFilters();}
-function removeSFilter(i){sFilters.splice(i,1);renderScheduleFilters();}
+function renderCard(s,css){
+  const pi=getPhase(s);
+  const pc=PHASE_COLORS[pi.phase]||'var(--muted2)';
+  const slots=Array.isArray(s.send_times)&&s.send_times.length===3?s.send_times:['17:00','18:00','19:00'];
+  const total=s.r1_days+s.gap1_days+s.r2_days+s.gap2_days+s.r3_days;
+  return `<div class="s-card ${s.active?'active-c':''}">
+    <div class="s-card-bar bar-${css}"></div>
+    <div class="s-card-head">
+      <div class="s-card-name" title="${escHtml(s.name)}">${escHtml(s.name)}</div>
+      <div class="s-card-badges">
+        <span class="badge ${s.active?'active':'paused'}" onclick="toggleSchedule('${s.id}')">${s.active?'ACTIVE':'PAUSED'}</span>
+        <span class="phase-badge" style="background:${pc}22;color:${pc};border:1px solid ${pc}44">${pi.label}</span>
+      </div>
+    </div>
+    <div class="s-card-meta">Start: ${s.start_date} · ${slots.join(', ')} IST · ${total}d total</div>
+    <div class="s-card-phases">
+      <div class="phase-box" style="background:#e8f0ff">
+        <div class="phase-box-label" style="color:var(--blue)">R1 · ${s.r1_days}d</div>
+        <div class="phase-box-val" style="color:var(--navy)" title="${s.r1_campaign}">${s.r1_campaign}</div>
+      </div>
+      <div class="phase-box" style="background:#f3e8ff">
+        <div class="phase-box-label" style="color:#7c3aed">R2 · ${s.r2_days}d</div>
+        <div class="phase-box-val" style="color:#7c3aed" title="${s.r2_campaign}">${s.r2_campaign}</div>
+      </div>
+      <div class="phase-box" style="background:#e8f5e9">
+        <div class="phase-box-label" style="color:var(--green)">R3 · ${s.r3_days}d</div>
+        <div class="phase-box-val" style="color:var(--green)" title="${s.r3_campaign}">${s.r3_campaign}</div>
+      </div>
+    </div>
+    <div class="s-card-gap">Gap 1: ${s.gap1_days}d &nbsp;|&nbsp; Gap 2: ${s.gap2_days}d</div>
+    <div class="s-card-foot">
+      <button class="btn-ghost" style="padding:3px 8px;font-size:10px" onclick="editSchedule('${s.id}')">Edit</button>
+      <button class="btn-danger" onclick="deleteSchedule('${s.id}')">Delete</button>
+    </div>
+  </div>`;
+}
 
 // ── SAVE / TOGGLE / DELETE / EDIT ────────────────────────────
 async function saveSchedule(){
@@ -354,9 +403,9 @@ async function saveSchedule(){
   const r3c=document.getElementById('s-r3-campaign').value;
   const r3d=parseInt(document.getElementById('s-r3-days').value)||8;
   const msg=document.getElementById('s-msg');
-  if(!name){msg.textContent='Name required';msg.className='status-msg err';return;}
-  if(!startDate){msg.textContent='Start date required';msg.className='status-msg err';return;}
-  if(!r1c||!r2c||!r3c){msg.textContent='Select all 3 campaigns';msg.className='status-msg err';return;}
+  if(!name){showMsg('Name required','err');return;}
+  if(!startDate){showMsg('Start date required','err');return;}
+  if(!r1c||!r2c||!r3c){showMsg('Select all 3 campaigns','err');return;}
   msg.textContent='Saving...';msg.className='status-msg';
   try{
     const res=await fetch(SCHEDULE_API,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -365,10 +414,10 @@ async function saveSchedule(){
         r2_campaign:r2c,r2_days:r2d,gap2_days:gap2,r3_campaign:r3c,r3_days:r3d,active:true})});
     const data=await res.json();
     if(data.error) throw new Error(data.error);
-    await loadSchedules(); resetScheduleForm();
-    msg.className='status-msg ok'; msg.textContent='✓ Saved';
-    setTimeout(()=>msg.textContent='',3000);
-  }catch(e){msg.className='status-msg err';msg.textContent='Failed: '+e.message;}
+    await loadSchedules();
+    showMsg('✓ Saved','ok');
+    setTimeout(closePanel,800);
+  }catch(e){showMsg('Failed: '+e.message,'err');}
 }
 
 async function toggleSchedule(id){
@@ -383,7 +432,7 @@ async function deleteSchedule(id){
   if(!confirm('Delete this schedule?')) return;
   try{
     await fetch(`${SCHEDULE_API}/${id}`,{method:'DELETE'});
-    schedules=schedules.filter(s=>s.id!==id); renderSchedules();
+    schedules=schedules.filter(s=>s.id!==id); renderKanban();
   }catch(e){alert('Failed: '+e.message);}
 }
 
@@ -402,77 +451,81 @@ function editSchedule(id){
   document.getElementById('s-gap2-days').value=s.gap2_days;
   document.getElementById('s-r3-days').value=s.r3_days;
   sFilters=Array.isArray(s.filters_json)?s.filters_json.map(f=>({...f})):[];
-  populateScheduleCampaigns();
+  populateCampaignSelects();
   setTimeout(()=>{
     document.getElementById('s-r1-campaign').value=s.r1_campaign;
     document.getElementById('s-r2-campaign').value=s.r2_campaign;
     document.getElementById('s-r3-campaign').value=s.r3_campaign;
   },100);
-  renderScheduleFilters();
-  document.getElementById('sched-form-title').textContent='Edit Schedule';
-  window.scrollTo({top:0,behavior:'smooth'});
+  renderFilters();
+  document.getElementById('panel-title').textContent='Edit Schedule';
+  openPanel();
 }
 
-// ── RENDER ────────────────────────────────────────────────────
-function getPhaseStatus(s){
-  const nowIST=new Date(Date.now()+330*60000);
-  const todayISO=nowIST.toISOString().split('T')[0];
-  const today=new Date(todayISO); today.setHours(0,0,0,0);
-  const start=new Date(s.start_date); start.setHours(0,0,0,0);
-  const dayNum=Math.floor((today-start)/(1000*60*60*24))+1;
-  const r1End=s.r1_days, gap1End=r1End+s.gap1_days;
-  const r2End=gap1End+s.r2_days, gap2End=r2End+s.gap2_days, r3End=gap2End+s.r3_days;
-  if(dayNum<1)        return {label:'Not Started',color:'var(--muted)'};
-  if(dayNum<=r1End)   return {label:`R1 — Day ${dayNum}/${s.r1_days}`,color:'var(--blue)'};
-  if(dayNum<=gap1End) return {label:'Gap Day',color:'var(--muted)'};
-  if(dayNum<=r2End)   return {label:`R2 — Day ${dayNum-gap1End}/${s.r2_days}`,color:'#7c3aed'};
-  if(dayNum<=gap2End) return {label:'Gap Day',color:'var(--muted)'};
-  if(dayNum<=r3End)   return {label:`R3 — Day ${dayNum-gap2End}/${s.r3_days}`,color:'var(--green)'};
-  return {label:'Completed',color:'var(--muted2)'};
+// ── FILTERS ───────────────────────────────────────────────────
+async function fetchValues(){
+  const status=document.getElementById('s-fetch-status');
+  status.textContent='Fetching...'; status.className='fetch-status';
+  try{
+    leadsCache=null;
+    const res=await fetch(METABASE_PROXY);
+    const leads=await res.json();
+    if(!Array.isArray(leads)) throw new Error('Bad response');
+    leadsCache=leads; sFieldValCache={};
+    FIELDS.forEach(field=>{
+      const seen=new Set(),nonNull=[];let hasEmpty=false;
+      leads.forEach(r=>{
+        const raw=r[field];
+        const v=(raw===null||raw===undefined||String(raw).trim()==='') ? null : String(raw).trim();
+        if(v===null) hasEmpty=true;
+        else if(!seen.has(v)){seen.add(v);nonNull.push(v);}
+      });
+      nonNull.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base',numeric:true}));
+      sFieldValCache[field]=hasEmpty?[...nonNull,'']:nonNull;
+    });
+    sFetchedOnce=true;
+    status.className='fetch-status ok';
+    status.textContent=`✓ Fetched ${leads.length} leads`;
+    renderFilters();
+  }catch(e){status.className='fetch-status err';status.textContent='Failed: '+e.message;}
 }
 
-function renderSchedules(){
-  const list=document.getElementById('schedules-list');
-  document.getElementById('s-count').textContent=schedules.length?`(${schedules.length})`:'';
-  if(!schedules.length){list.innerHTML='<div class="empty-box">No schedules yet.</div>';return;}
-  list.innerHTML=schedules.map(s=>{
-    const ps=getPhaseStatus(s);
-    const slots=Array.isArray(s.send_times)&&s.send_times.length===3?s.send_times:['17:00','18:00','19:00'];
-    return `<div class="campaign-card ${s.active?'active-c':''}">
-      <div class="cc-header">
-        <div>
-          <div class="cc-name">${escHtml(s.name)}</div>
-          <div style="font-size:10px;color:var(--sky);margin-top:2px">Start: ${s.start_date} · Sends: ${slots.join(', ')} IST</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-          <span class="cc-badge ${s.active?'active':'paused'}" onclick="toggleSchedule('${s.id}')">${s.active?'ACTIVE':'PAUSED'}</span>
-          <span style="font-size:10px;font-weight:700;color:${ps.color}">${ps.label}</span>
-        </div>
-      </div>
-      <div class="cc-body">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
-          <div style="background:#e8f0ff;border-radius:6px;padding:8px 10px;text-align:center">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R1 · ${s.r1_days}d</div>
-            <div style="font-size:11px;color:var(--navy);font-weight:700">${s.r1_campaign}</div>
-          </div>
-          <div style="background:#f3e8ff;border-radius:6px;padding:8px 10px;text-align:center">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R2 · ${s.r2_days}d</div>
-            <div style="font-size:11px;color:#7c3aed;font-weight:700">${s.r2_campaign}</div>
-          </div>
-          <div style="background:#e8f5e9;border-radius:6px;padding:8px 10px;text-align:center">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R3 · ${s.r3_days}d</div>
-            <div style="font-size:11px;color:var(--green);font-weight:700">${s.r3_campaign}</div>
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--muted)">Gap 1: ${s.gap1_days}d &nbsp;|&nbsp; Gap 2: ${s.gap2_days}d &nbsp;|&nbsp; Total: ${s.r1_days+s.gap1_days+s.r2_days+s.gap2_days+s.r3_days} days</div>
-      </div>
-      <div class="cc-footer">
-        <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editSchedule('${s.id}')">Edit</button>
-        <button class="btn-danger" onclick="deleteSchedule('${s.id}')">Delete</button>
-      </div>
+function addFilter(){sFilters.push({logic:'AND',field:FIELDS[0],op:'is',val:''});renderFilters();}
+function renderFilters(){
+  const list=document.getElementById('s-filter-list');
+  if(!sFilters.length){list.innerHTML='';return;}
+  if(sFetchedOnce){
+    sFilters.forEach(f=>{
+      if(f.field==='application'||f.field==='adset') return;
+      const vals=sFieldValCache[f.field]||[];
+      const curOp=OPERATORS.find(o=>o.value===f.op);
+      if(curOp?.needsVal&&vals.length&&!vals.includes(f.val)) f.val=vals[0];
+    });
+  }
+  list.innerHTML=sFilters.map((f,i)=>{
+    const fOpts=FIELDS.map(ff=>`<option value="${ff}" ${f.field===ff?'selected':''}>${ff}</option>`).join('');
+    const oOpts=OPERATORS.map(o=>`<option value="${o.value}" ${f.op===o.value?'selected':''}>${o.label}</option>`).join('');
+    const curOp=OPERATORS.find(o=>o.value===f.op);
+    const needVal=curOp?curOp.needsVal:true;
+    let valEl='';
+    if(!needVal) valEl=`<select disabled><option>—</option></select>`;
+    else if(f.field==='application'||f.field==='adset') valEl=`<input type="text" value="${escHtml(f.val)}" placeholder="type value" oninput="sFilters[${i}].val=this.value"/>`;
+    else if(!sFetchedOnce) valEl=`<select disabled><option>— fetch first —</option></select>`;
+    else{
+      const vals=sFieldValCache[f.field]||[];
+      if(!vals.length) valEl=`<select disabled><option>— no values —</option></select>`;
+      else{const opts=vals.map(v=>`<option value="${escHtml(v)}" ${f.val===v?'selected':''}>${v===''?'(empty)':escHtml(v)}</option>`).join('');valEl=`<select onchange="updateFilter(${i},'val',this.value)">${opts}</select>`;}
+    }
+    const logicEl=i===0?`<div class="lt-spacer"></div>`:`<div class="logic-toggle"><button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setFL(${i},'AND')">AND</button><button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setFL(${i},'OR')">OR</button></div>`;
+    return `<div class="filter-row">
+      <div class="filter-top">${logicEl}<select style="flex:1" onchange="updateFilter(${i},'field',this.value)">${fOpts}</select><select style="flex:1" onchange="updateFilter(${i},'op',this.value)">${oOpts}</select></div>
+      <div class="filter-bottom">${valEl}<button class="remove-btn" onclick="removeFilter(${i})">×</button></div>
     </div>`;
   }).join('');
 }
+function updateFilter(i,k,v){sFilters[i][k]=v;if(k==='field'){sFilters[i].val=(v==='application'||v==='adset')?'':((sFieldValCache[v]||[]).length?sFieldValCache[v][0]:'');renderFilters();}if(k==='op'){if(sFilters[i].field!=='application'&&sFilters[i].field!=='adset'){const vals=sFieldValCache[sFilters[i].field]||[];sFilters[i].val=vals.length?vals[0]:'';}renderFilters();}}
+function setFL(i,v){sFilters[i].logic=v;renderFilters();}
+function removeFilter(i){sFilters.splice(i,1);renderFilters();}
 
 // ── OVERLAP CHECK ─────────────────────────────────────────────
 async function checkOverlap(){
@@ -481,77 +534,59 @@ async function checkOverlap(){
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>Checking...';
   resultDiv.style.display='none';
   try{
-    if(!sLeadsCache){const res=await fetch(METABASE_PROXY);sLeadsCache=await res.json();}
-    const currentMatched=applyFilters(sLeadsCache,sFilters);
-    const currentPhones=new Set(currentMatched.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
-    if(!currentPhones.size){
+    if(!leadsCache){const r=await fetch(METABASE_PROXY);leadsCache=await r.json();}
+    const cur=applyFilters(leadsCache,sFilters);
+    const curP=new Set(cur.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
+    if(!curP.size){
       resultDiv.style.display='block';
-      resultDiv.innerHTML=`<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:12px 14px;font-size:12px;color:var(--red)">⚠ No leads matched your current filters.</div>`;
-      btn.disabled=false;btn.innerHTML='⚡ Check Overlap Before Saving';return;
+      resultDiv.innerHTML=`<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:10px;font-size:12px;color:var(--red)">⚠ No leads matched your filters.</div>`;
+      btn.disabled=false;btn.innerHTML='⚡ Check Overlap';return;
     }
-    const existingSchedules=schedules.filter(s=>s.active&&s.id!==editSchedId);
-    if(!existingSchedules.length){
+    const existing=schedules.filter(s=>s.active&&s.id!==editSchedId);
+    if(!existing.length){
       resultDiv.style.display='block';
-      resultDiv.innerHTML=`<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:12px 14px;font-size:12px;color:var(--green)">✓ No existing active schedules — no overlap possible.<div style="margin-top:4px;color:var(--muted)">Your filters match <strong>${currentPhones.size.toLocaleString()}</strong> leads.</div></div>`;
-      btn.disabled=false;btn.innerHTML='⚡ Check Overlap Before Saving';return;
+      resultDiv.innerHTML=`<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;font-size:12px;color:var(--green)">✓ No active schedules — safe to save. Matches <strong>${curP.size.toLocaleString()}</strong> leads.</div>`;
+      btn.disabled=false;btn.innerHTML='⚡ Check Overlap';return;
     }
-    let html=`<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden"><div style="padding:8px 12px;background:#f0f5ff;font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)">Overlap Check — ${currentPhones.size.toLocaleString()} leads matched</div>`;
+    let html=`<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden"><div style="padding:7px 10px;background:#f0f5ff;font-size:10px;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border)">Overlap — ${curP.size.toLocaleString()} leads matched</div>`;
     let hasOverlap=false;
-    for(const s of existingSchedules){
-      const eMatched=applyFilters(sLeadsCache,Array.isArray(s.filters_json)?s.filters_json:[]);
-      const ePhones=new Set(eMatched.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
-      const overlap=[...currentPhones].filter(p=>ePhones.has(p)).length;
-      const pct=Math.round((overlap/currentPhones.size)*100);
-      const color=overlap===0?'var(--green)':pct>50?'var(--red)':'var(--amber)';
-      if(overlap>0) hasOverlap=true;
-      html+=`<div style="padding:10px 14px;border-bottom:1px solid #f0f4fb;display:flex;align-items:center;justify-content:space-between">
-        <div><div style="font-size:12px;font-weight:700;color:var(--navy)">${s.name}</div><div style="font-size:10px;color:var(--muted)">Active · Start ${s.start_date}</div></div>
-        <div style="text-align:right"><div style="font-size:18px;font-weight:800;color:${color}">${overlap.toLocaleString()}</div><div style="font-size:10px;color:var(--muted)">${pct}% overlap</div></div>
+    for(const s of existing){
+      const em=applyFilters(leadsCache,Array.isArray(s.filters_json)?s.filters_json:[]);
+      const ep=new Set(em.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
+      const ov=[...curP].filter(p=>ep.has(p)).length;
+      const pct=Math.round((ov/curP.size)*100);
+      const color=ov===0?'var(--green)':pct>50?'var(--red)':'var(--amber)';
+      if(ov>0) hasOverlap=true;
+      html+=`<div style="padding:8px 10px;border-bottom:1px solid #f0f4fb;display:flex;align-items:center;justify-content:space-between">
+        <div><div style="font-size:11px;font-weight:700;color:var(--navy)">${s.name}</div><div style="font-size:10px;color:var(--muted)">Active · ${s.start_date}</div></div>
+        <div style="text-align:right"><div style="font-size:16px;font-weight:800;color:${color}">${ov.toLocaleString()}</div><div style="font-size:10px;color:var(--muted)">${pct}%</div></div>
       </div>`;
     }
-    html+=`<div style="padding:10px 14px;background:#f8faff;font-size:11px;color:var(--muted)">${hasOverlap?'⚠ Overlapping leads will receive messages from <strong>both schedules</strong>.':'✓ No overlap found — safe to save.'}</div></div>`;
+    html+=`<div style="padding:8px 10px;background:#f8faff;font-size:11px;color:var(--muted)">${hasOverlap?'⚠ Overlapping leads get messages from <strong>both schedules</strong>.':'✓ No overlap — safe to save.'}</div></div>`;
     resultDiv.style.display='block'; resultDiv.innerHTML=html;
   }catch(e){
     resultDiv.style.display='block';
-    resultDiv.innerHTML=`<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:12px;font-size:12px;color:var(--red)">Failed: ${e.message}</div>`;
+    resultDiv.innerHTML=`<div style="background:#fdecea;border-radius:6px;padding:10px;font-size:12px;color:var(--red)">Failed: ${e.message}</div>`;
   }
-  btn.disabled=false; btn.innerHTML='⚡ Check Overlap Before Saving';
-}
-
-// ── RESET ─────────────────────────────────────────────────────
-function resetScheduleForm(){
-  editSchedId=null; sFilters=[];
-  document.getElementById('s-name').value='';
-  document.getElementById('s-start-date').value='';
-  document.getElementById('s-time-1').value='17:00';
-  document.getElementById('s-time-2').value='18:00';
-  document.getElementById('s-time-3').value='19:00';
-  document.getElementById('s-r1-days').value=8;
-  document.getElementById('s-gap1-days').value=1;
-  document.getElementById('s-r2-days').value=8;
-  document.getElementById('s-gap2-days').value=1;
-  document.getElementById('s-r3-days').value=8;
-  document.getElementById('sched-form-title').textContent='Create Schedule';
-  document.getElementById('s-msg').textContent='';
-  renderScheduleFilters();
+  btn.disabled=false; btn.innerHTML='⚡ Check Overlap';
 }
 
 // ── FILTER ENGINE ─────────────────────────────────────────────
-function applyFilters(leads,filterList){
-  if(!filterList?.length) return leads;
+function applyFilters(leads,fl){
+  if(!fl?.length) return leads;
   return leads.filter(lead=>{
-    let result=evalFilter(lead,filterList[0]);
-    for(let i=1;i<filterList.length;i++){const test=evalFilter(lead,filterList[i]);result=filterList[i].logic==='OR'?result||test:result&&test;}
-    return result;
+    let r=evalFilter(lead,fl[0]);
+    for(let i=1;i<fl.length;i++){const t=evalFilter(lead,fl[i]);r=fl[i].logic==='OR'?r||t:r&&t;}
+    return r;
   });
 }
 function evalFilter(lead,f){
-  const raw=lead[f.field]; const cell=String(raw??'').toLowerCase().trim(); const val=String(f.val??'').toLowerCase().trim();
-  if(f.op==='date_after'||f.op==='date_before'||f.op==='date_between'){
+  const raw=lead[f.field],cell=String(raw??'').toLowerCase().trim(),val=String(f.val??'').toLowerCase().trim();
+  if(['date_after','date_before','date_between'].includes(f.op)){
     const d=raw?new Date(raw):null; if(!d||isNaN(d)) return false;
     if(f.op==='date_after') return d>=new Date(f.val);
     if(f.op==='date_before') return d<=new Date(f.val+'T23:59:59');
-    if(f.op==='date_between'){const[from,to]=(f.val||'').split('|');return(!from||d>=new Date(from))&&(!to||d<=new Date(to+'T23:59:59'));}
+    if(f.op==='date_between'){const[a,b]=(f.val||'').split('|');return(!a||d>=new Date(a))&&(!b||d<=new Date(b+'T23:59:59'));}
   }
   switch(f.op){
     case 'is':return cell===val; case 'is_not':return cell!==val;
@@ -562,7 +597,23 @@ function evalFilter(lead,f){
   }
 }
 
-window.onload=()=>{ Promise.all([loadCampaigns(), loadSchedules()]); };
+// ── RESET ─────────────────────────────────────────────────────
+function resetForm(){
+  editSchedId=null; sFilters=[];
+  ['s-name','s-start-date'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s-time-1').value='17:00';
+  document.getElementById('s-time-2').value='18:00';
+  document.getElementById('s-time-3').value='19:00';
+  ['s-r1-days','s-r2-days','s-r3-days'].forEach(id=>document.getElementById(id).value=8);
+  ['s-gap1-days','s-gap2-days'].forEach(id=>document.getElementById(id).value=1);
+  document.getElementById('s-msg').textContent='';
+  document.getElementById('overlap-result').style.display='none';
+  document.getElementById('panel-title').textContent='Create Schedule';
+  renderFilters();
+}
+function showMsg(txt,type){const el=document.getElementById('s-msg');el.textContent=txt;el.className='status-msg '+type;setTimeout(()=>el.textContent='',3000);}
+
+window.onload=loadAll;
 </script>
 </body>
 </html>
