@@ -151,6 +151,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 <div class="header">
   <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern" style="height:28px;width:auto;vertical-align:middle"/></div>
   <div class="sub">Automation</div>
+  <a href="/today.html" class="nav-link">📅 Today</a>
   <a href="/manual.html" class="nav-link">▶ Manual Campaign</a>
 </div>
 
@@ -261,7 +262,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
               <input type="time" class="form-input" id="s-time-3" value="19:00"/>
             </div>
           </div>
-          <div class="form-hint">Cron checks every 5 min — each batch goes out at slot 1; slots 2 &amp; 3 reserved for future multi-batch sends.</div>
+          <div class="form-hint">Cron checks every 7 min — daily batch is split evenly across all 3 slots (IST). Each slot sends its share independently.</div>
         </div>
 
         <div class="divider"></div>
