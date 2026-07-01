@@ -32,54 +32,63 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .f-btn.off{background:#fff;color:var(--muted)}
 .prog-select{border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;font-family:var(--font);color:var(--text);background:#fff;outline:none;cursor:pointer}
 .count-label{font-size:11px;color:var(--muted);flex:1}
-.btn{background:var(--blue);color:#fff;border:none;padding:7px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px}
+.btn{background:var(--blue);color:#fff;border:none;padding:7px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
 .btn:hover{background:var(--navy)}
-.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;border-radius:6px}
+.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;border-radius:6px;transition:all .15s}
 .btn-ghost:hover{background:var(--blue);color:#fff}
-.btn-danger{background:transparent;color:var(--red);border:1.5px solid #fca5a5;padding:4px 10px;cursor:pointer;font-family:var(--font);font-size:10px;border-radius:5px}
+.btn-danger{background:transparent;color:var(--red);border:1.5px solid #fca5a5;padding:3px 8px;cursor:pointer;font-family:var(--font);font-size:10px;border-radius:5px;transition:all .15s}
 .btn-danger:hover{background:#fdecea}
 
-/* LAYOUT — kanban + panel side by side */
-.page-body{display:flex;min-height:calc(100vh - 104px);transition:all .25s}
-.kanban-wrap{flex:1;overflow-x:auto;padding:16px 20px;min-width:0}
+/* PAGE BODY — push layout */
+.page-body{display:flex;height:calc(100vh - 104px);overflow:hidden;transition:all .25s}
 
-/* KANBAN */
-.kanban{display:flex;gap:14px;align-items:flex-start;min-width:max-content}
-.k-col{width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:0}
-.k-col-header{padding:10px 12px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0}
-.k-col-flag{font-size:16px}
-.k-col-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;flex:1;margin:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.k-col-count{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
-.k-col-body{display:flex;flex-direction:column;gap:8px;padding:8px;background:rgba(255,255,255,.5);border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;min-height:80px}
-.k-col-empty{padding:20px 8px;text-align:center;font-size:11px;color:var(--muted2);font-style:italic}
+/* KANBAN AREA */
+.kanban-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 20px;min-width:0;transition:all .25s}
 
-/* CAMPAIGN CARD */
-.k-card{background:var(--surface);border:1.5px solid var(--border);border-radius:7px;overflow:hidden;transition:box-shadow .15s,border-color .15s}
-.k-card:hover{box-shadow:0 2px 12px rgba(0,33,92,.1)}
-.k-card.active-c{border-color:#a5c8f0}
-.k-card-head{padding:9px 10px;display:flex;align-items:center;justify-content:space-between;gap:6px}
-.k-card-name{font-size:12px;font-weight:700;color:var(--navy);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.badge{font-size:8px;padding:2px 6px;border-radius:10px;cursor:pointer;font-weight:700;letter-spacing:.8px;white-space:nowrap}
+/* PROGRAM ROW */
+.prog-row{margin-bottom:20px;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.prog-row-header{padding:10px 16px;display:flex;align-items:center;gap:8px}
+.prog-row-flag{font-size:15px}
+.prog-row-name{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.8px;flex:1}
+.prog-row-count{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.2);color:#fff}
+
+/* HORIZONTAL CARD ROW */
+.h-card-row{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;padding:10px 12px;background:#fafcff}
+.h-card-empty{padding:12px;font-size:11px;color:var(--muted2);font-style:italic}
+
+/* HORIZONTAL CAMPAIGN CARD */
+.h-card{background:var(--surface);border:1.5px solid var(--border);border-radius:7px;display:flex;align-items:stretch;overflow:hidden;min-width:220px;max-width:320px;flex:1;transition:box-shadow .15s,border-color .15s}
+.h-card:hover{box-shadow:0 2px 10px rgba(0,33,92,.1)}
+.h-card.active-c{border-color:#a5c8f0}
+
+/* LEFT COLOR BAR */
+.h-card-bar{width:4px;flex-shrink:0}
+
+/* CARD CONTENT */
+.h-card-content{flex:1;padding:8px 10px;min-width:0}
+.h-card-top{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.h-card-name{font-size:12px;font-weight:700;color:var(--navy);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:8px;padding:2px 6px;border-radius:10px;cursor:pointer;font-weight:700;letter-spacing:.8px;white-space:nowrap;flex-shrink:0}
 .badge.active{background:rgba(26,158,92,.15);color:var(--green);border:1px solid rgba(26,158,92,.3)}
 .badge.paused{background:#f5f5f5;color:var(--muted2);border:1px solid #ddd}
-.k-card-params{padding:0 10px 8px;display:flex;flex-wrap:wrap;gap:4px}
-.param-chip{background:#e8f0ff;padding:2px 7px;border-radius:4px;font-size:10px;color:var(--navy)}
-.k-card-foot{padding:6px 8px;border-top:1px solid #f0f4fb;display:flex;gap:5px;justify-content:flex-end;background:#fafcff}
-.test-result{font-size:10px;padding:5px 10px;display:none;background:#f8faff;border-top:1px solid var(--border);color:var(--muted)}
+.h-card-params{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px}
+.param-chip{background:#e8f0ff;padding:1px 6px;border-radius:3px;font-size:9px;color:var(--navy);white-space:nowrap}
+.h-card-actions{display:flex;gap:4px}
+.test-result{font-size:10px;color:var(--muted);margin-top:4px;display:none}
 
 /* SIDE PANEL */
-.side-panel{width:0;overflow:hidden;transition:width .25s ease;flex-shrink:0;background:var(--surface);border-left:1.5px solid var(--border);display:flex;flex-direction:column}
-.side-panel.open{width:380px}
-.panel-header{background:var(--navy);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0}
-.panel-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--sky);font-weight:700}
+.side-panel{width:0;flex-shrink:0;background:var(--surface);border-left:1.5px solid var(--border);overflow:hidden;display:flex;flex-direction:column;transition:width .25s ease}
+.side-panel.open{width:360px}
+.panel-header{background:var(--navy);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--sky);font-weight:700}
 .panel-close{background:transparent;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;line-height:1;padding:0 4px}
 .panel-close:hover{color:#fff}
 .panel-body{padding:16px;overflow-y:auto;flex:1}
-.form-group{margin-bottom:12px}
-.form-label{font-size:10px;letter-spacing:.5px;color:var(--muted);margin-bottom:5px;display:block;font-weight:700;text-transform:uppercase}
-.form-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
+.form-group{margin-bottom:11px}
+.form-label{font-size:10px;letter-spacing:.5px;color:var(--muted);margin-bottom:4px;display:block;font-weight:700;text-transform:uppercase}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
 .form-input:focus{border-color:var(--blue)}
-.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none;appearance:none;cursor:pointer}
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none;appearance:none;cursor:pointer}
 .form-select:focus{border-color:var(--blue)}
 .form-hint{font-size:10px;color:var(--muted2);margin-top:3px;line-height:1.5}
 .params-list{display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
@@ -89,20 +98,25 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .remove-param{background:transparent;border:1.5px solid #fca5a5;color:var(--red);width:26px;height:28px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px}
 .add-param-btn{background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:6px 10px;cursor:pointer;font-family:var(--font);font-size:11px;border-radius:5px;width:100%;transition:all .15s}
 .add-param-btn:hover{border-color:var(--blue);color:var(--blue)}
-.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
+.divider{border:none;border-top:1px solid var(--border);margin:11px 0}
 .btn-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
 .status-msg{font-size:11px;font-weight:600;margin-top:6px}
 .status-msg.ok{color:var(--green)}.status-msg.err{color:var(--red)}
+code{font-size:10px;background:#f0f4fb;padding:1px 4px;border-radius:3px;font-family:monospace}
 
 /* PROGRAM COLORS */
-.prog-goc  {background:linear-gradient(135deg,#1a3a6b,#255CC1)}
-.prog-ghc  {background:linear-gradient(135deg,#6b1a3a,#c12556)}
-.prog-ausb {background:linear-gradient(135deg,#1a5c3a,#25c178)}
-.prog-apr  {background:linear-gradient(135deg,#6b3a1a,#c17825)}
-.prog-cpr  {background:linear-gradient(135deg,#3a1a6b,#7825c1)}
-.prog-other{background:linear-gradient(135deg,#3a3a3a,#666)}
-
-code{font-size:10px;background:#f0f4fb;padding:1px 4px;border-radius:3px;font-family:monospace}
+.bg-goc  {background:linear-gradient(135deg,#1a3a6b,#255CC1)}
+.bg-ghc  {background:linear-gradient(135deg,#6b1a3a,#c12556)}
+.bg-ausb {background:linear-gradient(135deg,#1a5c3a,#25c178)}
+.bg-apr  {background:linear-gradient(135deg,#6b3a1a,#c17825)}
+.bg-cpr  {background:linear-gradient(135deg,#3a1a6b,#7825c1)}
+.bg-other{background:linear-gradient(135deg,#3a3a3a,#666)}
+.bar-goc  {background:#255CC1}
+.bar-ghc  {background:#c12556}
+.bar-ausb {background:#25c178}
+.bar-apr  {background:#c17825}
+.bar-cpr  {background:#7825c1}
+.bar-other{background:#666}
 </style>
 </head>
 <body>
@@ -117,7 +131,7 @@ code{font-size:10px;background:#f0f4fb;padding:1px 4px;border-radius:3px;font-fa
 
 <div class="toolbar">
   <div class="filter-btns">
-    <button class="f-btn on" id="cf-all"    onclick="setCampFilter('all')">All</button>
+    <button class="f-btn on"  id="cf-all"    onclick="setCampFilter('all')">All</button>
     <button class="f-btn off" id="cf-active" onclick="setCampFilter('active')">Active</button>
     <button class="f-btn off" id="cf-paused" onclick="setCampFilter('paused')">Paused</button>
   </div>
@@ -135,12 +149,16 @@ code{font-size:10px;background:#f0f4fb;padding:1px 4px;border-radius:3px;font-fa
   <button class="btn" onclick="openPanel()">+ Add Campaign</button>
 </div>
 
-<div class="page-body" id="page-body">
-  <div class="kanban-wrap">
-    <div class="kanban" id="kanban-board">
+<div class="page-body">
+
+  <!-- KANBAN — pushes left when panel opens -->
+  <div class="kanban-area" id="kanban-area">
+    <div id="kanban-board">
       <div style="padding:40px;color:var(--muted2);font-size:13px">Loading...</div>
     </div>
   </div>
+
+  <!-- SIDE PANEL — no overlay, pushes kanban -->
   <div class="side-panel" id="side-panel">
     <div class="panel-header">
       <div class="panel-title" id="panel-title">Add Campaign</div>
@@ -167,7 +185,7 @@ code{font-size:10px;background:#f0f4fb;padding:1px 4px;border-radius:3px;font-fa
         <label class="form-label">Template Parameters</label>
         <div class="params-list" id="params-list"></div>
         <button class="add-param-btn" onclick="addParam()">+ Add Parameter</button>
-        <div class="form-hint">Plain text = static value. <code>{field:fullname}</code>, <code>{field:state}</code> etc. = pulled from lead at send time.</div>
+        <div class="form-hint">Plain text = static. <code>{field:fullname}</code>, <code>{field:state}</code> etc. = from lead at send time.</div>
       </div>
       <div class="divider"></div>
       <div class="form-group">
@@ -205,6 +223,7 @@ code{font-size:10px;background:#f0f4fb;padding:1px 4px;border-radius:3px;font-fa
       <div class="status-msg" id="c-msg"></div>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -217,18 +236,18 @@ const TEST_PHONE     = "917094956963";
 let campaigns=[], editCampName=null, leadsCache=null;
 let params=[], testParams=[], campStatusFilter='all';
 
-const PROGRAMS = [
-  {key:'Germany Opportunity Card', flag:'🇩🇪', slug:'goc',  css:'prog-goc',   keywords:['goc']},
-  {key:'Nurses Germany',           flag:'🇩🇪', slug:'ghc',  css:'prog-ghc',   keywords:['ghc','nurse']},
-  {key:'Ausbildung Germany',       flag:'🇩🇪', slug:'ausb', css:'prog-ausb',  keywords:['ausb','ausbildung']},
-  {key:'Australia PR',             flag:'🇦🇺', slug:'apr',  css:'prog-apr',   keywords:['apr','australia']},
-  {key:'Canada PR',                flag:'🇨🇦', slug:'cpr',  css:'prog-cpr',   keywords:['cpr','canada']},
-  {key:'Other',                    flag:'📦',  slug:'other',css:'prog-other',  keywords:[]},
+const PROGRAMS=[
+  {key:'Germany Opportunity Card',flag:'🇩🇪',css:'goc', keywords:['goc']},
+  {key:'Nurses Germany',          flag:'🇩🇪',css:'ghc', keywords:['ghc','nurse']},
+  {key:'Ausbildung Germany',      flag:'🇩🇪',css:'ausb',keywords:['ausb','ausbildung']},
+  {key:'Australia PR',            flag:'🇦🇺',css:'apr', keywords:['apr','australia']},
+  {key:'Canada PR',               flag:'🇨🇦',css:'cpr', keywords:['cpr','canada']},
+  {key:'Other',                   flag:'📦', css:'other',keywords:[]},
 ];
 
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-// ── PANEL (no overlay, list stays interactive) ────────────────
+// ── PANEL — pushes kanban, no overlay ────────────────────────
 function openPanel(){
   document.getElementById('side-panel').classList.add('open');
 }
@@ -253,66 +272,73 @@ async function loadCampaigns(){
     const res=await fetch(CAMPAIGNS_API);
     const data=await res.json();
     campaigns=data.campaigns||[];
-    // auto-assign program from campaign name keywords if not set
+    // keyword auto-assign for campaigns without a program set
     campaigns.forEach(c=>{
-      if(!c.program||c.program==='Other'){
-        const n=c.campaign_name.toLowerCase();
-        for(const p of PROGRAMS){
-          if(p.keywords.some(k=>n.includes(k))){c.program=p.key;break;}
-        }
+      if(c.program&&c.program!=='Other') return;
+      const n=c.campaign_name.toLowerCase();
+      for(const p of PROGRAMS){
+        if(p.keywords.some(k=>n.includes(k))){c.program=p.key;break;}
       }
+      if(!c.program) c.program='Other';
     });
     renderKanban();
   }catch(e){
-    document.getElementById('kanban-board').innerHTML=`<div style="padding:40px;color:var(--red);font-size:13px">Failed: ${e.message}</div>`;
+    document.getElementById('kanban-board').innerHTML=
+      `<div style="padding:40px;color:var(--red);font-size:13px">Failed: ${e.message}</div>`;
   }
 }
 
-// ── RENDER KANBAN ────────────────────────────────────────────
+// ── RENDER ────────────────────────────────────────────────────
 function renderKanban(){
   const board=document.getElementById('kanban-board');
   const progFilter=document.getElementById('cf-program')?.value||'';
   let filtered=campaigns;
-  if(campStatusFilter==='active')  filtered=filtered.filter(c=>c.active);
-  if(campStatusFilter==='paused')  filtered=filtered.filter(c=>!c.active);
-  document.getElementById('c-count').textContent=`${filtered.length} of ${campaigns.length} campaigns`;
+  if(campStatusFilter==='active') filtered=filtered.filter(c=>c.active);
+  if(campStatusFilter==='paused') filtered=filtered.filter(c=>!c.active);
+  document.getElementById('c-count').textContent=`${filtered.length} of ${campaigns.length}`;
 
-  const showProgs = progFilter ? PROGRAMS.filter(p=>p.key===progFilter) : PROGRAMS;
+  const showProgs=progFilter?PROGRAMS.filter(p=>p.key===progFilter):PROGRAMS;
 
   board.innerHTML=showProgs.map(prog=>{
     const cards=filtered.filter(c=>(c.program||'Other')===prog.key);
-    return `<div class="k-col">
-      <div class="k-col-header ${prog.css}">
-        <span class="k-col-flag">${prog.flag}</span>
-        <span class="k-col-name" style="color:#fff">${prog.key}</span>
-        <span class="k-col-count" style="background:rgba(255,255,255,.2);color:#fff">${cards.length}</span>
+    return `<div class="prog-row">
+      <div class="prog-row-header bg-${prog.css}">
+        <span class="prog-row-flag">${prog.flag}</span>
+        <span class="prog-row-name">${prog.key}</span>
+        <span class="prog-row-count">${cards.length}</span>
       </div>
-      <div class="k-col-body">
-        ${cards.length?cards.map(c=>renderCard(c)).join(''):'<div class="k-col-empty">No campaigns</div>'}
+      <div class="h-card-row">
+        ${cards.length
+          ? cards.map(c=>renderCard(c,prog.css)).join('')
+          : `<div class="h-card-empty">No campaigns</div>`}
       </div>
     </div>`;
   }).join('');
 }
 
-function renderCard(c){
-  const params=(c.template_params||[]).map((p,i)=>`<span class="param-chip">{{${i+1}}} ${escHtml(p)}</span>`).join('');
-  return `<div class="k-card ${c.active?'active-c':''}">
-    <div class="k-card-head">
-      <div class="k-card-name" title="${escHtml(c.campaign_name)}">${escHtml(c.campaign_name)}</div>
-      <span class="badge ${c.active?'active':'paused'}" onclick="toggleCampaign('${c.campaign_name}')">${c.active?'ACTIVE':'PAUSED'}</span>
+function renderCard(c,css){
+  const chips=(c.template_params||[]).map((p,i)=>
+    `<span class="param-chip">{{${i+1}}} ${escHtml(p)}</span>`).join('');
+  return `<div class="h-card ${c.active?'active-c':''}" id="card-${c.campaign_name}">
+    <div class="h-card-bar bar-${css}"></div>
+    <div class="h-card-content">
+      <div class="h-card-top">
+        <div class="h-card-name" title="${escHtml(c.campaign_name)}">${escHtml(c.campaign_name)}</div>
+        <span class="badge ${c.active?'active':'paused'}" onclick="toggleCampaign('${c.campaign_name}')">${c.active?'ACTIVE':'PAUSED'}</span>
+      </div>
+      ${chips?`<div class="h-card-params">${chips}</div>`:''}
+      ${c.media_url?`<div style="font-size:9px;color:var(--blue);margin-bottom:4px">📎 ${c.media_type||'media'}</div>`:''}
+      <div class="h-card-actions">
+        <button class="btn-ghost" style="padding:3px 8px;font-size:10px" onclick="editCampaign('${c.campaign_name}')">Edit</button>
+        <button class="btn-ghost" style="padding:3px 8px;font-size:10px;border-color:var(--yellow);color:var(--amber)" id="test-btn-${c.campaign_name}" onclick="testCampaign('${c.campaign_name}')">▶ Test</button>
+        <button class="btn-danger" onclick="deleteCampaign('${c.campaign_name}')">Delete</button>
+      </div>
+      <div id="test-result-${c.campaign_name}" class="test-result"></div>
     </div>
-    ${params?`<div class="k-card-params">${params}</div>`:''}
-    ${c.media_url?`<div style="font-size:10px;color:var(--blue);padding:0 10px 6px">📎 ${c.media_type||'media'}</div>`:''}
-    <div class="k-card-foot">
-      <button class="btn-ghost" style="padding:4px 9px;font-size:10px" onclick="editCampaign('${c.campaign_name}')">Edit</button>
-      <button class="btn-ghost" style="padding:4px 9px;font-size:10px;border-color:var(--yellow);color:var(--amber)" id="test-btn-${c.campaign_name}" onclick="testCampaign('${c.campaign_name}')">▶ Test</button>
-      <button class="btn-danger" onclick="deleteCampaign('${c.campaign_name}')">Delete</button>
-    </div>
-    <div id="test-result-${c.campaign_name}" class="test-result"></div>
   </div>`;
 }
 
-// ── CRUD ─────────────────────────────────────────────────────
+// ── SAVE / TOGGLE / DELETE / EDIT ────────────────────────────
 async function saveCampaign(){
   const name=document.getElementById('c-name').value.trim();
   const mediaUrl=document.getElementById('c-media-url').value.trim();
@@ -324,7 +350,8 @@ async function saveCampaign(){
   msg.textContent='Saving...';msg.className='status-msg';
   try{
     const res=await fetch(CAMPAIGNS_API,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({campaign_name:name,template_params:params.filter(p=>p.trim()),test_params:testParams.filter(p=>p.trim()),media_url:mediaUrl,media_type:mediaType,program,active:true})});
+      body:JSON.stringify({campaign_name:name,template_params:params.filter(p=>p.trim()),
+        test_params:testParams.filter(p=>p.trim()),media_url:mediaUrl,media_type:mediaType,program,active:true})});
     const data=await res.json();
     if(data.error) throw new Error(data.error);
     await loadCampaigns();
@@ -362,7 +389,6 @@ function editCampaign(name){
   renderParams(); renderTestParams();
   document.getElementById('panel-title').textContent='Edit Campaign';
   openPanel();
-  document.getElementById('side-panel').scrollTop=0;
 }
 
 // ── PARAMS ────────────────────────────────────────────────────
@@ -383,7 +409,7 @@ function renderTestParams(){
   const el=document.getElementById('test-params-list'); if(!el) return;
   el.innerHTML=testParams.map((p,i)=>`
     <div class="param-row">
-      <input value="${escHtml(p)}" placeholder="Test value {{${i+1}}}" oninput="updateTestParam(${i},this.value)"/>
+      <input value="${escHtml(p)}" placeholder="Test val {{${i+1}}}" oninput="updateTestParam(${i},this.value)"/>
       <button class="remove-param" onclick="removeTestParam(${i})">×</button>
     </div>`).join('');
 }
@@ -392,14 +418,14 @@ function renderTestParams(){
 function resolveParam(str,row){
   const m=String(str).match(/^\{field:(\w+)\}$/);
   if(!m) return {value:str,isToken:false};
-  const key=m[1], raw=row?row[key]:undefined;
-  const value=key==='fullname'?String(raw||'there').trim().split(/\s+/)[0]:(raw??'');
-  return {value,isToken:true};
+  const key=m[1],raw=row?row[key]:undefined;
+  return {value:key==='fullname'?String(raw||'there').trim().split(/\s+/)[0]:(raw??''),isToken:true};
 }
 async function previewCampaign(){
   const box=document.getElementById('c-preview-result');
   const phone=document.getElementById('c-preview-phone').value.trim();
-  box.style.display='block'; box.innerHTML='<div style="font-size:11px;color:var(--muted)">Loading...</div>';
+  box.style.display='block';
+  box.innerHTML='<div style="font-size:10px;color:var(--muted);padding:6px">Loading...</div>';
   try{
     if(!leadsCache){const r=await fetch(METABASE_PROXY);leadsCache=await r.json();}
     if(!Array.isArray(leadsCache)||!leadsCache.length) throw new Error('No leads');
@@ -407,25 +433,27 @@ async function previewCampaign(){
     if(phone){
       const d=phone.replace(/\D/g,'').slice(-10);
       row=leadsCache.find(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)===d);
-      if(!row) throw new Error(`Phone not found`);
+      if(!row) throw new Error('Phone not found');
       note=`${row.fullname||'?'} · ${row.mobile}`;
     }else{row=leadsCache[0];note=`First lead: ${row.fullname||'?'}`;}
-    let html=`<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:6px">
-      <div style="padding:6px 10px;background:#f0f5ff;font-size:10px;color:var(--navy);font-weight:600;border-bottom:1px solid var(--border)">${escHtml(note)}</div>`;
+    let html=`<div style="border:1px solid var(--border);border-radius:5px;overflow:hidden;font-size:11px">
+      <div style="padding:5px 8px;background:#f0f5ff;color:var(--navy);font-weight:600;font-size:10px;border-bottom:1px solid var(--border)">${escHtml(note)}</div>`;
     let hasEmpty=false;
     params.forEach((p,i)=>{
       if(!p.trim()) return;
       const r=resolveParam(p,row);
       const empty=r.isToken&&r.value==='';
       if(empty) hasEmpty=true;
-      html+=`<div style="padding:6px 10px;border-bottom:1px solid #f0f4fb;display:flex;justify-content:space-between;font-size:11px">
+      html+=`<div style="padding:5px 8px;border-bottom:1px solid #f0f4fb;display:flex;justify-content:space-between;gap:8px">
         <span style="color:var(--muted)">{{${i+1}}} <code>${escHtml(p)}</code></span>
-        <span style="font-weight:700;color:${empty?'var(--red)':'var(--green)'}">${empty?'⚠ empty':escHtml(String(r.value))}</span>
+        <span style="font-weight:700;color:${empty?'var(--red)':'var(--green)'};white-space:nowrap">${empty?'⚠ empty':escHtml(String(r.value))}</span>
       </div>`;
     });
-    if(hasEmpty) html+=`<div style="padding:6px 10px;background:#fdecea;font-size:10px;color:var(--red)">⚠ Check field names</div>`;
+    if(hasEmpty) html+=`<div style="padding:5px 8px;background:#fdecea;font-size:10px;color:var(--red)">⚠ Check field names</div>`;
     box.innerHTML=html+'</div>';
-  }catch(e){box.innerHTML=`<div style="background:#fdecea;border-radius:5px;padding:8px;font-size:11px;color:var(--red);margin-top:6px">Failed: ${e.message}</div>`;}
+  }catch(e){
+    box.innerHTML=`<div style="background:#fdecea;border-radius:5px;padding:7px;font-size:11px;color:var(--red)">${e.message}</div>`;
+  }
 }
 
 // ── TEST ──────────────────────────────────────────────────────
@@ -438,11 +466,13 @@ async function testCampaign(name){
   result.style.display='block'; result.style.color='var(--muted)'; result.textContent='Sending...';
   try{
     const res=await fetch(SMARTPING_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({apiKey:APIKEY,campaignName:name,destination:TEST_PHONE,userName:"Aswin Raaju",
-        templateParams:p,source:"test-fire",media:c.media_url?{url:c.media_url,filename:"media"}:{},
-        buttons:[],carouselCards:[],location:{},attributes:{},paramsFallbackValue:{FirstName:"Aswin"}})});
+      body:JSON.stringify({apiKey:APIKEY,campaignName:name,destination:TEST_PHONE,
+        userName:"Aswin Raaju",templateParams:p,source:"test-fire",
+        media:c.media_url?{url:c.media_url,filename:"media"}:{},
+        buttons:[],carouselCards:[],location:{},attributes:{},
+        paramsFallbackValue:{FirstName:"Aswin"}})});
     const data=await res.json();
-    if(res.ok){result.style.color='var(--green)';result.textContent='✓ Sent to +91 70949 56963';}
+    if(res.ok){result.style.color='var(--green)';result.textContent='✓ Sent to +917094956963';}
     else{result.style.color='var(--red)';result.textContent='✗ '+(data.message||'Failed');}
   }catch(e){result.style.color='var(--red)';result.textContent='✗ '+e.message;}
   btn.disabled=false; btn.textContent='▶ Test';
@@ -461,7 +491,11 @@ function resetForm(){
   testParams=[];
   addParam(); addParam(); renderParams(); renderTestParams();
 }
-function showMsg(txt,type){const el=document.getElementById('c-msg');el.textContent=txt;el.className='status-msg '+type;setTimeout(()=>el.textContent='',3000);}
+function showMsg(txt,type){
+  const el=document.getElementById('c-msg');
+  el.textContent=txt; el.className='status-msg '+type;
+  setTimeout(()=>el.textContent='',3000);
+}
 
 window.onload=()=>{ loadCampaigns(); addParam(); addParam(); };
 </script>
