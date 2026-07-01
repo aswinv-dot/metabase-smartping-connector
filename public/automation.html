@@ -287,6 +287,7 @@ function setCampFilter(f){
 
 window.onload=()=>{
   loadCampaigns();
+  loadSchedules();
   loadHealthStrip();
   loadAnalyticsTable();
   loadTodayDetail();
@@ -1037,9 +1038,11 @@ async function loadSchedules(){
     const res=await fetch(SCHEDULE_API);
     const data=await res.json();
     schedules=data.schedules||[];
-    renderSchedules();
+    const list=document.getElementById('schedules-list');
+    if(list) renderSchedules(); // only render if on schedule page
   }catch(e){
-    document.getElementById('schedules-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;
+    const list=document.getElementById('schedules-list');
+    if(list) list.innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;
   }
 }
 
