@@ -7,16 +7,22 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers","Content-Type");
   if (req.method==="OPTIONS") return res.status(200).end();
 
-  if (req.method==="GET") {
-    const campaigns = await getCampaigns();
-    return res.status(200).json({ campaigns });
-  }
+  try {
+    if (req.method==="GET") {
+      const campaigns = await getCampaigns();
+      return res.status(200).json({ campaigns });
+    }
 
-  if (req.method==="POST") {
-    if (!req.body.campaign_name) return res.status(400).json({ error:"campaign_name required" });
-    const result = await saveCampaign(req.body);
-    return res.status(200).json({ success:true, result });
-  }
+    if (req.method==="POST") {
+      if (!req.body?.campaign_name) return res.status(400).json({ error:"campaign_name required" });
+      const result = await saveCampaign(req.body);
+      return res.status(200).json({ success:true, result });
+    }
 
-  return res.status(405).json({ error:"Method not allowed" });
+    return res.status(405).json({ error:"Method not allowed" });
+
+  } catch(e) {
+    console.error("[api/campaigns]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
 }
