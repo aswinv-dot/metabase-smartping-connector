@@ -222,17 +222,28 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
   const result = { slot:timeSlot, sent:0, failed:0, skipped:0, schedules:[] };
 
   try {
-    const [mbRes, schedules, allCampaigns, reactivatedPhones, capReachedPhones] = await Promise.all([
-      fetch(METABASE_URL),
-      getSchedules().catch(()=>[]),
-      getCampaigns().catch(()=>[]),
-      getReactivatedPhones().catch(()=>new Set()),
-      getCapReachedPhones().catch(()=>new Set()),
-    ]);
+    // Sequential fetches — avoid hitting Supabase simultaneously
+    const schedules        = await getSchedules().catch(()=>[]);
+    const allCampaigns     = await getCampaigns().catch(()=>[]);
+    const reactivatedPhones= await getReactivatedPhones().catch(()=>new Set());
+    const capReachedPhones = await getCapReachedPhones().catch(()=>new Set());
 
-    const leads = await mbRes.json();
-    if (!Array.isArray(leads)) throw new Error('Bad Metabase response');
-    log(`Fetched ${leads.length} leads`);
+    // Metabase with 2-min timeout + retry
+    let leads = [];
+    for (let i=0; i<3; i++) {
+      try {
+        const mbRes = await fetch(METABASE_URL, { timeout: 120000 });
+        const data = await mbRes.json();
+        if (!Array.isArray(data)) throw new Error('Bad Metabase response');
+        leads = data;
+        log(`Fetched ${leads.length} leads`);
+        break;
+      } catch(e) {
+        if (i===2) throw new Error(`Metabase failed after 3 attempts: ${e.message}`);
+        log(`Metabase retry ${i+1}/2 — ${e.message} — waiting ${(i+1)*2000}ms`);
+        await new Promise(r=>setTimeout(r,(i+1)*2000));
+      }
+    }
 
     const campaignMap = {};
     allCampaigns.forEach(c => campaignMap[c.campaign_name]=c);
