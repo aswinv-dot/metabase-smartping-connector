@@ -13,7 +13,7 @@ const PORT               = process.env.PORT || 3001;
 // FIX: cron now polls every 5 min instead of running 3 fixed UTC jobs.
 // Each schedule defines its own 3 send_times (HH:MM, IST) — the poller
 // fires a schedule only during the 5-min window containing one of its times.
-const POLL_WINDOW_MIN = 5;
+const POLL_WINDOW_MIN = 7;
 
 // Template params can be plain static text, OR a {field:xxx} token that pulls
 // directly from the Metabase lead row at send time. {field:fullname} is special-
