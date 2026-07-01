@@ -291,12 +291,13 @@ async function loadAll() {
       const totalDays = s.r1_days+s.gap1_days+s.r2_days+s.gap2_days+s.r3_days;
 
       // compute batch size for this schedule
-      let matched=0, batchPerDay=0;
+      let matched=0, batchPerDay=0, perSlot=0;
       if (phase!=='GAP'&&phase!=='DONE'&&phase!=='NOT_STARTED') {
         try {
           const filters = Array.isArray(s.filters_json)?s.filters_json:[];
           matched = applyFilters(leads, filters).length;
           batchPerDay = phaseDays>0 ? Math.ceil(matched/phaseDays) : 0;
+          perSlot = slots.length>0 ? Math.ceil(batchPerDay/slots.length) : batchPerDay;
         } catch(e) { console.warn('Filter error',e.message); }
       }
 
@@ -323,8 +324,7 @@ async function loadAll() {
           const status = slotStatus(slot);
           const emoji  = slotEmoji(status);
           const slotSent = sentMap[s.id]?.[slot]?.[campName]||0;
-          const totalSlotSent = Object.values(sentMap[s.id]?.[slot]||{}).reduce((a,b)=>a+b,0);
-          const remaining = Math.max(0, batchPerDay - totalSlotSent);
+          const remaining = Math.max(0, perSlot - slotSent);
           const cardClass = status==='fired'?'fired-card':status==='active'?'active-card':'';
 
           html += `<div class="slot-row">
@@ -338,9 +338,10 @@ async function loadAll() {
                 <div class="slot-card ${cardClass}">
                   <div class="sc-campaign">${escHtml(campName)}</div>
                   <div class="sc-stats">
-                    <div class="sc-row"><span class="sc-label">Batch/day</span><span class="sc-val">${batchPerDay.toLocaleString()}</span></div>
+                    <div class="sc-row"><span class="sc-label">Batch/slot</span><span class="sc-val">${perSlot.toLocaleString()}</span></div>
                     <div class="sc-row"><span class="sc-label">Sent</span><span class="sc-val ${slotSent>0?'green':''}">${slotSent.toLocaleString()}</span></div>
                     <div class="sc-row"><span class="sc-label">Remaining</span><span class="sc-val ${remaining>0?'amber':'green'}">${remaining.toLocaleString()}</span></div>
+                    <div class="sc-row"><span class="sc-label">Total today</span><span class="sc-val">${batchPerDay.toLocaleString()}</span></div>
                     <div class="sc-row"><span class="sc-label">Pool</span><span class="sc-val">${matched.toLocaleString()}</span></div>
                   </div>
                 </div>
