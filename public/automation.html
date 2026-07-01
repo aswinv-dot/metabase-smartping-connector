@@ -152,134 +152,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 <div class="header">
   <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern" style="height:28px;width:auto;vertical-align:middle"/></div>
   <div class="sub">Automation</div>
+  <a href="/schedule.html" class="nav-link">🗓 Schedules</a>
   <a href="/campaigns.html" class="nav-link">📋 Campaigns</a>
   <a href="/today.html" class="nav-link">📅 Today</a>
   <a href="/manual.html" class="nav-link">▶ Manual Campaign</a>
 </div>
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('schedule')">Schedule</div>
-  <div class="tab" onclick="switchTab('cron')">Cron & Logs</div>
-</div>
-
 <div class="wrap">
 
-  <!-- TAB: SCHEDULE ──────────────────────────────────────── -->
-  <div class="tab-content active" id="tab-schedule">
-    <div class="layout2">
-
-      <!-- LEFT: Schedule Form -->
-      <div class="card">
-        <div class="sec-label" id="sched-form-title">Create Schedule</div>
-
-        <div class="form-group">
-          <label class="form-label">Schedule Name</label>
-          <input class="form-input" id="s-name" placeholder="e.g. GHC + Ausbildung June 2026"/>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Start Date</label>
-          <input type="date" class="form-input" id="s-start-date"/>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Daily Send Times <span style="color:var(--muted2);font-weight:400">(IST)</span></label>
-          <div class="time-slots">
-            <div class="time-slot-box">
-              <span class="time-slot-label">Slot 1</span>
-              <input type="time" class="form-input" id="s-time-1" value="17:00"/>
-            </div>
-            <div class="time-slot-box">
-              <span class="time-slot-label">Slot 2</span>
-              <input type="time" class="form-input" id="s-time-2" value="18:00"/>
-            </div>
-            <div class="time-slot-box">
-              <span class="time-slot-label">Slot 3</span>
-              <input type="time" class="form-input" id="s-time-3" value="19:00"/>
-            </div>
-          </div>
-          <div class="form-hint">Cron checks every 7 min — daily batch is split evenly across all 3 slots (IST). Each slot sends its share independently.</div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R1 Campaign</label>
-            <select class="form-select" id="s-r1-campaign"><option value="">Select...</option></select>
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R1 Days</label>
-            <input type="number" class="form-input" id="s-r1-days" value="8" min="1"/>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Gap 1 Days</label>
-          <input type="number" class="form-input" id="s-gap1-days" value="1" min="0"/>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R2 Campaign</label>
-            <select class="form-select" id="s-r2-campaign"><option value="">Select...</option></select>
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R2 Days</label>
-            <input type="number" class="form-input" id="s-r2-days" value="8" min="1"/>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Gap 2 Days</label>
-          <input type="number" class="form-input" id="s-gap2-days" value="1" min="0"/>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R3 Campaign</label>
-            <select class="form-select" id="s-r3-campaign"><option value="">Select...</option></select>
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R3 Days</label>
-            <input type="number" class="form-input" id="s-r3-days" value="8" min="1"/>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="form-label" style="margin-bottom:10px">Lead Filters</div>
-        <div class="fetch-bar" style="margin-bottom:12px">
-          <span class="fetch-status" id="s-fetch-status">Fetch values to enable dropdowns</span>
-          <button class="fetch-btn" onclick="fetchScheduleValues()">↻ Fetch Values</button>
-        </div>
-        <div class="filter-list" id="s-filter-list"></div>
-        <button class="add-filter-btn" onclick="addScheduleFilter()">+ Add Filter</button>
-
-        <div style="margin-top:14px;margin-bottom:10px">
-          <button class="btn-ghost" style="width:100%;border-color:var(--yellow);color:var(--amber);font-size:12px" onclick="checkOverlap()">⚡ Check Overlap Before Saving</button>
-          <div id="overlap-result" style="display:none;margin-top:10px"></div>
-        </div>
-        <div class="btn-row" style="margin-top:0">
-          <button class="btn" onclick="saveSchedule()">Save Schedule</button>
-          <button class="btn-ghost" onclick="resetScheduleForm()">Clear</button>
-          <span class="status-msg" id="s-msg" style="margin-top:0"></span>
-        </div>
-      </div>
-
-      <!-- RIGHT: Schedule List -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="sec-label" style="margin-bottom:0">Schedules <span id="s-count" style="color:var(--blue)"></span></div>
-          <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadSchedules()">↻ Refresh</button>
-        </div>
-        <div id="schedules-list"><div class="empty-box">Loading...</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: CRON ───────────────────────────────────────────── -->
-  <div class="tab-content" id="tab-cron">
+  <!-- CRON & LOGS ───────────────────────────────────────────── -->
+  <div id="tab-cron">
 
     <!-- HEALTH STRIP -->
     <div id="health-strip" style="display:flex;align-items:center;gap:24px;padding:12px 20px;background:var(--navy);border-radius:var(--radius);margin-bottom:20px;color:#fff;flex-wrap:wrap">
@@ -291,7 +173,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <div class="cron-card">
         <div class="cron-schedule">
           <div>
-            <div style="font-size:12px;color:var(--muted)">Send times are now set per-schedule in the <a href="#" onclick="switchTab('schedule');return false" style="color:var(--blue);font-weight:600">Schedule</a> tab.</div>
+            <div style="font-size:12px;color:var(--muted)">Send times are now set per-schedule in the <a href="/schedule.html" style="color:var(--blue);font-weight:600">Schedules</a> page.</div>
             <div style="font-size:12px;color:var(--muted);margin-top:4px">Cron polls every 5 minutes and fires each schedule at its own configured time(s), IST.</div>
           </div>
           <button class="btn-amber" id="cron-btn" onclick="runCron()">▶ Run Now (all active)</button>
@@ -404,7 +286,11 @@ function setCampFilter(f){
 }
 
 window.onload=()=>{
-  loadSchedules();
+  loadCampaigns();
+  loadHealthStrip();
+  loadAnalyticsTable();
+  loadTodayDetail();
+  startCronAutoRefresh();
 };
 
 // ── TABS ──────────────────────────────────────────────────────
