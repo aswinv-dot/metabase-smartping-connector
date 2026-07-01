@@ -143,6 +143,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 .spin-blue{border-color:rgba(37,92,193,.2);border-top-color:var(--blue)}
+.drawer-open{transform:translateX(0)!important}
 @media(max-width:1000px){.layout2{grid-template-columns:1fr}.wrap{padding:16px}.time-slots{grid-template-columns:1fr}}
 </style>
 </head>
@@ -151,85 +152,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 <div class="header">
   <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern" style="height:28px;width:auto;vertical-align:middle"/></div>
   <div class="sub">Automation</div>
+  <a href="/campaigns.html" class="nav-link">📋 Campaigns</a>
   <a href="/today.html" class="nav-link">📅 Today</a>
   <a href="/manual.html" class="nav-link">▶ Manual Campaign</a>
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('campaigns')">Campaigns</div>
-  <div class="tab" onclick="switchTab('schedule')">Schedule</div>
+  <div class="tab active" onclick="switchTab('schedule')">Schedule</div>
   <div class="tab" onclick="switchTab('cron')">Cron & Logs</div>
 </div>
 
 <div class="wrap">
 
-  <!-- TAB: CAMPAIGNS ──────────────────────────────────────── -->
-  <div class="tab-content active" id="tab-campaigns">
-    <div class="layout2">
-
-      <div class="card">
-        <div class="sec-label" id="camp-form-title">Add Campaign</div>
-        <div class="form-group">
-          <label class="form-label">Campaign Name</label>
-          <input class="form-input" id="c-name" placeholder="e.g. ghcalum_api"/>
-          <div class="form-hint">Must match exactly with AiSensy API campaign name</div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Template Parameters</label>
-          <div class="params-list" id="params-list"></div>
-          <button class="add-param-btn" onclick="addParam()">+ Add Parameter</button>
-          <div class="form-hint">In order — maps to {{1}}, {{2}}, {{3}}... Use plain text for a fixed value, or <code>{field:fullname}</code>, <code>{field:application}</code>, <code>{field:state}</code> etc. to pull from the lead's Metabase data at send time.</div>
-        </div>
-        <div class="divider"></div>
-        <div class="form-group">
-          <label class="form-label">Test Values <span style="color:var(--muted2);font-weight:400">(for Test button)</span></label>
-          <div class="params-list" id="test-params-list"></div>
-          <button class="add-param-btn" onclick="addTestParam()">+ Add Test Value</button>
-          <div class="form-hint">One per param in order — used when clicking ▶ Test on this campaign</div>
-        </div>
-        <div class="divider"></div>
-        <div class="form-group">
-          <label class="form-label">Media URL <span style="color:var(--muted2);font-weight:400">(optional)</span></label>
-          <input class="form-input" id="c-media-url" placeholder="https://...direct image/video URL"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Media Type</label>
-          <select class="form-select" id="c-media-type">
-            <option value="">None</option>
-            <option value="image">Image (jpg, png)</option>
-            <option value="video">Video (mp4)</option>
-            <option value="document">Document (pdf)</option>
-            <option value="audio">Audio (mp3)</option>
-          </select>
-        </div>
-        <div class="divider"></div>
-        <div class="form-group">
-          <label class="form-label">Preview Against <span style="color:var(--muted2);font-weight:400">(optional phone)</span></label>
-          <input class="form-input" id="c-preview-phone" placeholder="e.g. 9876543210 — blank = first fetched lead"/>
-        </div>
-        <div class="btn-row">
-          <button class="btn-ghost" style="border-color:var(--yellow);color:var(--amber)" onclick="previewCampaign()">👁 Preview</button>
-        </div>
-        <div id="c-preview-result" style="display:none;margin-top:10px"></div>
-        <div class="btn-row">
-          <button class="btn" onclick="saveCampaign()">Save Campaign</button>
-          <button class="btn-ghost" onclick="resetCampForm()">Clear</button>
-        </div>
-        <div class="status-msg" id="c-msg"></div>
-      </div>
-
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="sec-label" style="margin-bottom:0">Campaigns <span id="c-count" style="color:var(--blue)"></span></div>
-          <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadCampaigns()">↻ Refresh</button>
-        </div>
-        <div id="campaigns-list"><div class="empty-box">Loading...</div></div>
-      </div>
-    </div>
-  </div>
-
   <!-- TAB: SCHEDULE ──────────────────────────────────────── -->
-  <div class="tab-content" id="tab-schedule">
+  <div class="tab-content active" id="tab-schedule">
     <div class="layout2">
 
       <!-- LEFT: Schedule Form -->
@@ -443,10 +379,32 @@ let campaigns=[],editCampName=null;
 let leadsCache=null;
 let logs=[];
 let params=[], testParams=[];
+let campStatusFilter='all';
+
+function openDrawer(){
+  document.getElementById('camp-drawer').style.display='block';
+  document.getElementById('drawer-overlay').style.display='block';
+  setTimeout(()=>document.getElementById('camp-drawer').classList.add('drawer-open'),10);
+}
+function closeDrawer(){
+  document.getElementById('camp-drawer').classList.remove('drawer-open');
+  document.getElementById('drawer-overlay').style.display='none';
+  setTimeout(()=>document.getElementById('camp-drawer').style.display='none',260);
+  resetCampForm();
+}
+function setCampFilter(f){
+  campStatusFilter=f;
+  ['all','active','paused'].forEach(id=>{
+    const btn=document.getElementById('cf-'+id);
+    if(!btn) return;
+    btn.style.background=id===f?'var(--blue)':'#fff';
+    btn.style.color=id===f?'#fff':'var(--muted)';
+  });
+  renderCampaigns();
+}
 
 window.onload=()=>{
-  loadCampaigns(); loadSchedules();
-  addParam(); addParam();
+  loadSchedules();
 };
 
 // ── TABS ──────────────────────────────────────────────────────
@@ -467,7 +425,7 @@ function stopCronAutoRefresh() {
 
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    const names=['campaigns','schedule','cron'];
+    const names=['schedule','cron'];
     t.className='tab'+(names[i]===name?' active':'');
   });
   document.querySelectorAll('.tab-content').forEach(c=>c.className='tab-content');
@@ -549,16 +507,17 @@ async function saveCampaign(){
   const name=document.getElementById('c-name').value.trim();
   const mediaUrl=document.getElementById('c-media-url').value.trim();
   const mediaType=document.getElementById('c-media-type').value;
+  const program=document.getElementById('c-program').value||'Other';
   const msg=document.getElementById('c-msg');
   if(!name){showCampMsg('Name required','err');return;}
   if(!params.filter(p=>p.trim()).length){showCampMsg('Add at least one param','err');return;}
   msg.textContent='Saving...';msg.className='status-msg';
   try{
     const res=await fetch(CAMPAIGNS_API,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({campaign_name:name,template_params:params.filter(p=>p.trim()),test_params:testParams.filter(p=>p.trim()),media_url:mediaUrl,media_type:mediaType,active:true})});
+      body:JSON.stringify({campaign_name:name,template_params:params.filter(p=>p.trim()),test_params:testParams.filter(p=>p.trim()),media_url:mediaUrl,media_type:mediaType,program,active:true})});
     const data=await res.json();
     if(data.error) throw new Error(data.error);
-    await loadCampaigns(); resetCampForm();
+    await loadCampaigns(); closeDrawer();
     showCampMsg('✓ Saved','ok');
   }catch(e){showCampMsg('Failed: '+e.message,'err');}
 }
@@ -586,12 +545,12 @@ function editCampaign(name){
   document.getElementById('c-name').value=c.campaign_name;
   document.getElementById('c-media-url').value=c.media_url||'';
   document.getElementById('c-media-type').value=c.media_type||'';
+  document.getElementById('c-program').value=c.program||'Other';
   params=[...(c.template_params||[])];
   testParams=[...(c.test_params||[])];
   renderParams(); renderTestParams();
   document.getElementById('camp-form-title').textContent='Edit Campaign';
-  switchTab('campaigns');
-  window.scrollTo({top:0,behavior:'smooth'});
+  openDrawer();
 }
 
 function addParam(v=''){ params.push(v); renderParams(); }
@@ -617,29 +576,73 @@ function renderTestParams(){
     </div>`).join('');
 }
 
+const PROGRAMS = [
+  {key:'Germany Opportunity Card', flag:'🇩🇪'},
+  {key:'Nurses Germany',           flag:'🇩🇪'},
+  {key:'Ausbildung Germany',       flag:'🇩🇪'},
+  {key:'Australia PR',             flag:'🇦🇺'},
+  {key:'Canada PR',                flag:'🇨🇦'},
+  {key:'Other',                    flag:'📦'},
+];
+
 function renderCampaigns(){
   const list=document.getElementById('campaigns-list');
-  document.getElementById('c-count').textContent=campaigns.length?`(${campaigns.length})`:'';
-  if(!campaigns.length){list.innerHTML='<div class="empty-box">No campaigns yet.</div>';return;}
-  list.innerHTML=campaigns.map(c=>`
-    <div class="campaign-card ${c.active?'active-c':''}">
-      <div class="cc-header">
-        <div class="cc-name">${escHtml(c.campaign_name)}</div>
-        <span class="cc-badge ${c.active?'active':'paused'}" onclick="toggleCampaign('${c.campaign_name}')">${c.active?'ACTIVE':'PAUSED'}</span>
+  const progFilter=document.getElementById('cf-program')?.value||'';
+
+  // apply status + program filters
+  let filtered=campaigns;
+  if(campStatusFilter==='active')  filtered=filtered.filter(c=>c.active);
+  if(campStatusFilter==='paused')  filtered=filtered.filter(c=>!c.active);
+  if(progFilter) filtered=filtered.filter(c=>(c.program||'Other')===progFilter);
+
+  document.getElementById('c-count').textContent=`${filtered.length} of ${campaigns.length} campaigns`;
+
+  if(!filtered.length){
+    list.innerHTML='<div class="empty-box">No campaigns match the current filters.</div>';
+    return;
+  }
+
+  // group by program
+  const groups={};
+  filtered.forEach(c=>{
+    const prog=c.program||'Other';
+    if(!groups[prog]) groups[prog]=[];
+    groups[prog].push(c);
+  });
+
+  let html='';
+  PROGRAMS.forEach(({key,flag})=>{
+    if(!groups[key]||!groups[key].length) return;
+    html+=`<div style="margin-bottom:24px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <span>${flag}</span><span>${key}</span>
+        <span style="color:var(--blue);font-weight:600">(${groups[key].length})</span>
       </div>
-      <div class="cc-body">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${c.media_url?'6px':'0'}">
-          ${(c.template_params||[]).map((p,i)=>`<span style="background:#e8f0ff;padding:2px 8px;border-radius:4px;font-size:11px;color:var(--navy)">{{${i+1}}} ${escHtml(p)}</span>`).join('')||'<span style="color:var(--muted2);font-size:12px">No params</span>'}
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px">`;
+    groups[key].forEach(c=>{
+      html+=`<div class="campaign-card ${c.active?'active-c':''}" style="margin-bottom:0">
+        <div class="cc-header">
+          <div class="cc-name">${escHtml(c.campaign_name)}</div>
+          <span class="cc-badge ${c.active?'active':'paused'}" onclick="toggleCampaign('${c.campaign_name}')">${c.active?'ACTIVE':'PAUSED'}</span>
         </div>
-        ${c.media_url?`<div style="font-size:11px;color:var(--blue)">📎 ${c.media_type||'media'} · <a href="${c.media_url}" target="_blank" style="color:var(--blue)">view</a></div>`:''}
-      </div>
-      <div class="cc-footer">
-        <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editCampaign('${c.campaign_name}')">Edit</button>
-        <button class="btn-ghost" style="padding:5px 12px;font-size:11px;border-color:var(--yellow);color:var(--amber)" id="test-btn-${c.campaign_name}" onclick="testCampaign('${c.campaign_name}')">▶ Test</button>
-        <button class="btn-danger" onclick="deleteCampaign('${c.campaign_name}')">Delete</button>
-      </div>
-      <div id="test-result-${c.campaign_name}" style="font-size:11px;padding:6px 16px;display:none;background:#f8faff;border-top:1px solid var(--border)"></div>
-    </div>`).join('');
+        <div class="cc-body">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${c.media_url?'6px':'0'}">
+            ${(c.template_params||[]).map((p,i)=>`<span style="background:#e8f0ff;padding:2px 8px;border-radius:4px;font-size:11px;color:var(--navy)">{{${i+1}}} ${escHtml(p)}</span>`).join('')||'<span style="color:var(--muted2);font-size:12px">No params</span>'}
+          </div>
+          ${c.media_url?`<div style="font-size:11px;color:var(--blue);margin-top:4px">📎 ${c.media_type||'media'} · <a href="${c.media_url}" target="_blank" style="color:var(--blue)">view</a></div>`:''}
+        </div>
+        <div class="cc-footer">
+          <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editCampaign('${c.campaign_name}')">Edit</button>
+          <button class="btn-ghost" style="padding:5px 12px;font-size:11px;border-color:var(--yellow);color:var(--amber)" id="test-btn-${c.campaign_name}" onclick="testCampaign('${c.campaign_name}')">▶ Test</button>
+          <button class="btn-danger" onclick="deleteCampaign('${c.campaign_name}')">Delete</button>
+        </div>
+        <div id="test-result-${c.campaign_name}" style="font-size:11px;padding:6px 16px;display:none;background:#f8faff;border-top:1px solid var(--border)"></div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+
+  list.innerHTML=html;
 }
 
 function resetCampForm(){
@@ -647,6 +650,7 @@ function resetCampForm(){
   document.getElementById('c-name').value='';
   document.getElementById('c-media-url').value='';
   document.getElementById('c-media-type').value='';
+  document.getElementById('c-program').value='Other';
   document.getElementById('camp-form-title').textContent='Add Campaign';
   document.getElementById('c-msg').textContent='';
   document.getElementById('c-preview-phone').value='';
