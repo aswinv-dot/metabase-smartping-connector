@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Automation — TerraTern</title>
+<title>Campaigns — TerraTern</title>
 <link rel="icon" type="image/png" href="https://terratern.com/images/favicon.png"/>
 <link rel="apple-touch-icon" href="https://terratern.com/images/favicon_180_180.png"/>
-<link rel="icon" href="https://terratern.com/images/favicon_192.png" sizes="192x192"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -18,25 +17,13 @@
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:80px}
 .header{background:var(--navy);padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,33,92,.15)}
-.logo{font-size:18px;font-weight:800;letter-spacing:2px;color:#fff}.logo span{color:var(--yellow)}
+.logo img{height:28px;width:auto;vertical-align:middle}
 .sub{font-size:11px;color:var(--sky);letter-spacing:1px;text-transform:uppercase;flex:1}
 .nav-link{font-size:12px;color:var(--sky);text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:6px 14px;border-radius:6px;transition:all .15s}
 .nav-link:hover{background:rgba(154,203,253,.15);border-color:var(--sky)}
-
-/* TABS */
-.tabs{background:var(--navy);padding:0 32px;display:flex;gap:4px;border-top:1px solid rgba(255,255,255,.1)}
-.tab{font-size:12px;font-weight:600;color:rgba(154,203,253,.6);padding:12px 18px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.5px}
-.tab:hover{color:var(--sky)}
-.tab.active{color:#fff;border-bottom-color:var(--yellow)}
-
 .wrap{max-width:1300px;margin:0 auto;padding:24px 32px}
-.tab-content{display:none}.tab-content.active{display:block}
-
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 24px;margin-bottom:20px}
 .sec-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600}
-.layout2{display:grid;grid-template-columns:420px 1fr;gap:20px}
-
-/* FORM */
 .form-group{margin-bottom:14px}
 .form-label{font-size:11px;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;display:block;font-weight:600;text-transform:uppercase}
 .form-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
@@ -44,8 +31,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);background:#fff;outline:none;appearance:none;cursor:pointer}
 .form-select:focus{border-color:var(--blue)}
 .form-hint{font-size:11px;color:var(--muted2);margin-top:4px}
-
-/* PARAMS */
 .params-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .param-row{display:grid;grid-template-columns:1fr 28px;gap:6px;align-items:center}
 .param-row input{border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-family:var(--font);font-size:12px;color:var(--text);outline:none;width:100%}
@@ -54,339 +39,70 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .add-param-btn{background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:7px 12px;cursor:pointer;font-family:var(--font);font-size:12px;border-radius:6px;width:100%;transition:all .15s}
 .add-param-btn:hover{border-color:var(--blue);color:var(--blue)}
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
-
-/* BUTTONS */
 .btn{background:var(--blue);color:#fff;border:none;padding:10px 24px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;border-radius:6px;transition:all .15s}
 .btn:hover{background:var(--navy)}
 .btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:9px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
 .btn-ghost:hover{background:var(--blue);color:#fff}
-.btn-amber{background:transparent;color:var(--amber);border:1.5px solid var(--yellow);padding:9px 18px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:700;border-radius:6px;transition:all .15s}
-.btn-amber:hover{background:var(--yellow);color:var(--navy)}
 .btn-danger{background:transparent;color:var(--red);border:1.5px solid #fca5a5;padding:5px 12px;cursor:pointer;font-family:var(--font);font-size:11px;border-radius:6px;transition:all .15s}
 .btn-danger:hover{background:#fdecea}
 .btn-row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
 .status-msg{font-size:12px;font-weight:600;margin-top:8px}
 .status-msg.ok{color:var(--green)}.status-msg.err{color:var(--red)}
-
-/* FETCH BAR */
-.fetch-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0f7ff;border:1.5px solid var(--sky);border-radius:var(--radius);margin-bottom:16px}
-.fetch-status{font-size:11px;color:var(--muted);flex:1;font-weight:500}
-.fetch-status.ok{color:var(--green)}.fetch-status.err{color:var(--red)}
-.fetch-btn{background:var(--blue);color:#fff;border:none;padding:7px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;white-space:nowrap}
-.fetch-btn:hover{background:var(--navy)}
-.fetch-btn:disabled{opacity:.5;cursor:not-allowed}
-
-/* FILTER ROWS */
-.filter-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.filter-row{border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 12px;background:#fafcff}
-.filter-top{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.filter-bottom{display:grid;grid-template-columns:1fr 30px;gap:6px;align-items:center}
-.filter-row select{border:1.5px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-family:var(--font);font-size:12px;outline:none;width:100%;background:#fff;appearance:none}
-.filter-row select:focus{border-color:var(--blue)}
-.filter-row select:disabled{opacity:.4;cursor:not-allowed;background:#f5f5f5}
-.logic-toggle{display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0}
-.lt-btn{background:#fff;border:none;color:var(--muted);padding:5px 10px;cursor:pointer;font-family:var(--font);font-size:10px;font-weight:700;width:36px;text-align:center;transition:all .15s}
-.lt-btn.active{background:var(--blue);color:#fff}
-.lt-spacer{width:72px;flex-shrink:0}
-.remove-btn{background:transparent;border:1.5px solid #fca5a5;color:var(--red);width:30px;height:32px;cursor:pointer;font-size:14px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.remove-btn:hover{background:#fdecea}
-.add-filter-btn{background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:8px 14px;cursor:pointer;font-family:var(--font);font-size:12px;border-radius:6px;width:100%;transition:all .15s;margin-bottom:14px}
-.add-filter-btn:hover{border-color:var(--blue);color:var(--blue)}
-
-/* PREVIEW */
-.preview-box{background:#f0f7ff;border:1.5px solid var(--sky);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
-.preview-count{font-size:32px;font-weight:800;color:var(--blue)}
-.preview-sublabel{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
-.preview-table-wrap{max-height:180px;overflow-y:auto;border-radius:6px;border:1px solid var(--border);overflow:hidden}
-.preview-table{width:100%;border-collapse:collapse;font-size:11px}
-.preview-table th{padding:7px 10px;background:#e8f0ff;color:var(--navy);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left;font-weight:700}
-.preview-table td{padding:7px 10px;border-bottom:1px solid #f0f4fb;color:var(--muted)}
-.preview-table tr:hover td{background:#f8faff}
-
-/* CAMPAIGN CARDS */
-.campaign-card{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+.campaign-card{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
 .campaign-card.active-c{border-color:var(--blue)}
 .cc-header{background:linear-gradient(135deg,var(--navy),var(--blue));padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.cc-name{font-size:14px;font-weight:700;color:#fff}
+.cc-name{font-size:13px;font-weight:700;color:#fff}
 .cc-badge{font-size:9px;padding:2px 8px;border-radius:20px;cursor:pointer;border:1px solid transparent;font-weight:700;letter-spacing:1px}
 .cc-badge.active{background:rgba(241,200,25,.2);color:var(--yellow);border-color:rgba(241,200,25,.4)}
 .cc-badge.paused{background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.2)}
 .cc-body{padding:12px 16px;background:#fafcff;font-size:12px}
 .cc-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:#fff}
-
-/* CRON */
-.cron-card{background:linear-gradient(135deg,#e8f0ff,#f0f8ff);border:1.5px solid var(--sky);border-radius:var(--radius);padding:20px 24px}
-.cron-schedule{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.cron-time{font-size:28px;font-weight:800;color:var(--navy)}
-.cron-result{background:var(--navy);color:#9acbfd;border-radius:6px;padding:12px 14px;font-size:11px;margin-top:14px;white-space:pre-wrap;font-family:monospace;display:none;line-height:1.6}
-
-/* LOG */
-.log-row{padding:9px 12px;border-bottom:1px solid #f0f4fb;font-size:11px;display:grid;grid-template-columns:58px 1fr 60px;gap:6px;align-items:center}
-.log-row:last-child{border-bottom:none}
-.log-row:hover{background:#f8faff}
-.log-time{color:var(--muted2);font-size:10px}
-.log-msg{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.log-status{text-align:right;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
-.log-status.success{background:#e8f5e9;color:var(--green)}
-.log-status.error{background:#fdecea;color:var(--red)}
-.log-status.skipped{background:#f5f5f5;color:var(--muted2)}
-.log-feed{border:1px solid var(--border);border-radius:6px;max-height:300px;overflow-y:auto}
-.log-empty{padding:24px;text-align:center;color:var(--muted2);font-size:12px}
-
 .empty-box{padding:48px;text-align:center;color:var(--muted2);font-size:13px;border:1.5px dashed var(--border);border-radius:var(--radius)}
-
-/* TIME PICKER (schedule send times) */
-.time-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.time-slot-box{display:flex;flex-direction:column;gap:4px}
-.time-slot-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-
+.drawer-open{transform:translateX(0)!important}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
-.spin-blue{border-color:rgba(37,92,193,.2);border-top-color:var(--blue)}
-.drawer-open{transform:translateX(0)!important}
-@media(max-width:1000px){.layout2{grid-template-columns:1fr}.wrap{padding:16px}.time-slots{grid-template-columns:1fr}}
+@media(max-width:768px){.wrap{padding:16px}}
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern" style="height:28px;width:auto;vertical-align:middle"/></div>
-  <div class="sub">Automation</div>
+  <div class="sub">Campaigns</div>
+  <a href="/automation.html" class="nav-link">← Automation</a>
   <a href="/today.html" class="nav-link">📅 Today</a>
   <a href="/manual.html" class="nav-link">▶ Manual Campaign</a>
 </div>
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('campaigns')">Campaigns</div>
-  <div class="tab" onclick="switchTab('schedule')">Schedule</div>
-  <div class="tab" onclick="switchTab('cron')">Cron & Logs</div>
-</div>
-
 <div class="wrap">
 
-  <!-- TAB: CAMPAIGNS ──────────────────────────────────────── -->
-  <div class="tab-content active" id="tab-campaigns">
-
-    <!-- FILTER BAR -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        <!-- Status filters -->
-        <div style="display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden">
-          <button class="c-filter-btn active" id="cf-all"    onclick="setCampFilter('all')"    style="border:none;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff;font-family:var(--font)">All</button>
-          <button class="c-filter-btn"        id="cf-active" onclick="setCampFilter('active')" style="border:none;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);font-family:var(--font)">Active</button>
-          <button class="c-filter-btn"        id="cf-paused" onclick="setCampFilter('paused')" style="border:none;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);font-family:var(--font)">Paused</button>
-        </div>
-        <!-- Program filter -->
-        <select class="form-select" id="cf-program" onchange="renderCampaigns()" style="width:auto;padding:6px 28px 6px 10px;font-size:11px">
-          <option value="">All Programs</option>
-          <option value="Germany Opportunity Card">🇩🇪 Germany Opportunity Card</option>
-          <option value="Nurses Germany">🇩🇪 Nurses Germany</option>
-          <option value="Ausbildung Germany">🇩🇪 Ausbildung Germany</option>
-          <option value="Australia PR">🇦🇺 Australia PR</option>
-          <option value="Canada PR">🇨🇦 Canada PR</option>
-          <option value="Other">📦 Other</option>
-        </select>
-        <span id="c-count" style="font-size:11px;color:var(--muted)"></span>
+  <!-- FILTER BAR -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden">
+        <button id="cf-all"    onclick="setCampFilter('all')"    style="border:none;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff;font-family:var(--font)">All</button>
+        <button id="cf-active" onclick="setCampFilter('active')" style="border:none;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);font-family:var(--font)">Active</button>
+        <button id="cf-paused" onclick="setCampFilter('paused')" style="border:none;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);font-family:var(--font)">Paused</button>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadCampaigns()">↻ Refresh</button>
-        <button class="btn" style="padding:7px 16px;font-size:12px" onclick="openDrawer()">+ Add Campaign</button>
-      </div>
+      <select id="cf-program" onchange="renderCampaigns()" style="border:1.5px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px;font-family:var(--font);color:var(--text);background:#fff;outline:none;cursor:pointer">
+        <option value="">All Programs</option>
+        <option value="Germany Opportunity Card">🇩🇪 Germany Opportunity Card</option>
+        <option value="Nurses Germany">🇩🇪 Nurses Germany</option>
+        <option value="Ausbildung Germany">🇩🇪 Ausbildung Germany</option>
+        <option value="Australia PR">🇦🇺 Australia PR</option>
+        <option value="Canada PR">🇨🇦 Canada PR</option>
+        <option value="Other">📦 Other</option>
+      </select>
+      <span id="c-count" style="font-size:11px;color:var(--muted)"></span>
     </div>
-
-    <!-- CAMPAIGNS LIST -->
-    <div id="campaigns-list"><div class="empty-box">Loading...</div></div>
-  </div>
-
-  <!-- TAB: SCHEDULE ──────────────────────────────────────── -->
-  <div class="tab-content" id="tab-schedule">
-    <div class="layout2">
-
-      <!-- LEFT: Schedule Form -->
-      <div class="card">
-        <div class="sec-label" id="sched-form-title">Create Schedule</div>
-
-        <div class="form-group">
-          <label class="form-label">Schedule Name</label>
-          <input class="form-input" id="s-name" placeholder="e.g. GHC + Ausbildung June 2026"/>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Start Date</label>
-          <input type="date" class="form-input" id="s-start-date"/>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Daily Send Times <span style="color:var(--muted2);font-weight:400">(IST)</span></label>
-          <div class="time-slots">
-            <div class="time-slot-box">
-              <span class="time-slot-label">Slot 1</span>
-              <input type="time" class="form-input" id="s-time-1" value="17:00"/>
-            </div>
-            <div class="time-slot-box">
-              <span class="time-slot-label">Slot 2</span>
-              <input type="time" class="form-input" id="s-time-2" value="18:00"/>
-            </div>
-            <div class="time-slot-box">
-              <span class="time-slot-label">Slot 3</span>
-              <input type="time" class="form-input" id="s-time-3" value="19:00"/>
-            </div>
-          </div>
-          <div class="form-hint">Cron checks every 7 min — daily batch is split evenly across all 3 slots (IST). Each slot sends its share independently.</div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R1 Campaign</label>
-            <select class="form-select" id="s-r1-campaign"><option value="">Select...</option></select>
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R1 Days</label>
-            <input type="number" class="form-input" id="s-r1-days" value="8" min="1"/>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Gap 1 Days</label>
-          <input type="number" class="form-input" id="s-gap1-days" value="1" min="0"/>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R2 Campaign</label>
-            <select class="form-select" id="s-r2-campaign"><option value="">Select...</option></select>
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R2 Days</label>
-            <input type="number" class="form-input" id="s-r2-days" value="8" min="1"/>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Gap 2 Days</label>
-          <input type="number" class="form-input" id="s-gap2-days" value="1" min="0"/>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 80px;gap:10px;margin-bottom:14px">
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R3 Campaign</label>
-            <select class="form-select" id="s-r3-campaign"><option value="">Select...</option></select>
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">R3 Days</label>
-            <input type="number" class="form-input" id="s-r3-days" value="8" min="1"/>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="form-label" style="margin-bottom:10px">Lead Filters</div>
-        <div class="fetch-bar" style="margin-bottom:12px">
-          <span class="fetch-status" id="s-fetch-status">Fetch values to enable dropdowns</span>
-          <button class="fetch-btn" onclick="fetchScheduleValues()">↻ Fetch Values</button>
-        </div>
-        <div class="filter-list" id="s-filter-list"></div>
-        <button class="add-filter-btn" onclick="addScheduleFilter()">+ Add Filter</button>
-
-        <div style="margin-top:14px;margin-bottom:10px">
-          <button class="btn-ghost" style="width:100%;border-color:var(--yellow);color:var(--amber);font-size:12px" onclick="checkOverlap()">⚡ Check Overlap Before Saving</button>
-          <div id="overlap-result" style="display:none;margin-top:10px"></div>
-        </div>
-        <div class="btn-row" style="margin-top:0">
-          <button class="btn" onclick="saveSchedule()">Save Schedule</button>
-          <button class="btn-ghost" onclick="resetScheduleForm()">Clear</button>
-          <span class="status-msg" id="s-msg" style="margin-top:0"></span>
-        </div>
-      </div>
-
-      <!-- RIGHT: Schedule List -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="sec-label" style="margin-bottom:0">Schedules <span id="s-count" style="color:var(--blue)"></span></div>
-          <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadSchedules()">↻ Refresh</button>
-        </div>
-        <div id="schedules-list"><div class="empty-box">Loading...</div></div>
-      </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-ghost" style="padding:6px 12px;font-size:11px" onclick="loadCampaigns()">↻ Refresh</button>
+      <button class="btn" style="padding:7px 16px;font-size:12px" onclick="openDrawer()">+ Add Campaign</button>
     </div>
   </div>
 
-  <!-- TAB: CRON ───────────────────────────────────────────── -->
-  <div class="tab-content" id="tab-cron">
-
-    <!-- HEALTH STRIP -->
-    <div id="health-strip" style="display:flex;align-items:center;gap:24px;padding:12px 20px;background:var(--navy);border-radius:var(--radius);margin-bottom:20px;color:#fff;flex-wrap:wrap">
-      <div style="font-size:12px;color:var(--muted2)">Loading status...</div>
-    </div>
-
-    <div class="card" style="margin-bottom:20px">
-      <div class="sec-label">Cron Schedule</div>
-      <div class="cron-card">
-        <div class="cron-schedule">
-          <div>
-            <div style="font-size:12px;color:var(--muted)">Send times are now set per-schedule in the <a href="#" onclick="switchTab('schedule');return false" style="color:var(--blue);font-weight:600">Schedule</a> tab.</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:4px">Cron polls every 5 minutes and fires each schedule at its own configured time(s), IST.</div>
-          </div>
-          <button class="btn-amber" id="cron-btn" onclick="runCron()">▶ Run Now (all active)</button>
-        </div>
-        <pre class="cron-result" id="cron-result"></pre>
-      </div>
-      <details style="margin-top:14px">
-        <summary style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer">ⓘ What cron does</summary>
-        <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-top:10px;padding:14px 16px;background:#f8faff;border-radius:6px;border:1px solid var(--border)">
-          1. Fetches all leads from Metabase<br>
-          2. Loads active schedules from Supabase<br>
-          3. Applies filters → removes reactivated/failed/cap leads<br>
-          4. Skips leads already messaged this phase (dedup)<br>
-          5. Sends WhatsApp via Smartping<br>
-          6. Logs to Supabase sent_log
-        </div>
-      </details>
-    </div>
-
-    <div class="card" style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-        <div class="sec-label" style="margin-bottom:0">Campaign Analytics</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden">
-            <button class="ds-toggle-btn active" id="ds-toggle-today" style="border:none;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff" onclick="setDeliveryScope('today')">Today</button>
-            <button class="ds-toggle-btn" id="ds-toggle-all" style="border:none;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted)" onclick="setDeliveryScope('all')">All-time</button>
-          </div>
-          <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="loadAnalyticsTable()">↻ Refresh</button>
-        </div>
-      </div>
-      <div id="analytics-table"><div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div></div>
-
-      <details style="margin-top:16px">
-        <summary style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer">ⓘ Dead lists &amp; eligible pool</summary>
-        <div id="today-detail" style="margin-top:10px"><div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div></div>
-      </details>
-    </div>
-
-    <details class="card" style="margin-bottom:0">
-      <summary style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none">
-        <span class="sec-label" style="margin-bottom:0">Session Log</span>
-        <span onclick="event.preventDefault();event.stopPropagation();clearLogs()" style="font-size:11px;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--border);padding:4px 10px;border-radius:4px">Clear</span>
-      </summary>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0">
-        <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
-          <div style="font-size:20px;font-weight:800;color:var(--navy)" id="stat-total">0</div>
-          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Total</div>
-        </div>
-        <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
-          <div style="font-size:20px;font-weight:800;color:var(--green)" id="stat-sent">0</div>
-          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Sent</div>
-        </div>
-        <div style="background:#f0f5ff;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center">
-          <div style="font-size:20px;font-weight:800;color:var(--red)" id="stat-failed">0</div>
-          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600">Failed</div>
-        </div>
-      </div>
-      <div class="log-feed" id="log-feed"><div class="log-empty">No activity yet</div></div>
-    </details>
-
-  </div>
+  <!-- CAMPAIGNS LIST -->
+  <div id="campaigns-list"><div class="empty-box">Loading...</div></div>
 
 </div>
 
@@ -394,10 +110,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 <div id="drawer-overlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,33,92,.35);z-index:100;backdrop-filter:blur(2px)"></div>
 
 <!-- DRAWER PANEL -->
-<div id="camp-drawer" style="display:none;position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100vh;background:#fff;z-index:101;box-shadow:-4px 0 24px rgba(0,33,92,.15);overflow-y:auto;transform:translateX(100%);transition:transform .25s ease">
-  <div style="background:var(--navy);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+<div id="camp-drawer" style="display:none;position:fixed;top:0;right:0;width:440px;max-width:100vw;height:100vh;background:#fff;z-index:101;box-shadow:-4px 0 24px rgba(0,33,92,.15);overflow-y:auto;transform:translateX(100%);transition:transform .25s ease">
+  <div style="background:var(--navy);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1">
     <div class="sec-label" id="camp-form-title" style="margin-bottom:0;color:var(--sky)">Add Campaign</div>
-    <button onclick="closeDrawer()" style="background:transparent;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;line-height:1">×</button>
+    <button onclick="closeDrawer()" style="background:transparent;border:none;color:rgba(255,255,255,.6);font-size:22px;cursor:pointer;line-height:1">×</button>
   </div>
   <div style="padding:20px">
     <div class="form-group">
@@ -449,7 +165,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <label class="form-label">Preview Against <span style="color:var(--muted2);font-weight:400">(optional phone)</span></label>
       <input class="form-input" id="c-preview-phone" placeholder="e.g. 9876543210 — blank = first fetched lead"/>
     </div>
-    <div class="btn-row">
+    <div class="btn-row" style="margin-top:10px">
       <button class="btn-ghost" style="border-color:var(--yellow);color:var(--amber)" onclick="previewCampaign()">👁 Preview</button>
     </div>
     <div id="c-preview-result" style="display:none;margin-top:10px"></div>
@@ -463,30 +179,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 </div>
 
 <script>
-const WEBHOOK_SECRET = "terratern_smartping_2026";
 const CAMPAIGNS_API  = "/api/campaigns";
 const METABASE_PROXY = "/api/metabase-proxy";
+const SMARTPING_URL  = "https://backend.api-wa.co/campaign/smartping/api/v2";
+const APIKEY         = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
+const TEST_PHONE     = "917094956963";
 
-const FIELDS = ['current_lead_status','current_lead_stage','application','mql_status','webinar_booked','webinar_attended','state','utm_source','adset','latest_utm_campaign','bde','otp_verified','created_at','updated_at'];
-const DATE_FIELDS = ['created_at','updated_at'];
-const OPERATORS = [
-  {value:'is',           label:'is',               needsVal:true,  isDate:false},
-  {value:'is_not',       label:'is not',           needsVal:true,  isDate:false},
-  {value:'contains',     label:'contains',         needsVal:true,  isDate:false},
-  {value:'not_contains', label:'does not contain', needsVal:true,  isDate:false},
-  {value:'has_value',    label:'has any value',    needsVal:false, isDate:false},
-  {value:'is_empty',     label:'is empty / null',  needsVal:false, isDate:false},
-  {value:'date_after',   label:'after (date)',     needsVal:true,  isDate:true},
-  {value:'date_before',  label:'before (date)',    needsVal:true,  isDate:true},
-  {value:'date_between', label:'between (dates)',  needsVal:true,  isDate:true},
-];
-
-let campaigns=[],editCampName=null;
-let leadsCache=null;
-let logs=[];
+let campaigns=[], editCampName=null, leadsCache=null;
 let params=[], testParams=[];
 let campStatusFilter='all';
 
+const PROGRAMS = [
+  {key:'Germany Opportunity Card', flag:'🇩🇪'},
+  {key:'Nurses Germany',           flag:'🇩🇪'},
+  {key:'Ausbildung Germany',       flag:'🇩🇪'},
+  {key:'Australia PR',             flag:'🇦🇺'},
+  {key:'Canada PR',                flag:'🇨🇦'},
+  {key:'Other',                    flag:'📦'},
+];
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── DRAWER ────────────────────────────────────────────────────
 function openDrawer(){
   document.getElementById('camp-drawer').style.display='block';
   document.getElementById('drawer-overlay').style.display='block';
@@ -498,6 +212,8 @@ function closeDrawer(){
   setTimeout(()=>document.getElementById('camp-drawer').style.display='none',260);
   resetCampForm();
 }
+
+// ── FILTER ────────────────────────────────────────────────────
 function setCampFilter(f){
   campStatusFilter=f;
   ['all','active','paused'].forEach(id=>{
@@ -509,107 +225,64 @@ function setCampFilter(f){
   renderCampaigns();
 }
 
-window.onload=()=>{
-  loadCampaigns(); loadSchedules();
-  addParam(); addParam();
-};
-
-// ── TABS ──────────────────────────────────────────────────────
-let cronRefreshInterval = null;
-
-function startCronAutoRefresh() {
-  if (cronRefreshInterval) clearInterval(cronRefreshInterval);
-  cronRefreshInterval = setInterval(() => {
-    loadHealthStrip();
-    loadAnalyticsTable();
-    loadTodayDetail();
-  }, 60000);
-}
-
-function stopCronAutoRefresh() {
-  if (cronRefreshInterval) { clearInterval(cronRefreshInterval); cronRefreshInterval = null; }
-}
-
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t,i)=>{
-    const names=['campaigns','schedule','cron'];
-    t.className='tab'+(names[i]===name?' active':'');
-  });
-  document.querySelectorAll('.tab-content').forEach(c=>c.className='tab-content');
-  document.getElementById('tab-'+name).className='tab-content active';
-  if(name!=='cron') stopCronAutoRefresh();
-  if(name==='schedule') { loadSchedules(); populateScheduleCampaigns(); }
-  if(name==='cron') { loadHealthStrip(); loadAnalyticsTable(); loadTodayDetail(); startCronAutoRefresh(); }
-}
-
-// ── CAMPAIGNS ─────────────────────────────────────────────────
+// ── LOAD ─────────────────────────────────────────────────────
 async function loadCampaigns(){
   try{
     const res=await fetch(CAMPAIGNS_API);
     const data=await res.json();
     campaigns=data.campaigns||[];
     renderCampaigns();
-    populateScheduleCampaigns();
-  }catch(e){ document.getElementById('campaigns-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`; }
-}
-
-// Mirrors cron/index.js resolveParam() — static text passes through,
-// {field:xxx} pulls from the matched lead row. fullname is shortened to first name.
-function resolveParamClient(str, row){
-  const m = String(str).match(/^\{field:(\w+)\}$/);
-  if(!m) return {value:str, isToken:false, raw:null};
-  const key = m[1];
-  const raw = row ? row[key] : undefined;
-  const value = key==='fullname' ? String(raw||'there').trim().split(/\s+/)[0] : (raw ?? '');
-  return {value, isToken:true, raw, field:key};
-}
-
-async function previewCampaign(){
-  const box = document.getElementById('c-preview-result');
-  const phone = document.getElementById('c-preview-phone').value.trim();
-  const liveParams = params; // current unsaved draft values
-  box.style.display='block';
-  box.innerHTML = `<div style="font-size:11px;color:var(--muted);padding:8px">Loading lead data...</div>`;
-
-  try{
-    if(!leadsCache){ const r=await fetch(METABASE_PROXY); leadsCache=await r.json(); }
-    if(!Array.isArray(leadsCache)||!leadsCache.length) throw new Error('No leads available');
-
-    let row=null, matchNote='';
-    if(phone){
-      const digits = phone.replace(/\D/g,'').slice(-10);
-      row = leadsCache.find(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)===digits);
-      if(!row) throw new Error(`No lead found matching phone "${phone}"`);
-      matchNote = `Matched lead: ${row.fullname||'(no name)'} · ${row.mobile||''}`;
-    } else {
-      row = leadsCache[0];
-      matchNote = `Using first fetched lead: ${row.fullname||'(no name)'} · ${row.mobile||''}`;
-    }
-
-    const live = liveParams.filter(p=>p.trim()!=='' || true); // keep index alignment
-    let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
-      <div style="padding:8px 12px;background:#f0f5ff;font-size:11px;color:var(--navy);font-weight:600;border-bottom:1px solid var(--border)">${escHtml(matchNote)}</div>`;
-
-    let hasEmpty=false;
-    liveParams.forEach((p,i)=>{
-      if(p.trim()===''){return;}
-      const r = resolveParamClient(p,row);
-      const empty = r.isToken && (r.value===''||r.value===null||r.value===undefined);
-      if(empty) hasEmpty=true;
-      html += `<div style="padding:8px 12px;border-bottom:1px solid #f0f4fb;display:flex;justify-content:space-between;align-items:center;font-size:12px">
-        <span style="color:var(--muted)">{{${i+1}}} <code style="color:var(--muted2)">${escHtml(p)}</code></span>
-        <span style="font-weight:700;color:${empty?'var(--red)':'var(--green)'}">${empty?'⚠ empty':escHtml(String(r.value))}</span>
-      </div>`;
-    });
-
-    if(hasEmpty) html += `<div style="padding:8px 12px;background:#fdecea;font-size:11px;color:var(--red)">⚠ One or more {field:xxx} tokens resolved to empty — check the field name matches your Metabase columns.</div>`;
-    html += `</div>`;
-    box.innerHTML = html;
   }catch(e){
-    box.innerHTML = `<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:10px 12px;font-size:12px;color:var(--red)">Failed: ${e.message}</div>`;
+    document.getElementById('campaigns-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;
   }
 }
 
+// ── RENDER ────────────────────────────────────────────────────
+function renderCampaigns(){
+  const list=document.getElementById('campaigns-list');
+  const progFilter=document.getElementById('cf-program')?.value||'';
+  let filtered=campaigns;
+  if(campStatusFilter==='active')  filtered=filtered.filter(c=>c.active);
+  if(campStatusFilter==='paused')  filtered=filtered.filter(c=>!c.active);
+  if(progFilter) filtered=filtered.filter(c=>(c.program||'Other')===progFilter);
+  document.getElementById('c-count').textContent=`${filtered.length} of ${campaigns.length} campaigns`;
+  if(!filtered.length){list.innerHTML='<div class="empty-box">No campaigns match the current filters.</div>';return;}
+  const groups={};
+  filtered.forEach(c=>{const prog=c.program||'Other';if(!groups[prog])groups[prog]=[];groups[prog].push(c);});
+  let html='';
+  PROGRAMS.forEach(({key,flag})=>{
+    if(!groups[key]||!groups[key].length) return;
+    html+=`<div style="margin-bottom:28px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;padding-bottom:8px;border-bottom:1.5px solid var(--border)">
+        <span>${flag}</span><span>${key}</span><span style="color:var(--blue);font-weight:600">(${groups[key].length})</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px">`;
+    groups[key].forEach(c=>{
+      html+=`<div class="campaign-card ${c.active?'active-c':''}" style="margin-bottom:0">
+        <div class="cc-header">
+          <div class="cc-name">${escHtml(c.campaign_name)}</div>
+          <span class="cc-badge ${c.active?'active':'paused'}" onclick="toggleCampaign('${c.campaign_name}')">${c.active?'ACTIVE':'PAUSED'}</span>
+        </div>
+        <div class="cc-body">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${c.media_url?'6px':'0'}">
+            ${(c.template_params||[]).map((p,i)=>`<span style="background:#e8f0ff;padding:2px 8px;border-radius:4px;font-size:11px;color:var(--navy)">{{${i+1}}} ${escHtml(p)}</span>`).join('')||'<span style="color:var(--muted2);font-size:12px">No params</span>'}
+          </div>
+          ${c.media_url?`<div style="font-size:11px;color:var(--blue);margin-top:4px">📎 ${c.media_type||'media'} · <a href="${c.media_url}" target="_blank" style="color:var(--blue)">view</a></div>`:''}
+        </div>
+        <div class="cc-footer">
+          <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editCampaign('${c.campaign_name}')">Edit</button>
+          <button class="btn-ghost" style="padding:5px 12px;font-size:11px;border-color:var(--yellow);color:var(--amber)" id="test-btn-${c.campaign_name}" onclick="testCampaign('${c.campaign_name}')">▶ Test</button>
+          <button class="btn-danger" onclick="deleteCampaign('${c.campaign_name}')">Delete</button>
+        </div>
+        <div id="test-result-${c.campaign_name}" style="font-size:11px;padding:6px 16px;display:none;background:#f8faff;border-top:1px solid var(--border)"></div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+  list.innerHTML=html;
+}
+
+// ── SAVE / TOGGLE / DELETE / EDIT ────────────────────────────
 async function saveCampaign(){
   const name=document.getElementById('c-name').value.trim();
   const mediaUrl=document.getElementById('c-media-url').value.trim();
@@ -633,7 +306,7 @@ async function toggleCampaign(name){
   const c=campaigns.find(c=>c.campaign_name===name); if(!c) return;
   try{
     await fetch(CAMPAIGNS_API,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({...c,template_params:c.template_params,active:!c.active})});
+      body:JSON.stringify({...c,active:!c.active})});
     await loadCampaigns();
   }catch(e){alert('Failed: '+e.message);}
 }
@@ -660,6 +333,7 @@ function editCampaign(name){
   openDrawer();
 }
 
+// ── PARAMS ────────────────────────────────────────────────────
 function addParam(v=''){ params.push(v); renderParams(); }
 function removeParam(i){ params.splice(i,1); renderParams(); }
 function updateParam(i,v){ params[i]=v; }
@@ -674,8 +348,7 @@ function addTestParam(v=''){ testParams.push(v); renderTestParams(); }
 function removeTestParam(i){ testParams.splice(i,1); renderTestParams(); }
 function updateTestParam(i,v){ testParams[i]=v; }
 function renderTestParams(){
-  const el=document.getElementById('test-params-list');
-  if(!el) return;
+  const el=document.getElementById('test-params-list'); if(!el) return;
   el.innerHTML=testParams.map((p,i)=>`
     <div class="param-row">
       <input value="${escHtml(p)}" placeholder="Test value for {{${i+1}}}" oninput="updateTestParam(${i},this.value)"/>
@@ -683,75 +356,77 @@ function renderTestParams(){
     </div>`).join('');
 }
 
-const PROGRAMS = [
-  {key:'Germany Opportunity Card', flag:'🇩🇪'},
-  {key:'Nurses Germany',           flag:'🇩🇪'},
-  {key:'Ausbildung Germany',       flag:'🇩🇪'},
-  {key:'Australia PR',             flag:'🇦🇺'},
-  {key:'Canada PR',                flag:'🇨🇦'},
-  {key:'Other',                    flag:'📦'},
-];
-
-function renderCampaigns(){
-  const list=document.getElementById('campaigns-list');
-  const progFilter=document.getElementById('cf-program')?.value||'';
-
-  // apply status + program filters
-  let filtered=campaigns;
-  if(campStatusFilter==='active')  filtered=filtered.filter(c=>c.active);
-  if(campStatusFilter==='paused')  filtered=filtered.filter(c=>!c.active);
-  if(progFilter) filtered=filtered.filter(c=>(c.program||'Other')===progFilter);
-
-  document.getElementById('c-count').textContent=`${filtered.length} of ${campaigns.length} campaigns`;
-
-  if(!filtered.length){
-    list.innerHTML='<div class="empty-box">No campaigns match the current filters.</div>';
-    return;
-  }
-
-  // group by program
-  const groups={};
-  filtered.forEach(c=>{
-    const prog=c.program||'Other';
-    if(!groups[prog]) groups[prog]=[];
-    groups[prog].push(c);
-  });
-
-  let html='';
-  PROGRAMS.forEach(({key,flag})=>{
-    if(!groups[key]||!groups[key].length) return;
-    html+=`<div style="margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px">
-        <span>${flag}</span><span>${key}</span>
-        <span style="color:var(--blue);font-weight:600">(${groups[key].length})</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px">`;
-    groups[key].forEach(c=>{
-      html+=`<div class="campaign-card ${c.active?'active-c':''}" style="margin-bottom:0">
-        <div class="cc-header">
-          <div class="cc-name">${escHtml(c.campaign_name)}</div>
-          <span class="cc-badge ${c.active?'active':'paused'}" onclick="toggleCampaign('${c.campaign_name}')">${c.active?'ACTIVE':'PAUSED'}</span>
-        </div>
-        <div class="cc-body">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${c.media_url?'6px':'0'}">
-            ${(c.template_params||[]).map((p,i)=>`<span style="background:#e8f0ff;padding:2px 8px;border-radius:4px;font-size:11px;color:var(--navy)">{{${i+1}}} ${escHtml(p)}</span>`).join('')||'<span style="color:var(--muted2);font-size:12px">No params</span>'}
-          </div>
-          ${c.media_url?`<div style="font-size:11px;color:var(--blue);margin-top:4px">📎 ${c.media_type||'media'} · <a href="${c.media_url}" target="_blank" style="color:var(--blue)">view</a></div>`:''}
-        </div>
-        <div class="cc-footer">
-          <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editCampaign('${c.campaign_name}')">Edit</button>
-          <button class="btn-ghost" style="padding:5px 12px;font-size:11px;border-color:var(--yellow);color:var(--amber)" id="test-btn-${c.campaign_name}" onclick="testCampaign('${c.campaign_name}')">▶ Test</button>
-          <button class="btn-danger" onclick="deleteCampaign('${c.campaign_name}')">Delete</button>
-        </div>
-        <div id="test-result-${c.campaign_name}" style="font-size:11px;padding:6px 16px;display:none;background:#f8faff;border-top:1px solid var(--border)"></div>
-      </div>`;
-    });
-    html+=`</div></div>`;
-  });
-
-  list.innerHTML=html;
+// ── PREVIEW ───────────────────────────────────────────────────
+function resolveParamClient(str, row){
+  const m=String(str).match(/^\{field:(\w+)\}$/);
+  if(!m) return {value:str,isToken:false};
+  const key=m[1];
+  const raw=row?row[key]:undefined;
+  const value=key==='fullname'?String(raw||'there').trim().split(/\s+/)[0]:(raw??'');
+  return {value,isToken:true,raw,field:key};
 }
 
+async function previewCampaign(){
+  const box=document.getElementById('c-preview-result');
+  const phone=document.getElementById('c-preview-phone').value.trim();
+  box.style.display='block';
+  box.innerHTML=`<div style="font-size:11px;color:var(--muted);padding:8px">Loading lead data...</div>`;
+  try{
+    if(!leadsCache){const r=await fetch(METABASE_PROXY);leadsCache=await r.json();}
+    if(!Array.isArray(leadsCache)||!leadsCache.length) throw new Error('No leads available');
+    let row=null,matchNote='';
+    if(phone){
+      const digits=phone.replace(/\D/g,'').slice(-10);
+      row=leadsCache.find(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)===digits);
+      if(!row) throw new Error(`No lead found matching phone "${phone}"`);
+      matchNote=`Matched: ${row.fullname||'(no name)'} · ${row.mobile||''}`;
+    } else {
+      row=leadsCache[0];
+      matchNote=`First lead: ${row.fullname||'(no name)'} · ${row.mobile||''}`;
+    }
+    let html=`<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+      <div style="padding:8px 12px;background:#f0f5ff;font-size:11px;color:var(--navy);font-weight:600;border-bottom:1px solid var(--border)">${escHtml(matchNote)}</div>`;
+    let hasEmpty=false;
+    params.forEach((p,i)=>{
+      if(!p.trim()) return;
+      const r=resolveParamClient(p,row);
+      const empty=r.isToken&&(r.value===''||r.value===null||r.value===undefined);
+      if(empty) hasEmpty=true;
+      html+=`<div style="padding:8px 12px;border-bottom:1px solid #f0f4fb;display:flex;justify-content:space-between;align-items:center;font-size:12px">
+        <span style="color:var(--muted)">{{${i+1}}} <code style="color:var(--muted2)">${escHtml(p)}</code></span>
+        <span style="font-weight:700;color:${empty?'var(--red)':'var(--green)'}">${empty?'⚠ empty':escHtml(String(r.value))}</span>
+      </div>`;
+    });
+    if(hasEmpty) html+=`<div style="padding:8px 12px;background:#fdecea;font-size:11px;color:var(--red)">⚠ Check {field:xxx} token names against your Metabase columns.</div>`;
+    html+=`</div>`;
+    box.innerHTML=html;
+  }catch(e){
+    box.innerHTML=`<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:10px 12px;font-size:12px;color:var(--red)">Failed: ${e.message}</div>`;
+  }
+}
+
+// ── TEST ──────────────────────────────────────────────────────
+async function testCampaign(name){
+  const c=campaigns.find(c=>c.campaign_name===name); if(!c) return;
+  const btn=document.getElementById(`test-btn-${name}`);
+  const result=document.getElementById(`test-result-${name}`);
+  const p=(c.test_params&&c.test_params.length>0)?c.test_params:(c.template_params||[]);
+  btn.disabled=true; btn.textContent='Sending...';
+  result.style.display='block'; result.style.color='var(--muted)'; result.textContent='Firing test message...';
+  const payload={apiKey:APIKEY,campaignName:name,destination:TEST_PHONE,userName:"Aswin Raaju",
+    templateParams:p,source:"test-fire",media:c.media_url?{url:c.media_url,filename:"media"}:{},
+    buttons:[],carouselCards:[],location:{},attributes:{},paramsFallbackValue:{FirstName:"Aswin"}};
+  try{
+    const res=await fetch(SMARTPING_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(res.ok){result.style.color='var(--green)';result.textContent='✓ Test sent to +917094956963';}
+    else{result.style.color='var(--red)';result.textContent='✗ Failed: '+(data.message||JSON.stringify(data).slice(0,80));}
+  }catch(e){result.style.color='var(--red)';result.textContent='✗ Error: '+e.message;}
+  btn.disabled=false; btn.textContent='▶ Test';
+  setTimeout(()=>{result.style.display='none';},5000);
+}
+
+// ── RESET ─────────────────────────────────────────────────────
 function resetCampForm(){
   editCampName=null; params=[];
   document.getElementById('c-name').value='';
@@ -767,859 +442,7 @@ function resetCampForm(){
 }
 function showCampMsg(txt,type){const el=document.getElementById('c-msg');el.textContent=txt;el.className='status-msg '+type;setTimeout(()=>el.textContent='',3000);}
 
-// ── CRON ──────────────────────────────────────────────────────
-async function runCron(){
-  const btn=document.getElementById('cron-btn');
-  const box=document.getElementById('cron-result');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Triggering...';
-  box.style.display='block'; box.textContent='Triggering Railway cron...';
-  try{
-    const res=await fetch('/api/trigger',{method:'POST',headers:{'Authorization':`Bearer ${WEBHOOK_SECRET}`,'Content-Type':'application/json'}});
-    const data=await res.json();
-    box.textContent=JSON.stringify(data,null,2);
-    if(data.success) addLog('cron','Railway cron triggered','success');
-    else addLog('cron','Trigger failed: '+(data.error||'unknown'),'error');
-  }catch(e){box.textContent='Error: '+e.message;addLog('cron','Failed: '+e.message,'error');}
-  btn.disabled=false; btn.innerHTML='▶ Run Now (all active)';
-}
-
-// ── LOGS ──────────────────────────────────────────────────────
-function addLog(campaign,msg,status){
-  const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  logs.unshift({time:now,campaign,msg,status});
-  if(logs.length>200) logs=logs.slice(0,200);
-  renderLogs();
-}
-function renderLogs(){
-  const feed=document.getElementById('log-feed');
-  if(!logs.length){feed.innerHTML='<div class="log-empty">No activity yet</div>';return;}
-  document.getElementById('stat-total').textContent=logs.length;
-  document.getElementById('stat-sent').textContent=logs.filter(l=>l.status==='success').length;
-  document.getElementById('stat-failed').textContent=logs.filter(l=>l.status==='error').length;
-  feed.innerHTML=logs.map(l=>`<div class="log-row"><span class="log-time">${l.time}</span><span class="log-msg">[${l.campaign}] ${l.msg}</span><span class="log-status ${l.status}">${l.status.toUpperCase()}</span></div>`).join('');
-}
-function clearLogs(){logs=[];document.getElementById('stat-total').textContent=0;document.getElementById('stat-sent').textContent=0;document.getElementById('stat-failed').textContent=0;renderLogs();}
-
-async function testCampaign(name) {
-  const c = campaigns.find(c=>c.campaign_name===name); if(!c) return;
-  const btn = document.getElementById(`test-btn-${name}`);
-  const result = document.getElementById(`test-result-${name}`);
-  const APIKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
-  const SMARTPING_URL = "https://backend.api-wa.co/campaign/smartping/api/v2";
-  const TEST_PHONE = "917094956963";
-
-  btn.disabled=true; btn.textContent='Sending...';
-  result.style.display='block'; result.style.color='var(--muted)'; result.textContent='Firing test message...';
-
-  const params = (c.test_params && c.test_params.length > 0)
-    ? c.test_params
-    : (c.template_params||[]);
-
-  const payload = {
-    apiKey:       APIKEY,
-    campaignName: name,
-    destination:  TEST_PHONE,
-    userName:     "Aswin Raaju",
-    templateParams: params,
-    source:       "test-fire",
-    media:        c.media_url ? {url:c.media_url, filename:"media"} : {},
-    buttons:[], carouselCards:[], location:{}, attributes:{},
-    paramsFallbackValue: {FirstName:"Aswin"},
-  };
-
-  try {
-    const res  = await fetch(SMARTPING_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-    const data = await res.json();
-    if(res.ok) {
-      result.style.color='var(--green)';
-      result.textContent='✓ Test sent to +917094956963';
-      addLog(name, 'Test sent to +917094956963', 'success');
-    } else {
-      result.style.color='var(--red)';
-      result.textContent='✗ Failed: ' + (data.message||JSON.stringify(data).slice(0,80));
-      addLog(name, 'Test failed: '+(data.message||''), 'error');
-    }
-  } catch(e) {
-    result.style.color='var(--red)';
-    result.textContent='✗ Error: '+e.message;
-  }
-
-  btn.disabled=false; btn.textContent='▶ Test';
-  setTimeout(()=>{ result.style.display='none'; }, 5000);
-}
-
-// ── CAMPAIGN PROGRESS LOG ────────────────────────────────────
-const SUPABASE_URL = "https://oagsgovnxgiszofgytre.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI";
-
-function getPhaseForDay(s, dayNum) {
-  const r1End=s.r1_days, gap1End=r1End+s.gap1_days;
-  const r2End=gap1End+s.r2_days, gap2End=r2End+s.gap2_days, r3End=gap2End+s.r3_days;
-  if(dayNum<1)          return {phase:'NOT_STARTED', campaign:'', label:'Not started'};
-  if(dayNum<=r1End)     return {phase:'R1', campaign:s.r1_campaign, label:`R1 Day ${dayNum}/${s.r1_days}`};
-  if(dayNum<=gap1End)   return {phase:'GAP', campaign:'', label:'Gap Day'};
-  if(dayNum<=r2End)     return {phase:'R2', campaign:s.r2_campaign, label:`R2 Day ${dayNum-gap1End}/${s.r2_days}`};
-  if(dayNum<=gap2End)   return {phase:'GAP', campaign:'', label:'Gap Day'};
-  if(dayNum<=r3End)     return {phase:'R3', campaign:s.r3_campaign, label:`R3 Day ${dayNum-gap2End}/${s.r3_days}`};
-  return {phase:'DONE', campaign:'', label:'Complete'};
-}
-
-function getDayNum(s, dateObj) {
-  const start=new Date(s.start_date); start.setHours(0,0,0,0);
-  const d=new Date(dateObj); d.setHours(0,0,0,0);
-  return Math.floor((d-start)/(1000*60*60*24))+1;
-}
-
-async function loadTodayDetail() {
-  const wrap = document.getElementById('today-detail');
-  if(!wrap) return;
-  wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div>';
-
-  try {
-    const s = schedules[0];
-    if(!s) { wrap.innerHTML='<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No active schedule.</div>'; return; }
-
-    const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
-    const todayISO = nowIST.toISOString().split('T')[0];
-    const today = new Date(todayISO);
-    const dayNum = getDayNum(s, today);
-    const phaseInfo = getPhaseForDay(s, dayNum);
-    const phaseDays = phaseInfo.phase==='R1'?s.r1_days:phaseInfo.phase==='R2'?s.r2_days:s.r3_days;
-    const phaseColors = {R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)'};
-    const pc = phaseColors[phaseInfo.phase]||'var(--muted)';
-
-    const [sentRes, reactivatedRes, failedRes, capRes] = await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/sent_log?select=time_slot,status&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59&schedule_id=eq.${s.id}`,
-        {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
-      fetch(`${SUPABASE_URL}/rest/v1/reactivated_list?select=phone&added_at=gte.${todayISO}T00:00:00`,
-        {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
-      fetch(`${SUPABASE_URL}/rest/v1/failed_list?select=phone&added_at=gte.${todayISO}T00:00:00`,
-        {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
-      fetch(`${SUPABASE_URL}/rest/v1/cap_reached_list?select=phone`,
-        {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
-    ]);
-
-    const sentRows       = await sentRes.json();
-    const reactivatedRows= await reactivatedRes.json();
-    const failedRows     = await failedRes.json();
-    const capRows        = await capRes.json();
-
-    const sentSuccess = sentRows.filter(r=>r.status==='success').length;
-    const sentFailed  = sentRows.filter(r=>r.status==='error').length;
-    const slotLabels = Array.isArray(s.send_times)&&s.send_times.length===3 ? s.send_times : ['17:00','18:00','19:00'];
-    const bySlot1 = sentRows.filter(r=>r.time_slot===slotLabels[0]).length;
-    const bySlot2 = sentRows.filter(r=>r.time_slot===slotLabels[1]).length;
-    const bySlot3 = sentRows.filter(r=>r.time_slot===slotLabels[2]).length;
-    const byOther = sentSuccess - bySlot1 - bySlot2 - bySlot3;
-
-    const allPhaseSentRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/sent_log?select=phone&phase=eq.${phaseInfo.phase}&schedule_id=eq.${s.id}&status=eq.success`,
-      {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}
-    );
-    const allPhaseSent = await allPhaseSentRes.json();
-
-    const [totalReactRes, totalFailRes] = await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/reactivated_list?select=phone`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
-      fetch(`${SUPABASE_URL}/rest/v1/failed_list?select=phone`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
-    ]);
-    const totalReact = await totalReactRes.json();
-    const totalFail  = await totalFailRes.json();
-
-    let totalMatched = 0;
-    try {
-      if (!leadsCache) { const lr = await fetch(METABASE_PROXY); leadsCache = await lr.json(); }
-      const filters = Array.isArray(s.filters_json) ? s.filters_json : [];
-      totalMatched = applyFilters(leadsCache, filters).length;
-    } catch(e) {
-      console.warn('Eligible pool: live Metabase fetch failed, falling back', e.message);
-      totalMatched = 22842;
-    }
-    const totalDead      = totalReact.length + totalFail.length + capRows.length;
-    const totalEligible  = Math.max(0, totalMatched - totalDead);
-    const phaseSentTotal = allPhaseSent.length;
-    const batchPerDay    = Math.ceil(totalEligible / phaseDays);
-    const remaining      = Math.max(0, batchPerDay - sentSuccess);
-
-    const phaseProgress  = Math.min(100, Math.round((phaseSentTotal / totalEligible) * 100));
-    const overallDay     = dayNum;
-    const totalDays      = s.r1_days + s.gap1_days + s.r2_days + s.gap2_days + s.r3_days;
-    const overallProgress= Math.min(100, Math.round((overallDay / totalDays) * 100));
-
-    function bar(pct, color) {
-      return `<div style="background:#e8e8f0;border-radius:20px;height:8px;overflow:hidden;flex:1">
-        <div style="width:${pct}%;height:100%;background:${color};border-radius:20px;transition:width .5s"></div>
-      </div>`;
-    }
-
-    const nowMin = nowIST.getUTCHours()*60 + nowIST.getUTCMinutes();
-    const slotMins = slotLabels.map(t=>{const [h,m]=t.split(':').map(Number);return h*60+m;});
-    let nextSlot = `Tomorrow ${slotLabels[0]}`;
-    for (let i=0;i<slotMins.length;i++){ if(nowMin < slotMins[i]) { nextSlot = slotLabels[i]+' IST'; break; } }
-
-    if(phaseInfo.phase === 'GAP') {
-      wrap.innerHTML = `<div style="background:#f8faff;border:1.5px solid var(--border);border-radius:8px;padding:20px;text-align:center">
-        <div style="font-size:32px;margin-bottom:8px">☕</div>
-        <div style="font-size:16px;font-weight:800;color:var(--navy)">Gap Day</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px">No messages today. Next phase starts tomorrow.</div>
-      </div>`;
-      return;
-    }
-
-    if(phaseInfo.phase === 'DONE' || phaseInfo.phase === 'NOT_STARTED') {
-      wrap.innerHTML = `<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">${phaseInfo.label}</div>`;
-      return;
-    }
-
-    wrap.innerHTML = `
-      <div style="border:1.5px solid ${pc}44;border-radius:8px;overflow:hidden">
-
-        <!-- Header -->
-        <div style="background:linear-gradient(135deg,var(--navy),${pc});padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600;letter-spacing:1px;text-transform:uppercase">${phaseInfo.label}</div>
-            <div style="font-size:15px;font-weight:800;color:#fff;margin-top:2px">${phaseInfo.campaign}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:28px;font-weight:800;color:#fff">${sentSuccess.toLocaleString()}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:600">SENT TODAY</div>
-          </div>
-        </div>
-
-        <!-- Progress bars -->
-        <div style="padding:14px 18px;background:#fafcff;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;min-width:80px">PHASE (${phaseInfo.phase})</div>
-            ${bar(phaseProgress, pc)}
-            <div style="font-size:11px;font-weight:700;color:${pc};min-width:32px">${phaseProgress}%</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;min-width:80px">OVERALL</div>
-            ${bar(overallProgress,'var(--navy)')}
-            <div style="font-size:11px;font-weight:700;color:var(--navy);min-width:32px">${overallProgress}%</div>
-          </div>
-        </div>
-
-        <!-- Stats grid -->
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-bottom:1px solid var(--border)">
-          <div style="padding:12px 18px;border-right:1px solid var(--border)">
-            <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">TODAY'S SENDS</div>
-            <div style="display:flex;flex-direction:column;gap:5px">
-              <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">${slotLabels[0]}</span>
-                <span style="font-weight:700;color:var(--navy)">${bySlot1.toLocaleString()}</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">${slotLabels[1]}</span>
-                <span style="font-weight:700;color:var(--navy)">${bySlot2.toLocaleString()}</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">${slotLabels[2]}</span>
-                <span style="font-weight:700;color:var(--navy)">${bySlot3.toLocaleString()}</span>
-              </div>
-              ${byOther>0?`<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--muted)">Other</span><span style="font-weight:700;color:var(--navy)">${byOther.toLocaleString()}</span></div>`:''}
-              <div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--border);padding-top:5px;margin-top:2px">
-                <span style="color:var(--red)">Failed</span>
-                <span style="font-weight:700;color:var(--red)">${sentFailed.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-          <div style="padding:12px 18px">
-            <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">DEAD LISTS (ALL TIME)</div>
-            <div style="display:flex;flex-direction:column;gap:5px">
-              <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">Reactivated</span>
-                <span style="font-weight:700;color:var(--amber)">${totalReact.length.toLocaleString()}</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">Failed</span>
-                <span style="font-weight:700;color:var(--red)">${totalFail.length.toLocaleString()}</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--muted)">Cap reached</span>
-                <span style="font-weight:700;color:var(--muted2)">${capRows.length.toLocaleString()}</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--border);padding-top:5px;margin-top:2px">
-                <span style="color:var(--muted)">Total dead</span>
-                <span style="font-weight:700;color:var(--muted)">${totalDead.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottom row -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:#fff">
-          <div style="padding:12px 18px;text-align:center;border-right:1px solid var(--border)">
-            <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">BATCH/DAY</div>
-            <div style="font-size:20px;font-weight:800;color:var(--navy)">${batchPerDay.toLocaleString()}</div>
-          </div>
-          <div style="padding:12px 18px;text-align:center;border-right:1px solid var(--border)">
-            <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">REMAINING TODAY</div>
-            <div style="font-size:20px;font-weight:800;color:${remaining>0?'var(--blue)':'var(--green)'}">${remaining.toLocaleString()}</div>
-            <div style="font-size:10px;color:var(--muted)">next: ${nextSlot}</div>
-          </div>
-          <div style="padding:12px 18px;text-align:center">
-            <div style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">ELIGIBLE POOL</div>
-            <div style="font-size:20px;font-weight:800;color:var(--navy)">${totalEligible.toLocaleString()}</div>
-            <div style="font-size:10px;color:var(--muted)">of ${totalMatched.toLocaleString()} total</div>
-          </div>
-        </div>
-
-      </div>`;
-
-  } catch(e) {
-    wrap.innerHTML = `<div style="font-size:12px;color:var(--red);padding:12px">Failed: ${e.message}</div>`;
-  }
-}
-
-// ── MERGED ANALYTICS TABLE ───────────────────────────────────
-let deliveryScope = 'today';
-
-function setDeliveryScope(scope) {
-  deliveryScope = scope;
-  document.getElementById('ds-toggle-today').style.background = scope==='today' ? 'var(--blue)' : '#fff';
-  document.getElementById('ds-toggle-today').style.color = scope==='today' ? '#fff' : 'var(--muted)';
-  document.getElementById('ds-toggle-all').style.background = scope==='all' ? 'var(--blue)' : '#fff';
-  document.getElementById('ds-toggle-all').style.color = scope==='all' ? '#fff' : 'var(--muted)';
-  loadAnalyticsTable();
-}
-
-async function loadAnalyticsTable() {
-  const wrap = document.getElementById('analytics-table');
-  if(!wrap) return;
-  wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">Loading...</div>';
-
-  try {
-    const s = schedules[0];
-    if(!s) { wrap.innerHTML='<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No active schedule.</div>'; return; }
-
-    let sentQuery = `${SUPABASE_URL}/rest/v1/sent_log?select=sent_at,campaign,phase,delivery_status&status=eq.success&schedule_id=eq.${s.id}&order=sent_at.desc&limit=2000`;
-    let replyQuery = `${SUPABASE_URL}/rest/v1/reply_log?select=replied_at,campaign&order=replied_at.desc&limit=2000`;
-    if (deliveryScope === 'today') {
-      const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
-      const todayISO = nowIST.toISOString().split('T')[0];
-      sentQuery  += `&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59`;
-      replyQuery += `&replied_at=gte.${todayISO}T00:00:00&replied_at=lt.${todayISO}T23:59:59`;
-    }
-
-    const [sentRes, replyRes] = await Promise.all([
-      fetch(sentQuery,  {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}),
-      fetch(replyQuery, {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}).catch(()=>null),
-    ]);
-    const rows = await sentRes.json();
-    const replyRows = replyRes ? await replyRes.json().catch(()=>[]) : [];
-
-    if (!rows.length) {
-      wrap.innerHTML = `<div style="font-size:12px;color:var(--muted2);text-align:center;padding:20px">No sends ${deliveryScope==='today'?'today':'yet'}.</div>`;
-      return;
-    }
-
-    const toISTDate = (raw) => {
-      const istMs = new Date(raw).getTime() + (5.5 * 60 * 60 * 1000);
-      return new Date(istMs).toISOString().split('T')[0];
-    };
-
-    const byDate = {};
-    rows.forEach(r => {
-      const dateKey = toISTDate(r.sent_at);
-      const campaign = r.campaign || '—';
-      if (!byDate[dateKey]) byDate[dateKey] = {};
-      if (!byDate[dateKey][campaign]) byDate[dateKey][campaign] = {phase:r.phase||'—', total:0, sent:0, delivered:0, read:0, failed:0, pending:0, replied:0};
-      const c = byDate[dateKey][campaign];
-      c.sent++;
-      const ds = (r.delivery_status || 'sent').toLowerCase();
-      if (ds === 'delivered') c.delivered++;
-      else if (ds === 'read') c.read++;
-      else if (ds === 'failed') c.failed++;
-      else c.pending++;
-    });
-
-    replyRows.forEach(r => {
-      if (!r.replied_at) return;
-      const dateKey = toISTDate(r.replied_at);
-      const campaign = r.campaign || '—';
-      if (byDate[dateKey] && byDate[dateKey][campaign]) byDate[dateKey][campaign].replied++;
-    });
-
-    let liveMatchedTotal = null;
-    try {
-      if (!leadsCache) { const lr = await fetch(METABASE_PROXY); leadsCache = await lr.json(); }
-      const sFilters = Array.isArray(s.filters_json) ? s.filters_json : [];
-      liveMatchedTotal = applyFilters(leadsCache, sFilters).length;
-    } catch(e) { console.warn('Live total fetch failed', e.message); }
-
-    const allDates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
-    const phaseColors = {R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)'};
-
-    let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:760px">
-        <thead><tr style="background:#f8faff">
-          <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Date</th>
-          <th style="padding:8px 12px;text-align:left;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Campaign</th>
-          <th style="padding:8px 12px;text-align:center;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Phase</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)">Total</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--navy);font-weight:700;border-bottom:1px solid var(--border)">Sent</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--blue);font-weight:700;border-bottom:1px solid var(--border)">Delivered</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--green);font-weight:700;border-bottom:1px solid var(--border)">Read</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10px;color:#7c3aed;font-weight:700;border-bottom:1px solid var(--border)">Replied</th>
-          <th style="padding:8px 12px;text-align:right;font-size:10px;color:var(--red);font-weight:700;border-bottom:1px solid var(--border)">Failed</th>
-        </tr></thead>
-        <tbody>`;
-
-    let gTotal=0, gSent=0, gDel=0, gRead=0, gReplied=0, gFail=0;
-    allDates.forEach((date, dateIdx) => {
-      const dateLabel = new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-      Object.entries(byDate[date]).forEach(([campaign, c]) => {
-        const pc = phaseColors[c.phase]||'var(--muted)';
-        const totalDisplay = dateIdx===0 && liveMatchedTotal!==null ? liveMatchedTotal.toLocaleString() : '—';
-        html += `<tr style="border-bottom:1px solid #f0f4fb">
-          <td style="padding:8px 12px;font-weight:600;color:var(--text)">${dateLabel}</td>
-          <td style="padding:8px 12px;color:var(--muted);font-size:11px">${campaign}</td>
-          <td style="padding:8px 12px;text-align:center"><span style="background:${pc}22;color:${pc};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${c.phase}</span></td>
-          <td style="padding:8px 12px;text-align:right;color:var(--muted2);font-size:11px">${totalDisplay}</td>
-          <td style="padding:8px 12px;text-align:right;font-weight:800;color:var(--navy)">${c.sent.toLocaleString()}</td>
-          <td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--blue)">${c.delivered.toLocaleString()}</td>
-          <td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--green)">${c.read.toLocaleString()}</td>
-          <td style="padding:8px 12px;text-align:right;font-weight:700;color:#7c3aed">${c.replied.toLocaleString()}</td>
-          <td style="padding:8px 12px;text-align:right;font-weight:700;color:${c.failed>0?'var(--red)':'var(--muted2)'}">${c.failed.toLocaleString()}</td>
-        </tr>`;
-        gSent+=c.sent; gDel+=c.delivered; gRead+=c.read; gReplied+=c.replied; gFail+=c.failed;
-      });
-    });
-    if (liveMatchedTotal!==null) gTotal = liveMatchedTotal;
-
-    html += `<tr style="background:#f0f5ff">
-      <td colspan="3" style="padding:9px 12px;font-size:11px;font-weight:700;color:var(--navy)">TOTAL</td>
-      <td style="padding:9px 12px;text-align:right;font-size:12px;font-weight:800;color:var(--muted2)">${gTotal?gTotal.toLocaleString():'—'}</td>
-      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--navy)">${gSent.toLocaleString()}</td>
-      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--blue)">${gDel.toLocaleString()}</td>
-      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:var(--green)">${gRead.toLocaleString()}</td>
-      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:#7c3aed">${gReplied.toLocaleString()}</td>
-      <td style="padding:9px 12px;text-align:right;font-size:13px;font-weight:800;color:${gFail>0?'var(--red)':'var(--muted2)'}">${gFail.toLocaleString()}</td>
-    </tr></tbody></table></div>`;
-
-    wrap.innerHTML = html;
-
-  } catch(e) {
-    wrap.innerHTML = `<div style="font-size:12px;color:var(--red);padding:12px">Failed: ${e.message}</div>`;
-  }
-}
-
-// ── HEALTH STRIP ──────────────────────────────────────────────
-async function loadHealthStrip() {
-  const wrap = document.getElementById('health-strip');
-  if(!wrap) return;
-
-  try {
-    const s = schedules[0];
-    if(!s) { wrap.innerHTML = '<div style="font-size:12px;color:var(--muted2)">No active schedule.</div>'; return; }
-
-    const nowIST = new Date(new Date().getTime() + 5.5*60*60*1000);
-    const todayISO = nowIST.toISOString().split('T')[0];
-    const dayNum = getDayNum(s, new Date(todayISO));
-    const phaseInfo = getPhaseForDay(s, dayNum);
-    const phaseColors = {R1:'#255CC1',R2:'#7c3aed',R3:'#1a9e5c',GAP:'var(--muted2)',DONE:'var(--muted2)'};
-    const pc = phaseColors[phaseInfo.phase]||'var(--muted2)';
-
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/sent_log?select=status,sent_at&schedule_id=eq.${s.id}&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59`,
-      {headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}}
-    );
-    const todayRows = await res.json();
-    const todaySent = todayRows.filter(r=>r.status==='success').length;
-    const lastRun = todayRows.length ? new Date(Math.max(...todayRows.map(r=>new Date(r.sent_at).getTime()))) : null;
-
-    const slotLabels = Array.isArray(s.send_times)&&s.send_times.length===3 ? s.send_times : ['17:00','18:00','19:00'];
-    const nowMin = nowIST.getUTCHours()*60 + nowIST.getUTCMinutes();
-    const slotMins = slotLabels.map(t=>{const [h,m]=t.split(':').map(Number);return h*60+m;});
-    let nextSlot = `Tomorrow ${slotLabels[0]}`;
-    for (let i=0;i<slotMins.length;i++){ if(nowMin < slotMins[i]) { nextSlot = slotLabels[i]+' IST'; break; } }
-
-    wrap.innerHTML = `
-      <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Phase</span><br>
-        <span style="font-size:14px;font-weight:800;padding:2px 10px;border-radius:20px;background:${pc};color:#fff">${phaseInfo.label}</span></div>
-      <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Sent Today</span><br>
-        <span style="font-size:18px;font-weight:800">${todaySent.toLocaleString()}</span></div>
-      <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Last Run</span><br>
-        <span style="font-size:14px;font-weight:700">${lastRun ? lastRun.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) + ' IST ✅' : 'No runs yet today'}</span></div>
-      <div><span style="font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:1px">Next Run</span><br>
-        <span style="font-size:14px;font-weight:700">${nextSlot}</span></div>
-    `;
-  } catch(e) {
-    wrap.innerHTML = `<div style="font-size:12px;color:#fca5a5">Health check failed: ${e.message}</div>`;
-  }
-}
-
-// ── SCHEDULE ──────────────────────────────────────────────────
-const SCHEDULE_API = "/api/schedule";
-let schedules=[], sFilters=[], sLeadsCache=null, sFetchedOnce=false, sFieldValCache={}, editSchedId=null;
-
-async function loadSchedules(){
-  try{
-    const res=await fetch(SCHEDULE_API);
-    const data=await res.json();
-    schedules=data.schedules||[];
-    renderSchedules();
-  }catch(e){
-    document.getElementById('schedules-list').innerHTML=`<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;
-  }
-}
-
-function populateScheduleCampaigns(){
-  ['s-r1-campaign','s-r2-campaign','s-r3-campaign'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel) return;
-    const current=sel.value;
-    sel.innerHTML='<option value="">Select campaign...</option>'+
-      campaigns.map(c=>`<option value="${c.campaign_name}" ${current===c.campaign_name?'selected':''}>${c.campaign_name}</option>`).join('');
-  });
-}
-
-async function fetchScheduleValues(){
-  const status=document.getElementById('s-fetch-status');
-  status.textContent='Fetching...'; status.className='fetch-status';
-  try{
-    sLeadsCache=null;
-    const res=await fetch(METABASE_PROXY);
-    let leads=await res.json();
-    if(!Array.isArray(leads)) throw new Error('Bad response');
-    sLeadsCache=leads; sFieldValCache={};
-    FIELDS.forEach(field=>{
-      const seen=new Set(); const nonNull=[]; let hasEmpty=false;
-      leads.forEach(r=>{
-        const raw=r[field];
-        const v=(raw===null||raw===undefined||String(raw).trim()==='') ? null : String(raw).trim();
-        if(v===null) hasEmpty=true;
-        else if(!seen.has(v)){seen.add(v);nonNull.push(v);}
-      });
-      nonNull.sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base',numeric:true}));
-      sFieldValCache[field]=hasEmpty?[...nonNull,'']:nonNull;
-    });
-    sFetchedOnce=true;
-    status.className='fetch-status ok';
-    status.textContent=`✓ Fetched ${leads.length} leads`;
-    renderScheduleFilters();
-  }catch(e){status.className='fetch-status err';status.textContent='Failed: '+e.message;}
-}
-
-function addScheduleFilter(){
-  sFilters.push({logic:'AND',field:FIELDS[0],op:'is',val:''});
-  renderScheduleFilters();
-}
-
-function renderScheduleFilters(){
-  const list=document.getElementById('s-filter-list');
-  if(!sFilters.length){list.innerHTML='';return;}
-  if(sFetchedOnce){
-    sFilters.forEach(f=>{
-      if(f.field==='application'||f.field==='adset') return;
-      const vals=sFieldValCache[f.field]||[];
-      const curOp=OPERATORS.find(o=>o.value===f.op);
-      if(curOp?.needsVal&&vals.length&&!vals.includes(f.val)) f.val=vals[0];
-    });
-  }
-  list.innerHTML=sFilters.map((f,i)=>{
-    const fieldOpts=FIELDS.map(ff=>`<option value="${ff}" ${f.field===ff?'selected':''}>${ff}</option>`).join('');
-    const opOpts=OPERATORS.map(o=>`<option value="${o.value}" ${f.op===o.value?'selected':''}>${o.label}</option>`).join('');
-    const curOp=OPERATORS.find(o=>o.value===f.op);
-    const needVal=curOp?curOp.needsVal:true;
-    let valEl='';
-    if(!needVal){valEl=`<select disabled><option>—</option></select>`;}
-    else if(f.field==='application'||f.field==='adset'){
-      // application/adset: free text instead of dropdown (compound or sparse values)
-      valEl=`<input type="text" value="${escHtml(f.val)}" placeholder="e.g. Ausbildung Germany" oninput="sFilters[${i}].val=this.value"/>`;
-    }
-    else if(!sFetchedOnce){valEl=`<select disabled><option>— fetch first —</option></select>`;}
-    else{
-      const vals=sFieldValCache[f.field]||[];
-      if(!vals.length){valEl=`<select disabled><option>— no values —</option></select>`;}
-      else{
-        const opts=vals.map(v=>`<option value="${escHtml(v)}" ${f.val===v?'selected':''}>${v===''?'(empty)':escHtml(v)}</option>`).join('');
-        valEl=`<select onchange="updateSFilter(${i},'val',this.value)">${opts}</select>`;
-      }
-    }
-    const logicEl=i===0?`<div class="lt-spacer"></div>`:`<div class="logic-toggle"><button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setSFL(${i},'AND')">AND</button><button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setSFL(${i},'OR')">OR</button></div>`;
-    return `<div class="filter-row">
-      <div class="filter-top">${logicEl}<select style="flex:1" onchange="updateSFilter(${i},'field',this.value)">${fieldOpts}</select><select style="flex:1" onchange="updateSFilter(${i},'op',this.value)">${opOpts}</select></div>
-      <div class="filter-bottom">${valEl}<button class="remove-btn" onclick="removeSFilter(${i})">×</button></div>
-    </div>`;
-  }).join('');
-}
-
-function updateSFilter(i,k,v){sFilters[i][k]=v;if(k==='field'){sFilters[i].val=(v==='application'||v==='adset')?'':((sFieldValCache[v]||[]).length?sFieldValCache[v][0]:'');renderScheduleFilters();}if(k==='op'){if(sFilters[i].field!=='application'&&sFilters[i].field!=='adset'){const vals=sFieldValCache[sFilters[i].field]||[];sFilters[i].val=vals.length?vals[0]:'';}renderScheduleFilters();}}
-function setSFL(i,v){sFilters[i].logic=v;renderScheduleFilters();}
-function removeSFilter(i){sFilters.splice(i,1);renderScheduleFilters();}
-
-async function saveSchedule(){
-  const name      = document.getElementById('s-name').value.trim();
-  const startDate = document.getElementById('s-start-date').value;
-  const t1        = document.getElementById('s-time-1').value || '17:00';
-  const t2        = document.getElementById('s-time-2').value || '18:00';
-  const t3        = document.getElementById('s-time-3').value || '19:00';
-  const r1c       = document.getElementById('s-r1-campaign').value;
-  const r1d       = parseInt(document.getElementById('s-r1-days').value)||8;
-  const gap1      = parseInt(document.getElementById('s-gap1-days').value)||1;
-  const r2c       = document.getElementById('s-r2-campaign').value;
-  const r2d       = parseInt(document.getElementById('s-r2-days').value)||8;
-  const gap2      = parseInt(document.getElementById('s-gap2-days').value)||1;
-  const r3c       = document.getElementById('s-r3-campaign').value;
-  const r3d       = parseInt(document.getElementById('s-r3-days').value)||8;
-  const msg       = document.getElementById('s-msg');
-
-  if(!name)      {msg.textContent='Name required';msg.className='status-msg err';return;}
-  if(!startDate) {msg.textContent='Start date required';msg.className='status-msg err';return;}
-  if(!r1c||!r2c||!r3c){msg.textContent='Select all 3 campaigns';msg.className='status-msg err';return;}
-
-  msg.textContent='Saving...';msg.className='status-msg';
-  try{
-    const res=await fetch(SCHEDULE_API,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        id: editSchedId||undefined,
-        name, start_date:startDate,
-        send_times: [t1,t2,t3],
-        filters_json: sFilters,
-        r1_campaign:r1c, r1_days:r1d,
-        gap1_days:gap1,
-        r2_campaign:r2c, r2_days:r2d,
-        gap2_days:gap2,
-        r3_campaign:r3c, r3_days:r3d,
-        active:true
-      })
-    });
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    await loadSchedules(); resetScheduleForm();
-    msg.className='status-msg ok'; msg.textContent='✓ Saved';
-    setTimeout(()=>msg.textContent='',3000);
-  }catch(e){msg.className='status-msg err';msg.textContent='Failed: '+e.message;}
-}
-
-async function toggleSchedule(id){
-  const s=schedules.find(s=>s.id===id); if(!s) return;
-  try{
-    await fetch(`${SCHEDULE_API}/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:!s.active})});
-    await loadSchedules();
-  }catch(e){alert('Failed: '+e.message);}
-}
-
-async function deleteSchedule(id){
-  if(!confirm('Delete this schedule?')) return;
-  try{
-    await fetch(`${SCHEDULE_API}/${id}`,{method:'DELETE'});
-    schedules=schedules.filter(s=>s.id!==id); renderSchedules();
-  }catch(e){alert('Failed: '+e.message);}
-}
-
-function editSchedule(id){
-  const s=schedules.find(s=>s.id===id); if(!s) return;
-  editSchedId=id;
-  document.getElementById('s-name').value=s.name;
-  document.getElementById('s-start-date').value=s.start_date;
-  const slotLabels = Array.isArray(s.send_times)&&s.send_times.length===3 ? s.send_times : ['17:00','18:00','19:00'];
-  document.getElementById('s-time-1').value=slotLabels[0];
-  document.getElementById('s-time-2').value=slotLabels[1];
-  document.getElementById('s-time-3').value=slotLabels[2];
-  document.getElementById('s-r1-days').value=s.r1_days;
-  document.getElementById('s-gap1-days').value=s.gap1_days;
-  document.getElementById('s-r2-days').value=s.r2_days;
-  document.getElementById('s-gap2-days').value=s.gap2_days;
-  document.getElementById('s-r3-days').value=s.r3_days;
-  sFilters=Array.isArray(s.filters_json)?s.filters_json.map(f=>({...f})):[];
-  populateScheduleCampaigns();
-  setTimeout(()=>{
-    document.getElementById('s-r1-campaign').value=s.r1_campaign;
-    document.getElementById('s-r2-campaign').value=s.r2_campaign;
-    document.getElementById('s-r3-campaign').value=s.r3_campaign;
-  },100);
-  renderScheduleFilters();
-  document.getElementById('sched-form-title').textContent='Edit Schedule';
-  switchTab('schedule');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function getPhaseStatus(s){
-  const start=new Date(s.start_date); start.setHours(0,0,0,0);
-  const today=new Date(); today.setHours(0,0,0,0);
-  const dayNum=Math.floor((today-start)/(1000*60*60*24))+1;
-  const r1End=s.r1_days, gap1End=r1End+s.gap1_days;
-  const r2End=gap1End+s.r2_days, gap2End=r2End+s.gap2_days;
-  const r3End=gap2End+s.r3_days;
-  if(dayNum<1)        return {label:'Not Started',color:'var(--muted)',day:dayNum};
-  if(dayNum<=r1End)   return {label:`R1 — Day ${dayNum}/${s.r1_days}`,color:'var(--blue)',day:dayNum};
-  if(dayNum<=gap1End) return {label:'Gap Day',color:'var(--muted)',day:dayNum};
-  if(dayNum<=r2End)   return {label:`R2 — Day ${dayNum-gap1End}/${s.r2_days}`,color:'#7c3aed',day:dayNum};
-  if(dayNum<=gap2End) return {label:'Gap Day',color:'var(--muted)',day:dayNum};
-  if(dayNum<=r3End)   return {label:`R3 — Day ${dayNum-gap2End}/${s.r3_days}`,color:'var(--green)',day:dayNum};
-  return {label:'Completed',color:'var(--muted2)',day:dayNum};
-}
-
-function renderSchedules(){
-  const list=document.getElementById('schedules-list');
-  document.getElementById('s-count').textContent=schedules.length?`(${schedules.length})`:'';
-  if(!schedules.length){list.innerHTML='<div class="empty-box">No schedules yet.</div>';return;}
-  list.innerHTML=schedules.map(s=>{
-    const ps=getPhaseStatus(s);
-    const slotLabels = Array.isArray(s.send_times)&&s.send_times.length===3 ? s.send_times : ['17:00','18:00','19:00'];
-    return `<div class="campaign-card ${s.active?'active-c':''}">
-      <div class="cc-header">
-        <div>
-          <div class="cc-name">${escHtml(s.name)}</div>
-          <div style="font-size:10px;color:var(--sky);margin-top:2px">Start: ${s.start_date} · Sends: ${slotLabels.join(', ')} IST</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-          <span class="cc-badge ${s.active?'active':'paused'}" onclick="toggleSchedule('${s.id}')">${s.active?'ACTIVE':'PAUSED'}</span>
-          <span style="font-size:10px;font-weight:700;color:${ps.color}">${ps.label}</span>
-        </div>
-      </div>
-      <div class="cc-body" style="font-size:12px">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
-          <div style="background:#e8f0ff;border-radius:6px;padding:8px 10px;text-align:center">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R1 · ${s.r1_days}d</div>
-            <div style="font-size:11px;color:var(--navy);font-weight:700">${s.r1_campaign}</div>
-          </div>
-          <div style="background:#f3e8ff;border-radius:6px;padding:8px 10px;text-align:center">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R2 · ${s.r2_days}d</div>
-            <div style="font-size:11px;color:#7c3aed;font-weight:700">${s.r2_campaign}</div>
-          </div>
-          <div style="background:#e8f5e9;border-radius:6px;padding:8px 10px;text-align:center">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">R3 · ${s.r3_days}d</div>
-            <div style="font-size:11px;color:var(--green);font-weight:700">${s.r3_campaign}</div>
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--muted)">Gap 1: ${s.gap1_days}d &nbsp;|&nbsp; Gap 2: ${s.gap2_days}d &nbsp;|&nbsp; Total: ${s.r1_days+s.gap1_days+s.r2_days+s.gap2_days+s.r3_days} days</div>
-      </div>
-      <div class="cc-footer">
-        <button class="btn-ghost" style="padding:5px 12px;font-size:11px" onclick="editSchedule('${s.id}')">Edit</button>
-        <button class="btn-danger" onclick="deleteSchedule('${s.id}')">Delete</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function checkOverlap(){
-  const resultDiv = document.getElementById('overlap-result');
-  const btn = document.querySelector('[onclick="checkOverlap()"]');
-  btn.disabled=true; btn.innerHTML='<span class="spin spin-blue"></span>Checking...';
-  resultDiv.style.display='none';
-
-  try {
-    if(!sLeadsCache){
-      const res=await fetch(METABASE_PROXY);
-      sLeadsCache=await res.json();
-    }
-
-    const currentMatched = applyFilters(sLeadsCache, sFilters);
-    const currentPhones  = new Set(currentMatched.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
-
-    if(!currentPhones.size){
-      resultDiv.style.display='block';
-      resultDiv.innerHTML=`<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:12px 14px;font-size:12px;color:var(--red)">
-        ⚠ No leads matched your current filters. Add filters first.
-      </div>`;
-      btn.disabled=false; btn.innerHTML='⚡ Check Overlap Before Saving';
-      return;
-    }
-
-    const existingSchedules = schedules.filter(s => s.active && s.id !== editSchedId);
-
-    if(!existingSchedules.length){
-      resultDiv.style.display='block';
-      resultDiv.innerHTML=`<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:12px 14px;font-size:12px;color:var(--green)">
-        ✓ No existing active schedules — no overlap possible.
-        <div style="margin-top:4px;color:var(--muted)">Your filters match <strong>${currentPhones.size.toLocaleString()}</strong> leads.</div>
-      </div>`;
-      btn.disabled=false; btn.innerHTML='⚡ Check Overlap Before Saving';
-      return;
-    }
-
-    let html = `<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
-      <div style="padding:8px 12px;background:#f0f5ff;font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)">
-        Overlap Check — Your filters match ${currentPhones.size.toLocaleString()} leads
-      </div>`;
-
-    let hasOverlap = false;
-    for(const s of existingSchedules){
-      const existingFilters = Array.isArray(s.filters_json) ? s.filters_json : [];
-      const existingMatched = applyFilters(sLeadsCache, existingFilters);
-      const existingPhones  = new Set(existingMatched.map(r=>String(r.mobile||'').replace(/\D/g,'').slice(-10)));
-      const overlap         = [...currentPhones].filter(p=>existingPhones.has(p)).length;
-      const pct             = Math.round((overlap/currentPhones.size)*100);
-      const color           = overlap===0?'var(--green)':pct>50?'var(--red)':'var(--amber)';
-      if(overlap>0) hasOverlap=true;
-
-      html+=`<div style="padding:10px 14px;border-bottom:1px solid #f0f4fb;display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--navy)">${s.name}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">Active · Start ${s.start_date}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:18px;font-weight:800;color:${color}">${overlap.toLocaleString()}</div>
-          <div style="font-size:10px;color:var(--muted)">${pct}% overlap</div>
-        </div>
-      </div>`;
-    }
-
-    html+=`<div style="padding:10px 14px;background:#f8faff;font-size:11px;color:var(--muted)">
-      ${hasOverlap
-        ? '⚠ Overlapping leads will receive messages from <strong>both schedules</strong> on the same day.'
-        : '✓ No overlap found — safe to save.'}
-    </div></div>`;
-
-    resultDiv.style.display='block';
-    resultDiv.innerHTML=html;
-
-  } catch(e){
-    resultDiv.style.display='block';
-    resultDiv.innerHTML=`<div style="background:#fdecea;border:1px solid #fca5a5;border-radius:6px;padding:12px;font-size:12px;color:var(--red)">Failed: ${e.message}</div>`;
-  }
-
-  btn.disabled=false; btn.innerHTML='⚡ Check Overlap Before Saving';
-}
-
-function resetScheduleForm(){
-  editSchedId=null; sFilters=[];
-  document.getElementById('s-name').value='';
-  document.getElementById('s-start-date').value='';
-  document.getElementById('s-time-1').value='17:00';
-  document.getElementById('s-time-2').value='18:00';
-  document.getElementById('s-time-3').value='19:00';
-  document.getElementById('s-r1-days').value=8;
-  document.getElementById('s-gap1-days').value=1;
-  document.getElementById('s-r2-days').value=8;
-  document.getElementById('s-gap2-days').value=1;
-  document.getElementById('s-r3-days').value=8;
-  document.getElementById('sched-form-title').textContent='Create Schedule';
-  document.getElementById('s-msg').textContent='';
-  renderScheduleFilters();
-}
-
-// ── SHARED FILTER ENGINE (used by schedule overlap/preview/analytics) ──
-function applyFilters(leads,filterList){
-  if(!filterList?.length) return leads;
-  return leads.filter(lead=>{
-    let result=evalFilter(lead,filterList[0]);
-    for(let i=1;i<filterList.length;i++){const test=evalFilter(lead,filterList[i]);result=filterList[i].logic==='OR'?result||test:result&&test;}
-    return result;
-  });
-}
-function evalFilter(lead,f){
-  const raw=lead[f.field];
-  const cell=String(raw??'').toLowerCase().trim();
-  const val=String(f.val??'').toLowerCase().trim();
-  if(f.op==='date_after'||f.op==='date_before'||f.op==='date_between'){
-    const d=raw?new Date(raw):null;
-    if(!d||isNaN(d)) return false;
-    if(f.op==='date_after')  return d>=new Date(f.val);
-    if(f.op==='date_before') return d<=new Date(f.val+'T23:59:59');
-    if(f.op==='date_between'){
-      const [from,to]=(f.val||'').split('|');
-      return (!from||d>=new Date(from))&&(!to||d<=new Date(to+'T23:59:59'));
-    }
-  }
-  switch(f.op){case 'is':return cell===val;case 'is_not':return cell!==val;case 'contains':return cell.includes(val);case 'not_contains':return !cell.includes(val);case 'has_value':return raw!==null&&raw!==undefined&&String(raw).trim()!=='';case 'is_empty':return raw===null||raw===undefined||String(raw).trim()==='';default:return true;}
-}
-
-function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmtDate(iso){try{return new Date(iso).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return '—';}}
+window.onload=()=>{ loadCampaigns(); addParam(); addParam(); };
 </script>
 </body>
 </html>
