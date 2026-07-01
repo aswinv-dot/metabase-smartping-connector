@@ -323,14 +323,27 @@ const server = http.createServer(async (req, res) => {
     req.on('end',async()=>{
       try {
         const data = JSON.parse(body);
-        log(`Smartping callback: ${JSON.stringify(data)}`);
-
         const topic = data?.topic;
         const msg   = data?.data?.message || {};
-        const messageId = msg.messageId || msg.id || data?.msgid || data?.messageId || null;
+
+        // Only process delivery status updates for our API drip campaigns
+        // (campaign field is non-null). Webinar, feedback, CFL messages all
+        // have campaign=null — skip them to avoid saturating Supabase connections.
+        const isOurCampaign = msg.campaign !== null && msg.campaign !== undefined;
+
+        if (topic === 'message.status.updated' && !isOurCampaign) {
+          // Silent 200 — don't log, don't hit Supabase
+          res.writeHead(200);
+          res.end(JSON.stringify({success:true}));
+          return;
+        }
+
+        log(`Smartping callback: topic=${topic} campaign=${msg.campaign?.name||'null'}`);
+
+        const messageId  = msg.messageId || msg.id || data?.msgid || data?.messageId || null;
         const rawStatus  = msg.status    || data?.status || data?.deliveryStatus || null;
 
-        if (messageId && rawStatus) {
+        if (messageId && rawStatus && isOurCampaign) {
           const status = String(rawStatus).toLowerCase();
           const deliveryStatus = status.includes('deliver') ? 'delivered'
             : status.includes('read') ? 'read'
@@ -339,7 +352,7 @@ const server = http.createServer(async (req, res) => {
             { delivery_status: deliveryStatus, delivered_at: new Date().toISOString() },
             `?message_id=eq.${encodeURIComponent(messageId)}`
           );
-          log(`Updated delivery_status=${deliveryStatus} for message_id=${messageId} (topic=${topic})`);
+          log(`Updated delivery_status=${deliveryStatus} for message_id=${messageId}`);
         }
 
         if (topic === 'message.sender.user') {
@@ -347,32 +360,22 @@ const server = http.createServer(async (req, res) => {
           const text    = msg.message_content?.text || msg.message_content?.caption || '';
           const sentMs  = msg.sent_at || Date.now();
           const repliedAt = new Date(Number(sentMs)).toISOString();
-
           if (phone) {
             let campaign = null;
             try {
               const recent = await sbGet('sent_log', `?phone=eq.${encodeURIComponent(phone)}&status=eq.success&order=sent_at.desc&limit=1&select=campaign`);
               campaign = recent?.[0]?.campaign || null;
             } catch (e) { log(`Reply campaign lookup failed: ${e.message}`); }
-
-            await sbPost('reply_log', [{
-              phone, message_text: text, replied_at: repliedAt, campaign
-            }]);
-            log(`Logged reply from ${phone}: "${text}" (campaign=${campaign})`);
-          } else {
-            log(`Reply skipped — no phone_number found (topic=${topic})`);
+            await sbPost('reply_log', [{phone, message_text:text, replied_at:repliedAt, campaign}]);
+            log(`Logged reply from ${phone} (campaign=${campaign})`);
           }
-        }
-
-        if (!messageId && !rawStatus && topic !== 'message.sender.user') {
-          log(`Callback skipped — no messageId/status found (topic=${topic})`);
         }
 
         res.writeHead(200);
         res.end(JSON.stringify({success:true}));
       } catch(e) {
         log(`Callback error: ${e.message}`);
-        res.writeHead(200); // always 200 to Smartping
+        res.writeHead(200);
         res.end(JSON.stringify({success:true}));
       }
     });
