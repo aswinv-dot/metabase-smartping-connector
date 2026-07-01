@@ -184,12 +184,13 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
       const campaign = campaignMap[campaignName];
       if (!campaign) { log(`Campaign not found: ${campaignName}`); continue; }
 
-      const filters   = Array.isArray(schedule.filters_json)?schedule.filters_json:[];
-      const matched   = applyFilters(leads,filters);
-      const phaseDays = phase==='R1'?schedule.r1_days:phase==='R2'?schedule.r2_days:schedule.r3_days;
-      const batchSize = Math.ceil(matched.length/phaseDays);
-      const perSlot   = batchSize; // single slot per day — full batch goes out at the schedule's first matched slot
-      log(`Matched: ${matched.length} | Batch/day: ${batchSize} | Per slot: ${perSlot}`);
+      const filters    = Array.isArray(schedule.filters_json)?schedule.filters_json:[];
+      const matched    = applyFilters(leads,filters);
+      const phaseDays  = phase==='R1'?schedule.r1_days:phase==='R2'?schedule.r2_days:schedule.r3_days;
+      const slotCount  = Array.isArray(schedule.send_times)&&schedule.send_times.length ? schedule.send_times.length : 3;
+      const batchSize  = Math.ceil(matched.length/phaseDays);          // total leads to send today
+      const perSlot    = Math.ceil(batchSize/slotCount);               // leads per individual slot
+      log(`Matched: ${matched.length} | Batch/day: ${batchSize} | Slots: ${slotCount} | Per slot: ${perSlot}`);
 
       const [sentPhones, failedPhones] = await Promise.all([
         getSentPhones(schedule.id, phase, schedule.name).catch(()=>new Set()),
