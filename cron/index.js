@@ -103,11 +103,50 @@ async function sbPatch(path, data, params='') {
   return res.ok;
 }
 
-async function getSchedules()         { return sbGet('campaign_schedule','?active=eq.true'); }
-async function getCampaigns()         { return sbGet('campaigns','?active=eq.true'); }
-async function getReactivatedPhones() { const r=await sbGet('reactivated_list','?select=phone'); return new Set(r.map(x=>x.phone)); }
-async function getCapReachedPhones()  { const r=await sbGet('cap_reached_list','?select=phone'); return new Set(r.map(x=>x.phone)); }
-async function getFailedPhones(campaign) { const r=await sbGet('failed_list',`?campaign=eq.${encodeURIComponent(campaign)}&select=phone`); return new Set(r.map(x=>x.phone)); }
+// ── IN-MEMORY CACHE (reduces Supabase calls) ──────────────────
+// schedules, campaigns, cap_reached rarely change — cache 30 min
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const _cache = {};
+function cacheGet(key) {
+  const c = _cache[key];
+  if (!c) return null;
+  if (Date.now() - c.ts > CACHE_TTL) { delete _cache[key]; return null; }
+  return c.data;
+}
+function cacheSet(key, data) { _cache[key] = { data, ts: Date.now() }; }
+function cacheClear(key) { delete _cache[key]; }
+
+async function getSchedules() {
+  const cached = cacheGet('schedules');
+  if (cached) { log('Cache hit: schedules'); return cached; }
+  const data = await sbGet('campaign_schedule','?active=eq.true');
+  cacheSet('schedules', data);
+  return data;
+}
+async function getCampaigns() {
+  const cached = cacheGet('campaigns');
+  if (cached) { log('Cache hit: campaigns'); return cached; }
+  const data = await sbGet('campaigns','?active=eq.true');
+  cacheSet('campaigns', data);
+  return data;
+}
+async function getReactivatedPhones() {
+  // reactivated grows during sends — don't cache
+  const r = await sbGet('reactivated_list','?select=phone');
+  return new Set(r.map(x=>x.phone));
+}
+async function getCapReachedPhones() {
+  const cached = cacheGet('cap_reached');
+  if (cached) { log('Cache hit: cap_reached'); return cached; }
+  const r = await sbGet('cap_reached_list','?select=phone');
+  const data = new Set(r.map(x=>x.phone));
+  cacheSet('cap_reached', data);
+  return data;
+}
+async function getFailedPhones(campaign) {
+  const r = await sbGet('failed_list',`?campaign=eq.${encodeURIComponent(campaign)}&select=phone`);
+  return new Set(r.map(x=>x.phone));
+}
 
 // fetch sent phones across ALL schedule IDs for the same campaign name (handles renamed/duplicate schedules)
 async function getSentPhones(schedId, phase, scheduleName) {
@@ -324,7 +363,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method==='POST'&&req.url==='/trigger') {
-    // Manual trigger — runs ALL active schedules immediately regardless of their configured send_times.
+    // Manual trigger — clear cache so fresh data is fetched from Supabase
+    cacheClear('schedules'); cacheClear('campaigns'); cacheClear('cap_reached');
     const slot = istHHMM(nowIST())+' (manual)';
     res.writeHead(200);
     res.end(JSON.stringify({success:true,message:`Cron triggered: ${slot}`}));
