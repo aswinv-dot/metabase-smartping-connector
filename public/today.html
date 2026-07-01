@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Today's Runs — TerraTern</title>
+<link rel="icon" type="image/png" href="https://terratern.com/images/favicon.png"/>
+<link rel="apple-touch-icon" href="https://terratern.com/images/favicon_180_180.png"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#00215C;--blue:#255CC1;--sky:#9acbfd;--yellow:#f1c819;
+  --bg:#f4f7fc;--surface:#fff;--border:#dde6f5;
+  --text:#00215C;--muted:#5a7ab5;--muted2:#8aa4cc;
+  --green:#1a9e5c;--red:#e03e3e;--amber:#b07d00;
+  --font:'Inter',system-ui,sans-serif;--radius:8px;--shadow:0 1px 4px rgba(0,33,92,.08);
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:80px}
+.header{background:var(--navy);padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,33,92,.15)}
+.logo img{height:28px;width:auto;vertical-align:middle}
+.sub{font-size:11px;color:var(--sky);letter-spacing:1px;text-transform:uppercase;flex:1}
+.nav-link{font-size:12px;color:var(--sky);text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:6px 14px;border-radius:6px;transition:all .15s}
+.nav-link:hover{background:rgba(154,203,253,.15);border-color:var(--sky)}
+.wrap{max-width:900px;margin:0 auto;padding:24px 32px}
+
+/* DATE HEADER */
+.date-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.date-title{font-size:22px;font-weight:800;color:var(--navy)}
+.date-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.refresh-info{font-size:11px;color:var(--muted2);text-align:right}
+.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:7px 14px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
+.btn-ghost:hover{background:var(--blue);color:#fff}
+
+/* SCHEDULE BLOCK */
+.sched-block{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+.sched-header{background:linear-gradient(135deg,var(--navy),var(--blue));padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.sched-name{font-size:15px;font-weight:800;color:#fff}
+.sched-meta{font-size:11px;color:rgba(154,203,253,.8);margin-top:3px}
+.phase-badge{font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);color:#fff}
+
+/* TIMELINE */
+.timeline{padding:20px 24px;position:relative}
+.timeline::before{content:'';position:absolute;left:52px;top:28px;bottom:28px;width:2px;background:var(--border);border-radius:2px}
+.slot-row{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;position:relative}
+.slot-row:last-child{margin-bottom:0}
+
+/* NODE */
+.slot-node{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;position:relative;z-index:1;border:2px solid transparent}
+.slot-node.fired{background:#e8f5e9;border-color:var(--green)}
+.slot-node.active{background:#fff3cd;border-color:var(--yellow);animation:pulse 1.5s infinite}
+.slot-node.upcoming{background:#f0f5ff;border-color:var(--border)}
+.slot-node.gap{background:#f5f5f5;border-color:#ddd}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(241,200,25,.4)}50%{box-shadow:0 0 0 6px rgba(241,200,25,.0)}}
+
+/* SLOT CONTENT */
+.slot-content{flex:1;padding-top:6px}
+.slot-time{font-size:18px;font-weight:800;color:var(--navy);line-height:1}
+.slot-status{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.slot-status.fired{color:var(--green)}
+.slot-status.active{color:var(--amber)}
+.slot-status.upcoming{color:var(--muted2)}
+.slot-status.gap{color:var(--muted2)}
+
+.slot-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:10px}
+.slot-card{background:#f8faff;border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.slot-card.fired-card{border-color:#a5d6a7;background:#f1fff4}
+.slot-card.active-card{border-color:var(--yellow);background:#fffdf0}
+.sc-campaign{font-size:11px;font-weight:700;color:var(--navy);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-stats{display:flex;flex-direction:column;gap:3px}
+.sc-row{display:flex;justify-content:space-between;font-size:11px}
+.sc-label{color:var(--muted)}
+.sc-val{font-weight:700;color:var(--navy)}
+.sc-val.green{color:var(--green)}
+.sc-val.amber{color:var(--amber)}
+.sc-val.red{color:var(--red)}
+
+/* COUNTDOWN */
+.countdown-bar{background:linear-gradient(135deg,#e8f0ff,#f0f8ff);border:1.5px solid var(--sky);border-radius:var(--radius);padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.cd-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.cd-time{font-size:28px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
+.cd-next{font-size:13px;color:var(--blue);font-weight:600}
+
+.empty-box{padding:40px;text-align:center;color:var(--muted2);font-size:13px;border:1.5px dashed var(--border);border-radius:var(--radius)}
+.loading{padding:40px;text-align:center;color:var(--muted2);font-size:13px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+
+@media(max-width:600px){.wrap{padding:16px}.timeline::before{left:44px}.slot-time{font-size:15px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern" style="height:28px;width:auto;vertical-align:middle"/></div>
+  <div class="sub">Today's Runs</div>
+  <a href="/automation.html" class="nav-link">← Automation</a>
+</div>
+
+<div class="wrap">
+  <div class="date-bar">
+    <div>
+      <div class="date-title" id="date-title">—</div>
+      <div class="date-sub" id="date-sub">Loading schedules...</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="refresh-info" id="refresh-info"></div>
+      <button class="btn-ghost" onclick="loadAll()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="countdown-bar" id="countdown-bar" style="display:none">
+    <div>
+      <div class="cd-label">Next slot in</div>
+      <div class="cd-time" id="cd-time">--:--:--</div>
+    </div>
+    <div>
+      <div class="cd-label">Next slot</div>
+      <div class="cd-next" id="cd-next">—</div>
+    </div>
+    <div>
+      <div class="cd-label">IST now</div>
+      <div class="cd-next" id="cd-ist">—</div>
+    </div>
+  </div>
+
+  <div id="main-content"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://oagsgovnxgiszofgytre.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI";
+const METABASE_URL = "/api/metabase-proxy";
+const SCHEDULE_API = "/api/schedule";
+const CAMPAIGNS_API = "/api/campaigns";
+const POLL_WINDOW   = 7; // minutes — must match cron
+
+const sbH = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` };
+
+function nowIST() { return new Date(Date.now() + 330*60000); }
+function istHHMM(d) { return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`; }
+function toMin(hhmm) { const [h,m]=String(hhmm||'0:0').split(':').map(Number); return h*60+m; }
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function getPhaseForDay(s, dayNum) {
+  const r1End=s.r1_days, gap1End=r1End+s.gap1_days, r2End=gap1End+s.r2_days, gap2End=r2End+s.gap2_days, r3End=gap2End+s.r3_days;
+  if(dayNum<1)        return {phase:'NOT_STARTED',campaign:'',phaseDays:0};
+  if(dayNum<=r1End)   return {phase:'R1',campaign:s.r1_campaign,phaseDays:s.r1_days};
+  if(dayNum<=gap1End) return {phase:'GAP',campaign:'',phaseDays:0};
+  if(dayNum<=r2End)   return {phase:'R2',campaign:s.r2_campaign,phaseDays:s.r2_days};
+  if(dayNum<=gap2End) return {phase:'GAP',campaign:'',phaseDays:0};
+  if(dayNum<=r3End)   return {phase:'R3',campaign:s.r3_campaign,phaseDays:s.r3_days};
+  return {phase:'DONE',campaign:'',phaseDays:0};
+}
+
+function getDayNum(s) {
+  const ist = nowIST();
+  const todayISO = ist.toISOString().split('T')[0];
+  const today = new Date(todayISO); today.setHours(0,0,0,0);
+  const start = new Date(s.start_date); start.setHours(0,0,0,0);
+  return Math.floor((today-start)/(1000*60*60*24))+1;
+}
+
+function slotStatus(slotHHMM) {
+  const now = nowIST();
+  const nowMin = toMin(istHHMM(now));
+  const slotMin = toMin(slotHHMM);
+  if (nowMin >= slotMin && nowMin < slotMin + POLL_WINDOW) return 'active';
+  if (nowMin >= slotMin + POLL_WINDOW) return 'fired';
+  return 'upcoming';
+}
+
+function slotEmoji(status) {
+  return status==='fired'?'✅':status==='active'?'🔄':'⏳';
+}
+
+function phaseColor(phase) {
+  return phase==='R1'?'#255CC1':phase==='R2'?'#7c3aed':phase==='R3'?'#1a9e5c':'var(--muted2)';
+}
+
+// ── FILTER ENGINE (mirrors cron + automation.html) ──
+function applyFilters(leads, filterList) {
+  if (!filterList?.length) return leads;
+  return leads.filter(lead => {
+    let result = evalFilter(lead, filterList[0]);
+    for (let i=1;i<filterList.length;i++) {
+      const test=evalFilter(lead,filterList[i]);
+      result=filterList[i].logic==='OR'?result||test:result&&test;
+    }
+    return result;
+  });
+}
+function evalFilter(lead, f) {
+  const raw=lead[f.field]; const cell=String(raw??'').toLowerCase().trim(); const val=String(f.val??'').toLowerCase().trim();
+  if(f.op==='date_after'||f.op==='date_before'||f.op==='date_between'){
+    const d=raw?new Date(raw):null; if(!d||isNaN(d)) return false;
+    if(f.op==='date_after')  return d>=new Date(f.val);
+    if(f.op==='date_before') return d<=new Date(f.val+'T23:59:59');
+    if(f.op==='date_between'){const[from,to]=(f.val||'').split('|');return(!from||d>=new Date(from))&&(!to||d<=new Date(to+'T23:59:59'));}
+  }
+  switch(f.op){
+    case 'is':return cell===val; case 'is_not':return cell!==val;
+    case 'contains':return cell.includes(val); case 'not_contains':return !cell.includes(val);
+    case 'has_value':return raw!==null&&raw!==undefined&&String(raw).trim()!=='';
+    case 'is_empty':return raw===null||raw===undefined||String(raw).trim()==='';
+    default:return true;
+  }
+}
+
+let leadsCache=null, lastRefresh=null;
+
+async function fetchLeads() {
+  if (leadsCache) return leadsCache;
+  const res = await fetch(METABASE_URL);
+  leadsCache = await res.json();
+  return leadsCache;
+}
+
+async function loadAll() {
+  const content = document.getElementById('main-content');
+  content.innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
+
+  const ist = nowIST();
+  const todayISO = ist.toISOString().split('T')[0];
+  const dateLabel = ist.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('date-title').textContent = dateLabel;
+
+  try {
+    // fetch everything in parallel
+    const [schedsRes, campsRes, leads] = await Promise.all([
+      fetch(SCHEDULE_API).then(r=>r.json()),
+      fetch(CAMPAIGNS_API).then(r=>r.json()),
+      fetchLeads(),
+    ]);
+
+    const schedules = (schedsRes.schedules||[]).filter(s=>s.active);
+    const campaigns = campsRes.campaigns||[];
+    const campMap = {};
+    campaigns.forEach(c=>campMap[c.campaign_name]=c);
+
+    if (!schedules.length) {
+      document.getElementById('date-sub').textContent = 'No active schedules';
+      content.innerHTML = '<div class="empty-box">No active schedules found.</div>';
+      return;
+    }
+
+    document.getElementById('date-sub').textContent = `${schedules.length} active schedule${schedules.length>1?'s':''}`;
+    lastRefresh = ist;
+    document.getElementById('refresh-info').textContent = `Last refresh: ${istHHMM(ist)} IST`;
+
+    // fetch today's sent_log for all schedules in one shot
+    const sentRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/sent_log?select=schedule_id,campaign,time_slot,status,sent_at&status=eq.success&sent_at=gte.${todayISO}T00:00:00&sent_at=lt.${todayISO}T23:59:59&limit=5000`,
+      {headers:sbH}
+    );
+    const sentRows = await sentRes.json();
+
+    // group sent by schedule_id + time_slot + campaign
+    const sentMap = {}; // sentMap[schedId][slot][campaign] = count
+    sentRows.forEach(r=>{
+      const sid = r.schedule_id; const slot = r.time_slot; const camp = r.campaign||'—';
+      if(!sentMap[sid]) sentMap[sid]={};
+      if(!sentMap[sid][slot]) sentMap[sid][slot]={};
+      sentMap[sid][slot][camp] = (sentMap[sid][slot][camp]||0)+1;
+    });
+
+    // find next upcoming slot across all schedules for countdown
+    const nowMin = toMin(istHHMM(ist));
+    let nextSlotMin = null, nextSlotLabel = null;
+    schedules.forEach(s=>{
+      const slots = Array.isArray(s.send_times)&&s.send_times.length ? s.send_times : ['17:00','18:00','19:00'];
+      slots.forEach(t=>{
+        const m = toMin(t);
+        if (m > nowMin && (nextSlotMin===null||m<nextSlotMin)) { nextSlotMin=m; nextSlotLabel=t+' IST'; }
+      });
+    });
+    if (nextSlotMin!==null) {
+      document.getElementById('countdown-bar').style.display='flex';
+      document.getElementById('cd-next').textContent = nextSlotLabel;
+      document.getElementById('cd-ist').textContent = istHHMM(ist)+' IST';
+      startCountdown(nextSlotMin);
+    }
+
+    // render each schedule
+    let html = '';
+    for (const s of schedules) {
+      const dayNum = getDayNum(s);
+      const {phase, campaign:campName, phaseDays} = getPhaseForDay(s, dayNum);
+      const pc = phaseColor(phase);
+      const slots = Array.isArray(s.send_times)&&s.send_times.length ? s.send_times : ['17:00','18:00','19:00'];
+      const totalDays = s.r1_days+s.gap1_days+s.r2_days+s.gap2_days+s.r3_days;
+
+      // compute batch size for this schedule
+      let matched=0, batchPerDay=0;
+      if (phase!=='GAP'&&phase!=='DONE'&&phase!=='NOT_STARTED') {
+        try {
+          const filters = Array.isArray(s.filters_json)?s.filters_json:[];
+          matched = applyFilters(leads, filters).length;
+          batchPerDay = phaseDays>0 ? Math.ceil(matched/phaseDays) : 0;
+        } catch(e) { console.warn('Filter error',e.message); }
+      }
+
+      const phaseLabel = phase==='GAP'?'Gap Day':phase==='NOT_STARTED'?'Not Started':phase==='DONE'?'Complete':`${phase} · Day ${dayNum}/${
+        phase==='R1'?s.r1_days:phase==='R2'?s.r2_days:s.r3_days
+      }`;
+
+      html += `<div class="sched-block">
+        <div class="sched-header">
+          <div>
+            <div class="sched-name">${escHtml(s.name)}</div>
+            <div class="sched-meta">Start: ${s.start_date} · Total: ${totalDays} days · Eligible: ${matched?matched.toLocaleString():'—'}</div>
+          </div>
+          <span class="phase-badge" style="background:${pc}33;border-color:${pc};color:#fff">${phaseLabel}</span>
+        </div>
+        <div class="timeline">`;
+
+      if (phase==='GAP'||phase==='DONE'||phase==='NOT_STARTED') {
+        html += `<div style="text-align:center;padding:20px;font-size:13px;color:var(--muted2)">
+          ${phase==='GAP'?'☕ Gap day — no sends today':phase==='DONE'?'✅ Schedule complete':'⏸ Not started yet'}
+        </div>`;
+      } else {
+        slots.forEach((slot,idx) => {
+          const status = slotStatus(slot);
+          const emoji  = slotEmoji(status);
+          const slotSent = sentMap[s.id]?.[slot]?.[campName]||0;
+          const totalSlotSent = Object.values(sentMap[s.id]?.[slot]||{}).reduce((a,b)=>a+b,0);
+          const remaining = Math.max(0, batchPerDay - totalSlotSent);
+          const cardClass = status==='fired'?'fired-card':status==='active'?'active-card':'';
+
+          html += `<div class="slot-row">
+            <div class="slot-node ${status}">${emoji}</div>
+            <div class="slot-content">
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <div class="slot-time">${slot} IST</div>
+                <div class="slot-status ${status}">${status==='fired'?'Fired':status==='active'?'Running now':'Upcoming'}</div>
+              </div>
+              <div class="slot-cards">
+                <div class="slot-card ${cardClass}">
+                  <div class="sc-campaign">${escHtml(campName)}</div>
+                  <div class="sc-stats">
+                    <div class="sc-row"><span class="sc-label">Batch/day</span><span class="sc-val">${batchPerDay.toLocaleString()}</span></div>
+                    <div class="sc-row"><span class="sc-label">Sent</span><span class="sc-val ${slotSent>0?'green':''}">${slotSent.toLocaleString()}</span></div>
+                    <div class="sc-row"><span class="sc-label">Remaining</span><span class="sc-val ${remaining>0?'amber':'green'}">${remaining.toLocaleString()}</span></div>
+                    <div class="sc-row"><span class="sc-label">Pool</span><span class="sc-val">${matched.toLocaleString()}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        });
+      }
+
+      html += `</div></div>`;
+    }
+
+    content.innerHTML = html;
+
+  } catch(e) {
+    content.innerHTML = `<div class="empty-box" style="color:var(--red)">Failed: ${e.message}</div>`;
+  }
+}
+
+// ── COUNTDOWN TIMER ──────────────────────────────────────────
+let countdownInterval = null;
+function startCountdown(targetMin) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(()=>{
+    const ist = nowIST();
+    const nowMin = toMin(istHHMM(ist));
+    const nowSec = ist.getUTCSeconds();
+    const diffSec = Math.max(0, (targetMin - nowMin)*60 - nowSec);
+    if (diffSec<=0) { clearInterval(countdownInterval); loadAll(); return; }
+    const h=Math.floor(diffSec/3600), m=Math.floor((diffSec%3600)/60), s=diffSec%60;
+    document.getElementById('cd-time').textContent =
+      `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    document.getElementById('cd-ist').textContent = istHHMM(ist)+' IST';
+  }, 1000);
+}
+
+// auto-refresh every 60s
+setInterval(()=>{ leadsCache=null; loadAll(); }, 60000);
+
+window.onload = loadAll;
+</script>
+</body>
+</html>
