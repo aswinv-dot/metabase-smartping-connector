@@ -86,9 +86,19 @@ async function fetchWithRetry(url, opts={}, retries=3) {
 }
 
 async function sbGet(path, params='') {
-  const res = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${path}${params}`, { headers: sbHeaders });
-  const text = await res.text();
-  return text ? JSON.parse(text) : [];
+  const url = `${SUPABASE_URL}/rest/v1/${path}${params}`;
+  for (let i=0; i<3; i++) {
+    try {
+      const res = await fetch(url, { headers: sbHeaders });
+      const text = await res.text(); // Premature close can happen here
+      return text ? JSON.parse(text) : [];
+    } catch(e) {
+      if (i===2) throw e;
+      const wait = 1000*(i+1);
+      log(`sbGet retry ${i+1}/2 for ${path} — ${e.message} — waiting ${wait}ms`);
+      await new Promise(r=>setTimeout(r, wait));
+    }
+  }
 }
 async function sbPost(path, data, params='') {
   const res = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${path}${params}`, {
