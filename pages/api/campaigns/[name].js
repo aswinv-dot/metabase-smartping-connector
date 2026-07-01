@@ -9,15 +9,21 @@ export default async function handler(req, res) {
 
   const { name } = req.query;
 
-  if (req.method==="PATCH") {
-    const result = await updateCampaign(name, req.body);
-    return res.status(200).json({ success:true, result });
-  }
+  try {
+    if (req.method==="PATCH") {
+      const result = await updateCampaign(name, req.body);
+      return res.status(200).json({ success:true, result });
+    }
 
-  if (req.method==="DELETE") {
-    await deleteCampaign(name);
-    return res.status(200).json({ deleted:true });
-  }
+    if (req.method==="DELETE") {
+      await deleteCampaign(name);
+      return res.status(200).json({ deleted:true });
+    }
 
-  return res.status(405).json({ error:"Method not allowed" });
+    return res.status(405).json({ error:"Method not allowed" });
+
+  } catch(e) {
+    console.error("[api/campaigns/name]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
 }
