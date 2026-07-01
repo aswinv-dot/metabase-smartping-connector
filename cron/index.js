@@ -70,19 +70,34 @@ function matchSlot(sendTimes, now) {
 
 // ── SUPABASE ──────────────────────────────────────────────────
 const sbHeaders = { 'Content-Type':'application/json', 'apikey':SUPABASE_KEY, 'Authorization':`Bearer ${SUPABASE_KEY}` };
+
+async function fetchWithRetry(url, opts={}, retries=3) {
+  for (let i=0; i<retries; i++) {
+    try {
+      const res = await fetch(url, opts);
+      return res;
+    } catch(e) {
+      if (i === retries-1) throw e;
+      const wait = 1000 * (i+1);
+      log(`Retry ${i+1}/${retries-1} for ${url.split('/rest/v1/')[1]||url} — ${e.message} — waiting ${wait}ms`);
+      await new Promise(r => setTimeout(r, wait));
+    }
+  }
+}
+
 async function sbGet(path, params='') {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${params}`, { headers: sbHeaders });
+  const res = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${path}${params}`, { headers: sbHeaders });
   const text = await res.text();
   return text ? JSON.parse(text) : [];
 }
 async function sbPost(path, data, params='') {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${params}`, {
+  const res = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${path}${params}`, {
     method:'POST', headers:{...sbHeaders,'Prefer':'return=minimal'}, body:JSON.stringify(data)
   });
   return res.ok;
 }
 async function sbPatch(path, data, params='') {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${params}`, {
+  const res = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${path}${params}`, {
     method:'PATCH', headers:{...sbHeaders,'Prefer':'return=minimal'}, body:JSON.stringify(data)
   });
   return res.ok;
