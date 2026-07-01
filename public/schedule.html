@@ -186,9 +186,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <div class="form-group">
         <label class="form-label">Daily Send Times (IST)</label>
         <div class="time-slots">
-          <div class="time-slot-box"><span class="time-slot-label">Slot 1</span><input type="time" class="form-input" id="s-time-1" value="17:00"/></div>
-          <div class="time-slot-box"><span class="time-slot-label">Slot 2</span><input type="time" class="form-input" id="s-time-2" value="18:00"/></div>
-          <div class="time-slot-box"><span class="time-slot-label">Slot 3</span><input type="time" class="form-input" id="s-time-3" value="19:00"/></div>
+          <div class="time-slot-box"><span class="time-slot-label">Slot 1</span><input type="time" class="form-input" id="s-time-1" value="17:30"/></div>
+          <div class="time-slot-box"><span class="time-slot-label">Slot 2</span><input type="time" class="form-input" id="s-time-2" value="18:30"/></div>
+          <div class="time-slot-box"><span class="time-slot-label">Slot 3</span><input type="time" class="form-input" id="s-time-3" value="19:30"/></div>
         </div>
         <div class="form-hint">Batch split evenly across all 3 slots — each fires independently.</div>
       </div>
@@ -606,9 +606,9 @@ function evalFilter(lead,f){
 function resetForm(){
   editSchedId=null; sFilters=[];
   ['s-name','s-start-date'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('s-time-1').value='17:00';
-  document.getElementById('s-time-2').value='18:00';
-  document.getElementById('s-time-3').value='19:00';
+  document.getElementById('s-time-1').value='17:30';
+  document.getElementById('s-time-2').value='18:30';
+  document.getElementById('s-time-3').value='19:30';
   ['s-r1-days','s-r2-days','s-r3-days'].forEach(id=>document.getElementById(id).value=8);
   ['s-gap1-days','s-gap2-days'].forEach(id=>document.getElementById(id).value=1);
   document.getElementById('s-msg').textContent='';
