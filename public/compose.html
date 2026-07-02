@@ -116,6 +116,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       </select>
       <span id="recipient-count" style="font-size:11px;color:var(--muted)"></span>
       <button class="btn" onclick="confirmSend()" id="send-btn" style="background:#1a9e5c">📤 Send</button>
+      <div class="rich-sep" style="height:24px;background:var(--border);margin:0 6px"></div>
+      <input class="form-input" id="test-emails" value="v.aswinraaju@gmail.com, guhankarthick07@gmail.com" style="width:300px;padding:6px 10px;font-size:11px"/>
+      <button class="btn" onclick="sendTest()" id="test-btn" style="background:#7c3aed">🧪 Test</button>
       <div style="flex:1"></div>
       <span class="status-msg" id="status-msg"></span>
     </div>
@@ -347,7 +350,24 @@ function setPreviewMode(mode) {
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // ── SEND ──────────────────────────────────────────────────
-async function confirmSend() {
+async function sendTest() {
+  if (!currentId) { showMsg('Save draft first', 'err'); return; }
+  const emails = document.getElementById('test-emails').value.split(',').map(e=>e.trim()).filter(Boolean);
+  if (!emails.length) { showMsg('Enter at least one email', 'err'); return; }
+  const btn = document.getElementById('test-btn');
+  btn.disabled = true; btn.textContent = '🧪 Sending...';
+  try {
+    const r = await fetch('/api/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id: currentId, test_emails: emails })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    showMsg(`✓ Test sent to ${d.sent} email(s)`, 'ok');
+  } catch(e) { showMsg('Failed: ' + e.message, 'err'); }
+  btn.disabled = false; btn.textContent = '🧪 Test';
+}
   if (!currentId) { showMsg('Save draft first', 'err'); return; }
   const stage = document.getElementById('send-stage').value;
   const subject = document.getElementById('f-subject').value;
