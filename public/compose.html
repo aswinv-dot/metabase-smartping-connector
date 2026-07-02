@@ -204,17 +204,21 @@ let htmlMode = false;
 
 // ── DRAFTS ──────────────────────────────────────────────────
 async function loadDrafts() {
-  const r = await fetch(API);
-  const d = await r.json();
   const list = document.getElementById('drafts-list');
-  if (!d.drafts?.length) { list.innerHTML = '<div class="empty-drafts">No drafts yet</div>'; return; }
-  list.innerHTML = d.drafts.map(dr => `
-    <div class="draft-item ${dr.id===currentId?'active':''}" onclick="loadDraft('${dr.id}')">
-      <div class="draft-name">${esc(dr.campaign_name||'Untitled')}</div>
-      <div class="draft-sub">${esc(dr.subject||'No subject')}</div>
-      <div class="draft-date">${new Date(dr.updated_at).toLocaleDateString('en-IN')}</div>
-    </div>
-  `).join('');
+  try {
+    const r = await fetch(API);
+    const d = await r.json();
+    if (!d.drafts || !d.drafts.length) { list.innerHTML = '<div class="empty-drafts">No drafts yet</div>'; return; }
+    list.innerHTML = d.drafts.map(dr => `
+      <div class="draft-item ${dr.id===currentId?'active':''}" onclick="loadDraft('${dr.id}')">
+        <div class="draft-name">${esc(dr.campaign_name||'Untitled')}</div>
+        <div class="draft-sub">${esc(dr.subject||'No subject')}</div>
+        <div class="draft-date">${new Date(dr.updated_at).toLocaleDateString('en-IN')}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = `<div class="empty-drafts" style="color:var(--red)">Error: ${e.message}</div>`;
+  }
 }
 
 function newDraft() {
