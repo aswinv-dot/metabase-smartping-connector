@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TerraTern Automation</title>
+<link rel="icon" type="image/png" href="https://terratern.com/images/favicon.png"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#00215C;--blue:#255CC1;--bg:#f0f4fb;--surface:#fff;--border:#dde6f5;--text:#00215C;--muted:#5a7ab5;--green:#1a9e5c;--font:'Inter',system-ui,sans-serif}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+.header{background:var(--navy);padding:0 24px;height:56px;display:flex;align-items:center;gap:12px}
+.logo img{height:28px}
+.sub{font-size:12px;color:#9acbfd;letter-spacing:1px;text-transform:uppercase;flex:1}
+.page{padding:40px 32px;max-width:1000px;margin:0 auto}
+.brand-section{margin-bottom:40px}
+.brand-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.brand-logo{width:32px;height:32px;border-radius:8px;object-fit:contain}
+.brand-name{font-size:16px;font-weight:800;color:var(--navy)}
+.brand-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;background:rgba(26,158,92,.15);color:var(--green)}
+.brand-tag.soon{background:#f0f4fb;color:var(--muted)}
+.cards-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:24px;text-decoration:none;color:var(--text);transition:all .15s;display:block;position:relative;overflow:hidden}
+.card:not(.disabled):hover{border-color:var(--blue);box-shadow:0 4px 20px rgba(0,33,92,.12);transform:translateY(-2px)}
+.card.disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+.card-icon{font-size:32px;margin-bottom:12px}
+.card-title{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:6px}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.card-stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column}
+.stat-val{font-size:18px;font-weight:800;color:var(--navy)}
+.stat-label{font-size:10px;color:var(--muted);font-weight:600}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;margin-top:12px}
+.status-badge.live{background:rgba(26,158,92,.15);color:var(--green)}
+.status-badge.down{background:#fdecea;color:#e03e3e}
+.status-badge.checking{background:#f0f4fb;color:var(--muted)}
+.divider{border:none;border-top:1.5px solid var(--border);margin:32px 0}
+.coming-soon{position:absolute;top:12px;right:12px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;background:#f0f4fb;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:8px;height:8px;border:1.5px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern"/></div>
+  <div class="sub">Automation Hub</div>
+</div>
+
+<div class="page">
+
+  <!-- TERRATERN -->
+  <div class="brand-section">
+    <div class="brand-header">
+      <img class="brand-logo" src="https://terratern.com/images/favicon_192.png" alt="TerraTern"/>
+      <span class="brand-name">TerraTern</span>
+      <span class="brand-tag">Live</span>
+    </div>
+    <div class="cards-row">
+      <!-- WhatsApp -->
+      <a class="card" href="/automation.html">
+        <div class="card-icon">💬</div>
+        <div class="card-title">WhatsApp Automation</div>
+        <div class="card-desc">Drip campaigns across GOC, GHC, AUSB, APR, Canada programs. R1→R2→R3 sequences with smart dedup.</div>
+        <div class="card-stats">
+          <div class="stat"><span class="stat-val" id="wa-schedules"><span class="spin"></span></span><span class="stat-label">Active Schedules</span></div>
+          <div class="stat"><span class="stat-val" id="wa-sent"><span class="spin"></span></span><span class="stat-label">Sent Today</span></div>
+        </div>
+        <div class="status-badge checking" id="wa-status"><span class="spin"></span> Checking</div>
+      </a>
+      <!-- Email -->
+      <a class="card" href="/email-home.html">
+        <div class="card-icon">📧</div>
+        <div class="card-title">Email Marketing</div>
+        <div class="card-desc">SMTP via Growlytics. Compose campaigns, sync contacts from Metabase, track open & click rates.</div>
+        <div class="card-stats">
+          <div class="stat"><span class="stat-val" id="em-contacts"><span class="spin"></span></span><span class="stat-label">Contacts</span></div>
+          <div class="stat"><span class="stat-val" id="em-sent"><span class="spin"></span></span><span class="stat-label">Sent All Time</span></div>
+        </div>
+        <div class="status-badge checking" id="em-status"><span class="spin"></span> Checking</div>
+      </a>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- HIRENUDGE -->
+  <div class="brand-section">
+    <div class="brand-header">
+      <img src="https://hirenudge.ai/logo.svg" style="width:32px;height:32px;border-radius:8px;object-fit:contain" alt="HireNudge"/>
+      <span class="brand-name">HireNudge</span>
+      <span class="brand-tag soon">Coming Soon</span>
+    </div>
+    <div class="cards-row">
+      <div class="card disabled">
+        <div class="coming-soon">Coming Soon</div>
+        <div class="card-icon">💬</div>
+        <div class="card-title">WhatsApp Automation</div>
+        <div class="card-desc">Job placement drip sequences for candidates across verticals.</div>
+      </div>
+      <div class="card disabled">
+        <div class="coming-soon">Coming Soon</div>
+        <div class="card-icon">📧</div>
+        <div class="card-title">Email Marketing</div>
+        <div class="card-desc">Automated email campaigns for HireNudge job seekers.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SB='https://oagsgovnxgiszofgytre.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI';
+const H={apikey:KEY,Authorization:`Bearer ${KEY}`};
+
+async function loadStats(){
+  // WA schedules
+  try{
+    const r=await fetch(`${SB}/rest/v1/campaign_schedule?active=eq.true&select=id`,{headers:{...H,Prefer:'count=exact'}});
+    const count=r.headers.get('content-range')?.split('/')?.[1]||'—';
+    document.getElementById('wa-schedules').textContent=count;
+  }catch(e){document.getElementById('wa-schedules').textContent='—';}
+
+  // WA sent today
+  try{
+    const today=new Date(Date.now()+330*60000).toISOString().split('T')[0];
+    const r=await fetch(`${SB}/rest/v1/sent_log?status=eq.success&sent_at=gte.${today}T00:00:00&select=id`,{headers:{...H,Prefer:'count=exact'}});
+    const count=r.headers.get('content-range')?.split('/')?.[1]||'0';
+    document.getElementById('wa-sent').textContent=Number(count).toLocaleString();
+    document.getElementById('wa-status').className='status-badge '+(Number(count)>0?'live':'checking');
+    document.getElementById('wa-status').textContent=Number(count)>0?'🟢 Active Today':'⏳ Scheduled';
+  }catch(e){document.getElementById('wa-sent').textContent='—';}
+
+  // Email contacts
+  try{
+    const r=await fetch(`${SB}/rest/v1/email_contacts?select=id`,{headers:{...H,Prefer:'count=exact'}});
+    const count=r.headers.get('content-range')?.split('/')?.[1]||'0';
+    document.getElementById('em-contacts').textContent=Number(count).toLocaleString();
+  }catch(e){document.getElementById('em-contacts').textContent='—';}
+
+  // Email sent
+  try{
+    const r=await fetch(`${SB}/rest/v1/email_sends?status=eq.sent&select=id`,{headers:{...H,Prefer:'count=exact'}});
+    const count=r.headers.get('content-range')?.split('/')?.[1]||'0';
+    document.getElementById('em-sent').textContent=Number(count).toLocaleString();
+  }catch(e){document.getElementById('em-sent').textContent='—';}
+
+  // SMTP status
+  try{
+    const r=await fetch('/api/email-sync');
+    const d=await r.json();
+    const badge=document.getElementById('em-status');
+    badge.className='status-badge '+(d.live?'live':'down');
+    badge.textContent=d.live?'🟢 SMTP Live':'🔴 SMTP Down';
+  }catch(e){document.getElementById('em-status').textContent='—';}
+}
+
+window.onload=loadStats;
+</script>
+</body>
+</html>
