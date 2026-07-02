@@ -44,28 +44,26 @@ export default async function handler(req, res) {
     }
     if (!contacts?.length) return res.status(200).json({ success: true, sent: 0, failed: 0, message: 'No contacts found' });
 
+    // Fetch unsubscribes
+    const { data: unsubs } = await sb.from('email_unsubscribes').select('email');
+    const unsubSet = new Set((unsubs||[]).map(u=>u.email.toLowerCase()));
+
     const from = `${draft.from_name} <user_teratern@${draft.domain}>`;
-    let sent = 0, failed = 0;
+    let sent = 0, failed = 0, skipped = 0;
     const logs = [];
 
     for (const c of contacts) {
+      if (unsubSet.has((c.email||'').toLowerCase())) { skipped++; continue; }
       try {
         const sendId = `${draft_id}_${c.email}_${Date.now()}`;
         const baseUrl = 'https://metabase-smartping-connector.vercel.app';
         let html = resolveTokens(draft.body, c);
-        // Wrap links with click tracker
         html = html.replace(/href="(https?:\/\/[^"]+)"/g, (_, u) =>
           `href="${baseUrl}/api/email/track?type=click&id=${encodeURIComponent(sendId)}&url=${encodeURIComponent(u)}"`
         );
-        // Append tracking pixel
         html += `<img src="${baseUrl}/api/email/track?type=open&id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
-        html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="#">Unsubscribe</a></p>`;
-        await transporter.sendMail({
-          from, to: c.email,
-          subject: draft.subject,
-          html,
-          headers: { 'X-Preview-Text': draft.preview_text || '' }
-        });
+        html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="${baseUrl}/api/email/unsubscribe?email=${encodeURIComponent(c.email)}">Unsubscribe</a></p>`;
+        await transporter.sendMail({ from, to: c.email, subject: draft.subject, html, headers: { 'X-Preview-Text': draft.preview_text||'' } });
         logs.push({ id: sendId, draft_id, email: c.email, status: 'sent' });
         sent++;
       } catch(e) {
@@ -76,7 +74,7 @@ export default async function handler(req, res) {
 
     // Log to email_sends
     if (logs.length) await sb.from('email_sends').insert(logs);
-    return res.status(200).json({ success: true, sent, failed, total: contacts.length });
+    return res.status(200).json({ success: true, sent, failed, skipped, total: contacts.length });
   } catch(e) {
     return res.status(500).json({ error: e.message });
   }
