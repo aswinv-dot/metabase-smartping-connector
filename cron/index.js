@@ -250,7 +250,7 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
       log('No cached leads — fetching Metabase now...');
       for (let i=0; i<3; i++) {
         try {
-          const mbRes = await fetch(METABASE_URL, { timeout: 120000 });
+          const mbRes = await fetch(METABASE_URL, { timeout: 120000, headers: { 'Accept-Encoding': 'identity' } });
           const data = await mbRes.json();
           if (!Array.isArray(data)) throw new Error('Bad Metabase response');
           leads = data;
@@ -462,14 +462,14 @@ server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 // Metabase pre-fetch at 18:20 IST (UTC: 12:50) — cached in memory before send
 
 log('TerraTern Cron Service started');
-log('Fixed send slot: 12:05 IST | Pre-fetch: 11:55 IST');
+log('Fixed send slot: 12:20 IST | Pre-fetch: 12:17 IST');
 
 // Pre-fetch Metabase leads 10 min before slot
-cron.schedule('25 6 * * *', async () => {
+cron.schedule('47 6 * * *', async () => {
   log('Pre-fetching Metabase leads for today...');
   for (let i=0; i<3; i++) {
     try {
-      const res = await fetch(METABASE_URL, { timeout: 120000 });
+      const res = await fetch(METABASE_URL, { timeout: 120000, headers: { 'Accept-Encoding': 'identity' } });
       const data = await res.json();
       if (!Array.isArray(data)) throw new Error('Bad response');
       cacheSet('leads', data);
@@ -484,6 +484,6 @@ cron.schedule('25 6 * * *', async () => {
 }, { timezone:'UTC' });
 
 // Slot — 12:05 IST (06:35 UTC)
-cron.schedule('35 6 * * *', () => runCron('12:05').catch(console.error), { timezone:'UTC' });
+cron.schedule('50 6 * * *', () => runCron('12:20').catch(console.error), { timezone:'UTC' });
 
 log('Service running — waiting for scheduled times...');
