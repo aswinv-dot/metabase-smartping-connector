@@ -54,11 +54,11 @@ export default async function handler(req, res) {
         const baseUrl = 'https://metabase-smartping-connector.vercel.app';
         let html = resolveTokens(draft.body, c);
         // Wrap links with click tracker
-        html = html.replace(/href="(https?:\/\/[^"]+)"/g, (_, url) =>
-          `href="${baseUrl}/api/email/track/click?id=${encodeURIComponent(sendId)}&url=${encodeURIComponent(url)}"`
+        html = html.replace(/href="(https?:\/\/[^"]+)"/g, (_, u) =>
+          `href="${baseUrl}/api/email/track?type=click&id=${encodeURIComponent(sendId)}&url=${encodeURIComponent(u)}"`
         );
-        // Append tracking pixel + unsubscribe
-        html += `<img src="${baseUrl}/api/email/track/open?id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
+        // Append tracking pixel
+        html += `<img src="${baseUrl}/api/email/track?type=open&id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
         html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="#">Unsubscribe</a></p>`;
         await transporter.sendMail({
           from, to: c.email,
