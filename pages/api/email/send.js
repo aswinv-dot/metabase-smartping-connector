@@ -24,17 +24,19 @@ function resolveTokens(html, contact) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const { draft_id, stage, test_emails } = req.body;
+    const { draft_id, stage, test_emails, batch } = req.body;
     if (!draft_id) return res.status(400).json({ error: 'draft_id required' });
 
     // Fetch draft
     const { data: draft, error: dErr } = await sb.from('email_drafts').select('*').eq('id', draft_id).single();
     if (dErr || !draft) throw new Error('Draft not found');
 
-    // Test mode — send only to specified emails
+    // Determine contacts
     let contacts;
     if (test_emails?.length) {
       contacts = test_emails.map(email => ({ email, fullname: 'Test User', mobile: '9876543210' }));
+    } else if (batch?.length) {
+      contacts = batch;
     } else {
       let query = sb.from('email_contacts').select('fullname,email,mobile').not('email','is',null).neq('email','');
       if (stage && stage !== 'all') query = query.eq('lead_stage', stage);
