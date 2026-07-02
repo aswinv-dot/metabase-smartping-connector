@@ -372,7 +372,7 @@ async function sendTest() {
   } catch(e) { showMsg('Failed: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = '🧪 Test';
 }
-  if (!currentId) { showMsg('Save draft first', 'err'); return; }
+  if (!currentId) { showMsg('Save draft first', 'err'); }
   const stage = document.getElementById('send-stage').value;
   const subject = document.getElementById('f-subject').value;
   if (!subject) { showMsg('Add a subject line first', 'err'); return; }
