@@ -24,18 +24,24 @@ function resolveTokens(html, contact) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const { draft_id, stage } = req.body;
+    const { draft_id, stage, test_emails } = req.body;
     if (!draft_id) return res.status(400).json({ error: 'draft_id required' });
 
     // Fetch draft
     const { data: draft, error: dErr } = await sb.from('email_drafts').select('*').eq('id', draft_id).single();
     if (dErr || !draft) throw new Error('Draft not found');
 
-    // Fetch contacts
-    let query = sb.from('email_contacts').select('fullname,email,mobile').not('email','is',null).neq('email','');
-    if (stage && stage !== 'all') query = query.eq('lead_stage', stage);
-    const { data: contacts, error: cErr } = await query;
-    if (cErr) throw cErr;
+    // Test mode — send only to specified emails
+    let contacts;
+    if (test_emails?.length) {
+      contacts = test_emails.map(email => ({ email, fullname: 'Test User', mobile: '9876543210' }));
+    } else {
+      let query = sb.from('email_contacts').select('fullname,email,mobile').not('email','is',null).neq('email','');
+      if (stage && stage !== 'all') query = query.eq('lead_stage', stage);
+      const { data, error: cErr } = await query;
+      if (cErr) throw cErr;
+      contacts = data;
+    }
     if (!contacts?.length) return res.status(200).json({ success: true, sent: 0, failed: 0, message: 'No contacts found' });
 
     const from = `${draft.from_name} <user_teratern@${draft.domain}>`;
