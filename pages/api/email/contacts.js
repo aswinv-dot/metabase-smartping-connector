@@ -19,13 +19,9 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      // Fetch from Metabase
-      const mbRes = await fetch(METABASE_EMAIL_URL, { headers: { 'Accept-Encoding': 'identity' } });
-      const leads = await mbRes.json();
-      if (!Array.isArray(leads)) throw new Error('Bad Metabase response');
-
-      // Upsert in batches of 200
-      const rows = leads.map(l => ({
+      const { contacts } = req.body;
+      if (!Array.isArray(contacts)) return res.status(400).json({ error: 'contacts array required' });
+      const rows = contacts.map(l => ({
         lead_id: String(l.lead_id || l.id || ''),
         email: l.email || '',
         fullname: l.name || l.fullname || '',
@@ -40,19 +36,12 @@ export default async function handler(req, res) {
         created_at: l.created_at || null,
         synced_at: new Date().toISOString(),
       })).filter(r => r.lead_id && r.email);
-
-      let synced = 0;
-      const BATCH = 200;
-      for (let i = 0; i < rows.length; i += BATCH) {
-        const batch = rows.slice(i, i + BATCH);
-        await fetch(`${SUPABASE_URL}/rest/v1/email_contacts`, {
-          method: 'POST',
-          headers: { ...sbH, Prefer: 'resolution=merge-duplicates' },
-          body: JSON.stringify(batch),
-        });
-        synced += batch.length;
-      }
-      return res.status(200).json({ success: true, total: leads.length, synced });
+      await fetch(`${SUPABASE_URL}/rest/v1/email_contacts`, {
+        method: 'POST',
+        headers: { ...sbH, Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify(rows),
+      });
+      return res.status(200).json({ success: true, synced: rows.length });
     }
 
     res.status(405).json({ error: 'Method not allowed' });
