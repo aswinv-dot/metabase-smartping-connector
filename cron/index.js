@@ -204,18 +204,8 @@ function getCurrentPhase(s) {
 
 // ── HARDCODED CONFIG (no Supabase needed) ─────────────────────
 const HARDCODED_SCHEDULES = [
-  { id:'mr1u9lay', name:'GOC_July', active:true, start_date:'2026-07-02',
-    send_times:['18:30','18:45','19:00'],
-    r1_campaign:'GOC_hiring_status_R1', r1_days:8, gap1_days:1,
-    r2_campaign:'GOC_hiring_activity_R2', r2_days:8, gap2_days:1,
-    r3_campaign:'GOC_hiring_activity_R2', r3_days:8,
-    filters_json:[
-      {op:'contains',val:'Immigration Germany',field:'application',logic:'AND'},
-      {op:'contains',val:'goc',field:'adset',logic:'AND'},
-      {op:'contains',val:'germ',field:'adset',logic:'OR'}
-    ]},
   { id:'mr1qhbuw', name:'GHC_July', active:true, start_date:'2026-07-02',
-    send_times:['18:30','18:45','19:00'],
+    send_times:['12:05'],
     r1_campaign:'GHC_latest_salary_R1', r1_days:8, gap1_days:1,
     r2_campaign:'GHC_recruitment_update_R2', r2_days:8, gap2_days:1,
     r3_campaign:'GHC_latest_salary_R1', r3_days:8,
@@ -223,24 +213,6 @@ const HARDCODED_SCHEDULES = [
       {op:'contains',val:'healthcare',field:'application',logic:'AND'},
       {op:'contains',val:'ghc',field:'adset',logic:'AND'},
       {op:'contains',val:'grmny',field:'adset',logic:'OR'}
-    ]},
-  { id:'mr1wazu4', name:'APR_July', active:true, start_date:'2026-07-02',
-    send_times:['18:30','18:45','19:00'],
-    r1_campaign:'apr_hiring_status_r1', r1_days:8, gap1_days:1,
-    r2_campaign:'APR_eoi_update_R2', r2_days:8, gap2_days:1,
-    r3_campaign:'APR_eoi_update_R2', r3_days:8,
-    filters_json:[
-      {op:'contains',val:'Immigration Australia',field:'application',logic:'AND'},
-      {op:'contains',val:'Aust',field:'adset',logic:'AND'}
-    ]},
-  { id:'mr1wgqou', name:'Canada_July', active:true, start_date:'2026-07-02',
-    send_times:['18:30','18:45','19:00'],
-    r1_campaign:'CPR_hiring_status_R1', r1_days:8, gap1_days:1,
-    r2_campaign:'CPR_express_entry_R2', r2_days:8, gap2_days:1,
-    r3_campaign:'CPR_express_entry_R2', r3_days:8,
-    filters_json:[
-      {op:'contains',val:'Immigration Canada',field:'application',logic:'AND'},
-      {op:'contains',val:'canad',field:'adset',logic:'AND'}
     ]},
 ];
 
@@ -490,10 +462,10 @@ server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 // Metabase pre-fetch at 18:20 IST (UTC: 12:50) — cached in memory before send
 
 log('TerraTern Cron Service started');
-log('Fixed send slots: 11:32, 11:47, 12:02 IST | Pre-fetch: 11:27 IST');
+log('Fixed send slot: 12:05 IST | Pre-fetch: 11:55 IST');
 
-// Pre-fetch Metabase leads 10 min before first slot — cache in memory
-cron.schedule('57 5 * * *', async () => {
+// Pre-fetch Metabase leads 10 min before slot
+cron.schedule('25 6 * * *', async () => {
   log('Pre-fetching Metabase leads for today...');
   for (let i=0; i<3; i++) {
     try {
@@ -511,13 +483,7 @@ cron.schedule('57 5 * * *', async () => {
   }
 }, { timezone:'UTC' });
 
-// Slot 1 — 11:32 IST (06:02 UTC)
-cron.schedule('2 6 * * *', () => runCron('11:32').catch(console.error), { timezone:'UTC' });
-
-// Slot 2 — 11:47 IST (06:17 UTC)
-cron.schedule('17 6 * * *', () => runCron('11:47').catch(console.error), { timezone:'UTC' });
-
-// Slot 3 — 12:02 IST (06:32 UTC)
-cron.schedule('32 6 * * *', () => runCron('12:02').catch(console.error), { timezone:'UTC' });
+// Slot — 12:05 IST (06:35 UTC)
+cron.schedule('35 6 * * *', () => runCron('12:05').catch(console.error), { timezone:'UTC' });
 
 log('Service running — waiting for scheduled times...');
