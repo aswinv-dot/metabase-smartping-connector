@@ -136,6 +136,7 @@ const SUPABASE_URL = "https://oagsgovnxgiszofgytre.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI";
 const METABASE_URL = "/api/metabase-proxy";
 const SCHEDULE_API = "/api/schedule";
+const SCHEDULES_CONFIG_API = "/api/schedules-config";
 const CAMPAIGNS_API = "/api/campaigns";
 const POLL_WINDOW   = 7; // minutes — must match cron
 
@@ -246,13 +247,20 @@ async function loadAll() {
 
   try {
     // fetch everything in parallel
-    const [schedsRes, campsRes, leads] = await Promise.all([
+    const [schedsRes, campsRes, leads, configRes] = await Promise.all([
       fetch(SCHEDULE_API).then(r=>r.json()),
       fetch(CAMPAIGNS_API).then(r=>r.json()),
       fetchLeads(),
+      fetch(SCHEDULES_CONFIG_API).then(r=>r.json()),
     ]);
 
-    const schedules = (schedsRes.schedules||[]).filter(s=>s.active);
+    const configMap = {};
+    (configRes.schedules||[]).forEach(c => configMap[c.id] = c);
+
+    const schedules = (schedsRes.schedules||[]).filter(s=>s.active).map(s=>({
+      ...s,
+      send_times: configMap[s.id]?.send_times || s.send_times
+    }));
     const campaigns = campsRes.campaigns||[];
     const campMap = {};
     campaigns.forEach(c=>campMap[c.campaign_name]=c);
