@@ -1,4 +1,4 @@
-const METABASE_EMAIL_URL = 'http://metabase.terratern.com/public/question/d14792bd-69e5-4d64-b693-1f70153724d0/json';
+const METABASE_EMAIL_URL = 'https://metabase.terratern.com/api/public/card/d14792bd-69e5-4d64-b693-1f70153724d0/query/json';
 
 export default async function handler(req, res) {
   try {
