@@ -97,10 +97,18 @@ async function sbPost(path, data, params='') {
   return res.ok;
 }
 async function sbPatch(path, data, params='') {
-  const res = await fetchWithRetry(`${SUPABASE_URL}/rest/v1/${path}${params}`, {
-    method:'PATCH', headers:{...sbHeaders,'Prefer':'return=minimal'}, body:JSON.stringify(data)
-  });
-  return res.ok;
+  const url = `${SUPABASE_URL}/rest/v1/${path}${params}`;
+  for (let i=0; i<3; i++) {
+    try {
+      const res = await fetch(url, {
+        method:'PATCH', headers:{...sbHeaders,'Prefer':'return=minimal'}, body:JSON.stringify(data)
+      });
+      return res.ok;
+    } catch(e) {
+      if (i===2) throw e;
+      await new Promise(r=>setTimeout(r,1000*(i+1)));
+    }
+  }
 }
 
 // ── IN-MEMORY CACHE (reduces Supabase calls) ──────────────────
