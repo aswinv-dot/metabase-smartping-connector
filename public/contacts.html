@@ -165,11 +165,9 @@ async function syncContacts(){
     // Step 1: Fetch from Metabase in browser
     msg.textContent='Fetching leads from Metabase...';
     btn.innerHTML='<span class="spin"></span>Fetching...';
-    const mbRes = await fetch('http://metabase.terratern.com/public/question/d14792bd-69e5-4d64-b693-1f70153724d0/json', {
-      headers: { 'Accept-Encoding': 'identity' }
-    });
+    const mbRes = await fetch('/api/email/metabase-fetch');
     const leads = await mbRes.json();
-    if(!Array.isArray(leads)) throw new Error('Bad Metabase response');
+    if(!Array.isArray(leads)) throw new Error(leads.error || 'Bad Metabase response');
 
     // Step 2: POST in batches of 200
     const BATCH = 200;
