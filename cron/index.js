@@ -202,19 +202,71 @@ function getCurrentPhase(s) {
   return {phase:'DONE',dayNum,campaign:null};
 }
 
+// ── HARDCODED CONFIG (no Supabase needed) ─────────────────────
+const HARDCODED_SCHEDULES = [
+  { id:'mr1u9lay', name:'GOC_July', active:true, start_date:'2026-07-02',
+    send_times:['18:30','18:45','19:00'],
+    r1_campaign:'GOC_hiring_status_R1', r1_days:8, gap1_days:1,
+    r2_campaign:'GOC_hiring_activity_R2', r2_days:8, gap2_days:1,
+    r3_campaign:'GOC_hiring_activity_R2', r3_days:8,
+    filters_json:[
+      {op:'contains',val:'Immigration Germany',field:'application',logic:'AND'},
+      {op:'contains',val:'goc',field:'adset',logic:'AND'},
+      {op:'contains',val:'germ',field:'adset',logic:'OR'}
+    ]},
+  { id:'mr1qhbuw', name:'GHC_July', active:true, start_date:'2026-07-02',
+    send_times:['18:30','18:45','19:00'],
+    r1_campaign:'GHC_latest_salary_R1', r1_days:8, gap1_days:1,
+    r2_campaign:'GHC_recruitment_update_R2', r2_days:8, gap2_days:1,
+    r3_campaign:'GHC_latest_salary_R1', r3_days:8,
+    filters_json:[
+      {op:'contains',val:'healthcare',field:'application',logic:'AND'},
+      {op:'contains',val:'ghc',field:'adset',logic:'AND'},
+      {op:'contains',val:'grmny',field:'adset',logic:'OR'}
+    ]},
+  { id:'mr1wazu4', name:'APR_July', active:true, start_date:'2026-07-02',
+    send_times:['18:30','18:45','19:00'],
+    r1_campaign:'apr_hiring_status_r1', r1_days:8, gap1_days:1,
+    r2_campaign:'APR_eoi_update_R2', r2_days:8, gap2_days:1,
+    r3_campaign:'APR_eoi_update_R2', r3_days:8,
+    filters_json:[
+      {op:'contains',val:'Immigration Australia',field:'application',logic:'AND'},
+      {op:'contains',val:'Aust',field:'adset',logic:'AND'}
+    ]},
+  { id:'mr1wgqou', name:'Canada_July', active:true, start_date:'2026-07-02',
+    send_times:['18:30','18:45','19:00'],
+    r1_campaign:'CPR_hiring_status_R1', r1_days:8, gap1_days:1,
+    r2_campaign:'CPR_express_entry_R2', r2_days:8, gap2_days:1,
+    r3_campaign:'CPR_express_entry_R2', r3_days:8,
+    filters_json:[
+      {op:'contains',val:'Immigration Canada',field:'application',logic:'AND'},
+      {op:'contains',val:'canad',field:'adset',logic:'AND'}
+    ]},
+];
+
+const HARDCODED_CAMPAIGNS = {
+  'GHC_latest_salary_R1':      { campaign_name:'GHC_latest_salary_R1',      template_params:['{field:highest_education}','Staff Nurse','₹3,50,000 / Month*','{field:work_experience}','01 July 2026','cutt.ly/Gt5VtzPA','{field:bde}'], media_url:'', media_type:'' },
+  'GHC_recruitment_update_R2': { campaign_name:'GHC_recruitment_update_R2', template_params:['120+','June 30, 2026','https://cutt.ly/2t5VaRlL','{field:bde}'], media_url:'', media_type:'' },
+  'GOC_hiring_status_R1':      { campaign_name:'GOC_hiring_status_R1',      template_params:['Germany','IT, Engg, Management','{field:work_experience}','₹4,50,000 / month*','July 1, 2026','https://cutt.ly/Wt5VeOKN','{field:bde}'], media_url:'', media_type:'' },
+  'GOC_hiring_activity_R2':    { campaign_name:'GOC_hiring_activity_R2',    template_params:['Germany job market','{field:work_experience}','₹4,50,000 / month*','Berlin, Munich, Hamburg','July 1, 2026','https://cutt.ly/Et5Vrx9q','{field:bde}'], media_url:'', media_type:'' },
+  'apr_hiring_status_r1':      { campaign_name:'apr_hiring_status_r1',      template_params:['Australia','IT, Engg, Healthcare','{field:work_experience}','₹5,70,000 / month*','June 4, 2026','https://cutt.ly/Jt5Vjzse','{field:bde}'], media_url:'', media_type:'' },
+  'APR_eoi_update_R2':         { campaign_name:'APR_eoi_update_R2',         template_params:['IT, Engg and Healthcare','75 Points','June 4, 2026','https://cutt.ly/Zt5VkrID','{field:bde}'], media_url:'', media_type:'' },
+  'CPR_hiring_status_R1':      { campaign_name:'CPR_hiring_status_R1',      template_params:['Canada','IT, Engg and Healthcare','{field:work_experience}','₹5,00,000 / month*','June 26, 2026','https://cutt.ly/gt5VlqL2','{field:bde}'], media_url:'', media_type:'' },
+  'CPR_express_entry_R2':      { campaign_name:'CPR_express_entry_R2',      template_params:['IT and Engg','516','4000','June 23, 2026','https://cutt.ly/zt5VlnL7','{field:bde}'], media_url:'', media_type:'' },
+};
+
 // ── MAIN CRON JOB ─────────────────────────────────────────────
-// FIX: now accepts an optional `onlyScheduleIds` filter (Set) so the poller
-// can run a schedule only during its own matched time slot, while other
-// active schedules with non-matching times are skipped this cycle.
 async function runCron(timeSlot, onlyScheduleIds = null) {
   const startTime = Date.now();
   log(`=== CRON START: ${timeSlot} ===`);
   const result = { slot:timeSlot, sent:0, failed:0, skipped:0, schedules:[] };
 
   try {
-    // Sequential fetches — avoid hitting Supabase simultaneously
-    const schedules        = await getSchedules().catch(()=>[]);
-    const allCampaigns     = await getCampaigns().catch(()=>[]);
+    // Use hardcoded config — no Supabase needed for schedules/campaigns
+    const schedules    = HARDCODED_SCHEDULES;
+    const campaignMap  = HARDCODED_CAMPAIGNS;
+
+    // Supabase dedup lists only (small, fast)
     const reactivatedPhones= await getReactivatedPhones().catch(()=>new Set());
     const capReachedPhones = await getCapReachedPhones().catch(()=>new Set());
 
@@ -241,8 +293,6 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
       }
     }
 
-    const campaignMap = {};
-    allCampaigns.forEach(c => campaignMap[c.campaign_name]=c);
     let activeSchedules = schedules.filter(s=>s.active);
     if (onlyScheduleIds) activeSchedules = activeSchedules.filter(s=>onlyScheduleIds.has(s.id));
     if (!activeSchedules.length) { log('No active schedules to run this cycle'); return result; }
