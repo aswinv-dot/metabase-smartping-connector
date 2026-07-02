@@ -237,6 +237,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <script>
 const SCHEDULE_API   = "/api/schedule";
+const SCHEDULES_CONFIG_API = "/api/schedules-config";
 const CAMPAIGNS_API  = "/api/campaigns";
 const METABASE_PROXY = "/api/metabase-proxy";
 
@@ -343,8 +344,20 @@ async function loadCampaigns(){
   catch(e){console.warn('campaigns load failed',e.message);}
 }
 async function loadSchedules(){
-  try{const r=await fetch(SCHEDULE_API);const d=await r.json();schedules=d.schedules||[];renderKanban();}
-  catch(e){document.getElementById('kanban-board').innerHTML=`<div style="padding:40px;color:var(--red);font-size:13px">Failed: ${e.message}</div>`;}
+  try{
+    const [r, rc] = await Promise.all([fetch(SCHEDULE_API), fetch(SCHEDULES_CONFIG_API)]);
+    const d = await r.json();
+    const dc = await rc.json();
+    const configMap = {};
+    (dc.schedules||[]).forEach(c => configMap[c.id] = c);
+    schedules = (d.schedules||[]).map(s => ({
+      ...s,
+      send_times: configMap[s.id]?.send_times || s.send_times
+    }));
+    renderKanban();
+  }catch(e){
+    document.getElementById('kanban-board').innerHTML=`<div style="padding:40px;color:var(--red);font-size:13px">Failed: ${e.message}</div>`;
+  }
 }
 function populateCampaignSelects(){
   ['s-r1-campaign','s-r2-campaign','s-r3-campaign'].forEach(id=>{
@@ -358,7 +371,7 @@ function populateCampaignSelects(){
 function renderCard(s,css){
   const pi=getPhase(s);
   const pc=PHASE_COLORS[pi.phase]||'var(--muted2)';
-  const slots=Array.isArray(s.send_times)&&s.send_times.length===3?s.send_times:['17:00','18:00','19:00'];
+  const slots=Array.isArray(s.send_times)&&s.send_times.length?s.send_times:['07:00'];
   const total=s.r1_days+s.gap1_days+s.r2_days+s.gap2_days+s.r3_days;
   return `<div class="s-card ${s.active?'active-c':''}">
     <div class="s-card-bar bar-${css}"></div>
@@ -446,7 +459,7 @@ function editSchedule(id){
   editSchedId=id;
   document.getElementById('s-name').value=s.name;
   document.getElementById('s-start-date').value=s.start_date;
-  const slots=Array.isArray(s.send_times)&&s.send_times.length===3?s.send_times:['17:00','18:00','19:00'];
+  const slots=Array.isArray(s.send_times)&&s.send_times.length?s.send_times:['07:00'];
   document.getElementById('s-time-1').value=slots[0];
   document.getElementById('s-time-2').value=slots[1];
   document.getElementById('s-time-3').value=slots[2];
