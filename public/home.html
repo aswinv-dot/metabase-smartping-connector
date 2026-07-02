@@ -38,7 +38,31 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .coming-soon{position:absolute;top:12px;right:12px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;background:#f0f4fb;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;width:8px;height:8px;border:1.5px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+
+[data-theme='dark']{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--navy:#1e293b}
+[data-theme='dark'] .header{background:#0f172a}
+[data-theme='dark'] .tab-nav a.active{background:#e2e8f0;color:#0f172a}
+.theme-btn{background:transparent;border:1px solid rgba(154,203,253,.3);color:rgba(154,203,253,.8);padding:5px 10px;border-radius:20px;cursor:pointer;font-size:12px;font-family:var(--font);flex-shrink:0}
+.theme-btn:hover{background:rgba(154,203,253,.15)}
 </style>
+
+<script>
+(function(){
+  const saved = localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  window.toggleTheme = function(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    document.getElementById('theme-btn').textContent = next==='dark'?'☀️':'🌙';
+  };
+  document.addEventListener('DOMContentLoaded',()=>{
+    const btn = document.getElementById('theme-btn');
+    if(btn) btn.textContent = saved==='dark'?'☀️':'🌙';
+  });
+})();
+</script>
 </head>
 <body>
 <div class="header">
