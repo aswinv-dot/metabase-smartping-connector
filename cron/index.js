@@ -490,10 +490,10 @@ server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 // Metabase pre-fetch at 18:20 IST (UTC: 12:50) — cached in memory before send
 
 log('TerraTern Cron Service started');
-log('Fixed send slots: 11:17, 11:32, 11:47 IST | Pre-fetch: 11:12 IST');
+log('Fixed send slots: 11:32, 11:47, 12:02 IST | Pre-fetch: 11:27 IST');
 
 // Pre-fetch Metabase leads 10 min before first slot — cache in memory
-cron.schedule('42 5 * * *', async () => {
+cron.schedule('57 5 * * *', async () => {
   log('Pre-fetching Metabase leads for today...');
   for (let i=0; i<3; i++) {
     try {
@@ -511,13 +511,13 @@ cron.schedule('42 5 * * *', async () => {
   }
 }, { timezone:'UTC' });
 
-// Slot 1 — 11:17 IST (05:47 UTC)
-cron.schedule('47 5 * * *', () => runCron('11:17').catch(console.error), { timezone:'UTC' });
-
-// Slot 2 — 11:32 IST (06:02 UTC)
+// Slot 1 — 11:32 IST (06:02 UTC)
 cron.schedule('2 6 * * *', () => runCron('11:32').catch(console.error), { timezone:'UTC' });
 
-// Slot 3 — 11:47 IST (06:17 UTC)
+// Slot 2 — 11:47 IST (06:17 UTC)
 cron.schedule('17 6 * * *', () => runCron('11:47').catch(console.error), { timezone:'UTC' });
+
+// Slot 3 — 12:02 IST (06:32 UTC)
+cron.schedule('32 6 * * *', () => runCron('12:02').catch(console.error), { timezone:'UTC' });
 
 log('Service running — waiting for scheduled times...');
