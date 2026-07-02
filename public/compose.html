@@ -100,6 +100,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <div class="editor-toolbar">
       <button class="btn" onclick="saveDraft()">💾 Save</button>
       <button class="btn-ghost" onclick="deleteDraft()" id="delete-btn" style="display:none;color:var(--red);border-color:#fca5a5">🗑 Delete</button>
+      <div class="rich-sep" style="height:24px;background:var(--border);margin:0 6px"></div>
+      <select class="form-select" id="send-stage" style="width:180px;padding:6px 10px;font-size:11px">
+        <option value="all">All Contacts</option>
+        <option>Attended</option><option>Booked</option><option>Call Later</option>
+        <option>Casual Browsing</option><option>Decision Pending</option><option>Dropped</option>
+        <option>Enrolled with Other</option><option>Financial Issues</option><option>Follow Up</option>
+        <option>Future Qualified</option><option>Interested</option><option>Invalid</option>
+        <option>Message Dropped (Intl.)</option><option>Need More Guidance</option>
+        <option>Need time for Payment</option><option>New</option><option>Not Attended</option>
+        <option>Parents/Spouse Denied</option><option>Plan Dropped</option><option>Plan Postponed</option>
+        <option>Positive</option><option>Price Issue</option><option>Rescheduled</option>
+        <option>RNR</option><option>Switched Off/No Not Reachable</option>
+        <option>Test Lead</option><option>Unqualified</option><option>Visualization</option>
+      </select>
+      <span id="recipient-count" style="font-size:11px;color:var(--muted)"></span>
+      <button class="btn" onclick="confirmSend()" id="send-btn" style="background:#1a9e5c">📤 Send</button>
       <div style="flex:1"></div>
       <span class="status-msg" id="status-msg"></span>
     </div>
@@ -329,6 +345,39 @@ function setPreviewMode(mode) {
 }
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── SEND ──────────────────────────────────────────────────
+async function confirmSend() {
+  if (!currentId) { showMsg('Save draft first', 'err'); return; }
+  const stage = document.getElementById('send-stage').value;
+  const subject = document.getElementById('f-subject').value;
+  if (!subject) { showMsg('Add a subject line first', 'err'); return; }
+  if (!confirm(`Send "${subject}" to ${stage === 'all' ? 'ALL contacts' : stage}?`)) return;
+  sendEmails();
+}
+
+async function sendEmails() {
+  const btn = document.getElementById('send-btn');
+  const msg = document.getElementById('status-msg');
+  btn.disabled = true; btn.textContent = '📤 Sending...';
+  try {
+    const r = await fetch('/api/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id: currentId, stage: document.getElementById('send-stage').value })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    showMsg(`✓ Sent ${d.sent} | Failed ${d.failed}`, 'ok');
+  } catch(e) { showMsg('Failed: ' + e.message, 'err'); }
+  btn.disabled = false; btn.textContent = '📤 Send';
+}
+
+function showMsg(txt, type) {
+  const el = document.getElementById('status-msg');
+  el.textContent = txt; el.className = 'status-msg ' + type;
+  setTimeout(() => el.textContent = '', 4000);
+}
 
 window.onload = () => { loadDrafts(); updatePreview(); };
 </script>
