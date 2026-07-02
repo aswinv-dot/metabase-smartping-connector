@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Contacts — TerraTern</title>
+<link rel="icon" type="image/png" href="https://terratern.com/images/favicon.png"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#00215C;--blue:#255CC1;--bg:#f0f4fb;--surface:#fff;--border:#dde6f5;--text:#00215C;--muted:#5a7ab5;--green:#1a9e5c;--red:#e03e3e;--font:'Inter',system-ui,sans-serif;--radius:8px}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+.header{background:var(--navy);padding:0 24px;height:52px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.logo img{height:26px}
+.sub{font-size:11px;color:#9acbfd;letter-spacing:1px;text-transform:uppercase;flex:1}
+.nav-link{font-size:11px;color:#9acbfd;text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:5px 12px;border-radius:6px}
+.nav-link:hover{background:rgba(154,203,253,.15)}
+.toolbar{padding:12px 20px;background:var(--surface);border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:52px;z-index:40}
+.search{border:1.5px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;font-family:var(--font);outline:none;width:200px}
+.search:focus{border-color:var(--blue)}
+.sel{border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;font-family:var(--font);outline:none;background:#fff;cursor:pointer}
+.count{font-size:11px;color:var(--muted);flex:1}
+.btn{background:var(--blue);color:#fff;border:none;padding:7px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
+.btn:hover{background:var(--navy)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;border-radius:6px}
+.page{padding:20px}
+.table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:10px 14px;background:#f0f4fb;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1.5px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid #f0f4fb;color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafcff}
+.badge{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;white-space:nowrap}
+.badge-yes{background:rgba(26,158,92,.15);color:var(--green)}
+.badge-no{background:#f5f5f5;color:var(--muted)}
+.badge-paid{background:rgba(37,92,193,.15);color:var(--blue)}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--surface);border-top:1px solid var(--border)}
+.pg-info{font-size:11px;color:var(--muted)}
+.pg-btns{display:flex;gap:6px}
+.sync-msg{font-size:11px;font-weight:600;margin-left:8px}
+.sync-msg.ok{color:var(--green)}.sync-msg.err{color:var(--red)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern"/></div>
+  <div class="sub">Email Contacts</div>
+  <a href="/automation.html" class="nav-link">← Automation</a>
+  <a href="/email.html" class="nav-link">📧 SMTP</a>
+</div>
+
+<div class="toolbar">
+  <input class="search" id="search" placeholder="Search name or email..." oninput="debounceLoad()"/>
+  <select class="sel" id="stage-filter" onchange="loadContacts()">
+    <option value="all">All Stages</option>
+    <option>Attended</option>
+    <option>Booked</option>
+    <option>Call Later</option>
+    <option>Casual Browsing</option>
+    <option>Decision Pending</option>
+    <option>Dropped</option>
+    <option>Enrolled with Other</option>
+    <option>Financial Issues</option>
+    <option>Follow Up</option>
+    <option>Future Qualified</option>
+    <option>Interested</option>
+    <option>Invalid</option>
+    <option>Message Dropped (Intl.)</option>
+    <option>Need More Guidance</option>
+    <option>Need time for Payment</option>
+    <option>New</option>
+    <option>Not Attended</option>
+    <option>Parents/Spouse Denied</option>
+    <option>Plan Dropped</option>
+    <option>Plan Postponed</option>
+    <option>Positive</option>
+    <option>Price Issue</option>
+    <option>Rescheduled</option>
+    <option>RNR</option>
+    <option>Switched Off/No Not Reachable</option>
+    <option>Test Lead</option>
+    <option>Unqualified</option>
+    <option>Visualization</option>
+  </select>
+  <span class="count" id="count">—</span>
+  <span class="sync-msg" id="sync-msg"></span>
+  <button class="btn-ghost" onclick="loadContacts()">↻ Refresh</button>
+  <button class="btn" id="sync-btn" onclick="syncContacts()">⬇ Sync from Metabase</button>
+</div>
+
+<div class="page">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Mobile</th>
+          <th>Stage</th>
+          <th>Applications</th>
+          <th>Webinar</th>
+          <th>Payment</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination">
+    <span class="pg-info" id="pg-info"></span>
+    <div class="pg-btns">
+      <button class="btn-ghost" onclick="prevPage()" id="prev-btn">← Prev</button>
+      <button class="btn-ghost" onclick="nextPage()" id="next-btn">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LIMIT = 50;
+let offset = 0, total = 0, debTimer;
+
+function debounceLoad(){clearTimeout(debTimer);debTimer=setTimeout(()=>{offset=0;loadContacts();},400);}
+
+async function loadContacts(){
+  const stage = document.getElementById('stage-filter').value;
+  const search = document.getElementById('search').value.trim();
+  let url = `/api/email/contacts?limit=${LIMIT}&offset=${offset}`;
+  if(stage!=='all') url+=`&stage=${encodeURIComponent(stage)}`;
+  if(search) url+=`&search=${encodeURIComponent(search)}`;
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)"><span class="spin"></span>Loading...</td></tr>`;
+  try{
+    const r=await fetch(url);
+    const d=await r.json();
+    total=parseInt(d.total)||0;
+    document.getElementById('count').textContent=`${total.toLocaleString()} contacts`;
+    document.getElementById('pg-info').textContent=`Showing ${offset+1}–${Math.min(offset+LIMIT,total)} of ${total.toLocaleString()}`;
+    document.getElementById('prev-btn').disabled=offset===0;
+    document.getElementById('next-btn').disabled=offset+LIMIT>=total;
+    if(!d.contacts?.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">No contacts found</td></tr>`;return;}
+    tbody.innerHTML=d.contacts.map(c=>`<tr>
+      <td style="font-weight:600">${esc(c.fullname||'—')}</td>
+      <td>${esc(c.email||'—')}</td>
+      <td>${esc(c.mobile||'—')}</td>
+      <td><span class="badge badge-no">${esc(c.lead_stage||'—')}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(c.applications||'')}">${esc(c.applications||'—')}</td>
+      <td><span class="badge ${c.webinar_attended==='Yes'?'badge-yes':'badge-no'}">${c.webinar_attended==='Yes'?'Attended':c.webinar_booked==='Yes'?'Booked':'No'}</span></td>
+      <td><span class="badge ${c.payment==='Yes'?'badge-paid':'badge-no'}">${c.payment==='Yes'?'Paid':'No'}</span></td>
+      <td style="color:var(--muted)">${c.created_at?new Date(c.created_at).toLocaleDateString('en-IN'):'—'}</td>
+    </tr>`).join('');
+  }catch(e){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--red);padding:30px">Error: ${e.message}</td></tr>`;}
+}
+
+async function syncContacts(){
+  const btn=document.getElementById('sync-btn');
+  const msg=document.getElementById('sync-msg');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span>Syncing...';
+  msg.textContent=''; msg.className='sync-msg';
+  try{
+    const r=await fetch('/api/email/contacts',{method:'POST'});
+    const d=await r.json();
+    if(d.error) throw new Error(d.error);
+    msg.textContent=`✓ Synced ${d.synced.toLocaleString()} contacts`;
+    msg.className='sync-msg ok';
+    loadContacts();
+  }catch(e){msg.textContent='Failed: '+e.message;msg.className='sync-msg err';}
+  btn.disabled=false;btn.innerHTML='⬇ Sync from Metabase';
+}
+
+function prevPage(){if(offset>0){offset-=LIMIT;loadContacts();}}
+function nextPage(){if(offset+LIMIT<total){offset+=LIMIT;loadContacts();}}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+window.onload=loadContacts;
+</script>
+</body>
+</html>
