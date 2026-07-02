@@ -72,15 +72,42 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .status-msg.ok{color:var(--green)}.status-msg.err{color:var(--red)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+.tab-nav{display:flex;align-items:center;gap:4px;flex:1;justify-content:center}
+.tab-nav a{font-size:12px;font-weight:600;color:rgba(154,203,253,.7);text-decoration:none;padding:6px 14px;border-radius:20px;transition:all .15s;white-space:nowrap}
+.tab-nav a:hover{color:#fff}
+.tab-nav a.active{background:#fff;color:var(--navy)}
+.smtp-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;border:none;font-family:var(--font);transition:all .15s;flex-shrink:0}
+.smtp-pill.live{background:rgba(26,158,92,.2);color:#4ade80}
+.smtp-pill.down{background:rgba(224,62,62,.2);color:#f87171}
+.smtp-pill.checking{background:rgba(154,203,253,.15);color:rgba(154,203,253,.7)}
+.smtp-modal{display:none;position:fixed;top:52px;right:16px;background:#1a2744;border:1.5px solid rgba(154,203,253,.2);border-radius:10px;padding:14px 16px;z-index:100;min-width:240px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.smtp-modal.show{display:block}
+.smtp-modal-title{font-size:10px;font-weight:700;color:rgba(154,203,253,.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.smtp-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(154,203,253,.1)}
+.smtp-row:last-child{border-bottom:none}
+.smtp-key{color:rgba(154,203,253,.6)}.smtp-val{color:#fff;font-weight:600}
+.smtp-err{font-size:11px;color:#f87171;margin-top:8px;padding-top:8px;border-top:1px solid rgba(154,203,253,.1)}
 </style>
 </head>
 <body>
 <div class="header">
   <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern"/></div>
   <div class="sub">Email Compose</div>
-  <a href="/contacts.html" class="nav-link">👥 Contacts</a>
-  <a href="/email.html" class="nav-link">📧 SMTP</a>
-  <a href="/automation.html" class="nav-link">← Automation</a>
+<nav class="tab-nav">
+  <a href="/email-home.html" class="">🏠 Home</a>
+  <a href="/contacts.html" class="">👥 Contacts</a>
+  <a href="/compose.html" class="active">✏️ Compose</a>
+  <a href="/analytics.html" class="">📊 Analytics</a>
+</nav>
+<button class="smtp-pill checking" id="smtp-pill" onclick="toggleSMTPModal()"><span class="spin"></span> SMTP</button>
+<div class="smtp-modal" id="smtp-modal">
+  <div class="smtp-modal-title">SMTP Connection</div>
+  <div class="smtp-row"><span class="smtp-key">Host</span><span class="smtp-val">node21.urmailtechno.com</span></div>
+  <div class="smtp-row"><span class="smtp-key">Port</span><span class="smtp-val">587</span></div>
+  <div class="smtp-row"><span class="smtp-key">Domain</span><span class="smtp-val">marketing.terratern.in</span></div>
+  <div class="smtp-row"><span class="smtp-key">User</span><span class="smtp-val">user_teratern</span></div>
+  <div class="smtp-err" id="smtp-err" style="display:none"></div>
+</div>
 </div>
 
 <div class="layout">
