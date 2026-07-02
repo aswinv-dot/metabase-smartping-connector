@@ -159,17 +159,43 @@ async function syncContacts(){
   const btn=document.getElementById('sync-btn');
   const msg=document.getElementById('sync-msg');
   btn.disabled=true;
-  btn.innerHTML='<span class="spin"></span>Syncing...';
-  msg.textContent=''; msg.className='sync-msg';
+  msg.className='sync-msg';
+
   try{
-    const r=await fetch('/api/email/contacts',{method:'POST'});
-    const d=await r.json();
-    if(d.error) throw new Error(d.error);
-    msg.textContent=`✓ Synced ${d.synced.toLocaleString()} contacts`;
+    // Step 1: Fetch from Metabase in browser
+    msg.textContent='Fetching leads from Metabase...';
+    btn.innerHTML='<span class="spin"></span>Fetching...';
+    const mbRes = await fetch('http://metabase.terratern.com/public/question/d14792bd-69e5-4d64-b693-1f70153724d0/json', {
+      headers: { 'Accept-Encoding': 'identity' }
+    });
+    const leads = await mbRes.json();
+    if(!Array.isArray(leads)) throw new Error('Bad Metabase response');
+
+    // Step 2: POST in batches of 200
+    const BATCH = 200;
+    let synced = 0;
+    for(let i=0; i<leads.length; i+=BATCH){
+      const batch = leads.slice(i, i+BATCH);
+      msg.textContent=`Syncing ${synced}/${leads.length}...`;
+      const r = await fetch('/api/email/contacts', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contacts: batch })
+      });
+      const d = await r.json();
+      if(d.error) throw new Error(d.error);
+      synced += d.synced;
+    }
+
+    msg.textContent=`✓ Synced ${synced.toLocaleString()} contacts`;
     msg.className='sync-msg ok';
     loadContacts();
-  }catch(e){msg.textContent='Failed: '+e.message;msg.className='sync-msg err';}
-  btn.disabled=false;btn.innerHTML='⬇ Sync from Metabase';
+  }catch(e){
+    msg.textContent='Failed: '+e.message;
+    msg.className='sync-msg err';
+  }
+  btn.disabled=false;
+  btn.innerHTML='⬇ Sync from Metabase';
 }
 
 function prevPage(){if(offset>0){offset-=LIMIT;loadContacts();}}
