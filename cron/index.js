@@ -204,8 +204,20 @@ function getCurrentPhase(s) {
 
 // ── HARDCODED CONFIG (no Supabase needed) ─────────────────────
 const HARDCODED_SCHEDULES = [
+  { id:'mr1u9lay', name:'GOC_July', active:true, start_date:'2026-07-02',
+    send_times:['07:00'],
+    r1_campaign:'GOC_hiring_status_R1', r1_days:8, gap1_days:1,
+    r2_campaign:'GOC_hiring_activity_R2', r2_days:8, gap2_days:1,
+    r3_campaign:'GOC_hiring_activity_R2', r3_days:8,
+    filters_json:[
+      {op:'contains',val:'Immigration Germany',field:'application',logic:'AND'},
+      {op:'contains',val:'goc',field:'adset',logic:'AND'},
+      {op:'contains',val:'germ',field:'adset',logic:'OR'},
+      {op:'not_contains',val:'Work Germany',field:'application',logic:'AND'},
+      {op:'not_contains',val:'Ausbildung Germany',field:'application',logic:'AND'}
+    ]},
   { id:'mr1qhbuw', name:'GHC_July', active:true, start_date:'2026-07-02',
-    send_times:['12:05'],
+    send_times:['07:00'],
     r1_campaign:'GHC_latest_salary_R1', r1_days:8, gap1_days:1,
     r2_campaign:'GHC_recruitment_update_R2', r2_days:8, gap2_days:1,
     r3_campaign:'GHC_latest_salary_R1', r3_days:8,
@@ -213,6 +225,34 @@ const HARDCODED_SCHEDULES = [
       {op:'contains',val:'healthcare',field:'application',logic:'AND'},
       {op:'contains',val:'ghc',field:'adset',logic:'AND'},
       {op:'contains',val:'grmny',field:'adset',logic:'OR'}
+    ]},
+  { id:'mr33dzgm', name:'AUSB_July', active:true, start_date:'2026-07-02',
+    send_times:['07:00'],
+    r1_campaign:'Ausb_stipend_update_R1', r1_days:8, gap1_days:1,
+    r2_campaign:'latest_ausb_update_R2', r2_days:8, gap2_days:1,
+    r3_campaign:'latest_ausb_update_R2', r3_days:8,
+    filters_json:[
+      {op:'contains',val:'Work Germany',field:'application',logic:'AND'},
+      {op:'contains',val:'Ausbildung Germany',field:'application',logic:'OR'},
+      {op:'contains',val:'Ausb',field:'adset',logic:'AND'}
+    ]},
+  { id:'mr1wazu4', name:'APR_July', active:true, start_date:'2026-07-02',
+    send_times:['10:00'],
+    r1_campaign:'apr_hiring_status_r1', r1_days:8, gap1_days:1,
+    r2_campaign:'APR_eoi_update_R2', r2_days:8, gap2_days:1,
+    r3_campaign:'APR_eoi_update_R2', r3_days:8,
+    filters_json:[
+      {op:'contains',val:'Immigration Australia',field:'application',logic:'AND'},
+      {op:'contains',val:'Aust',field:'adset',logic:'AND'}
+    ]},
+  { id:'mr1wgqou', name:'Canada_July', active:true, start_date:'2026-07-02',
+    send_times:['10:00'],
+    r1_campaign:'CPR_hiring_status_R1', r1_days:8, gap1_days:1,
+    r2_campaign:'CPR_express_entry_R2', r2_days:8, gap2_days:1,
+    r3_campaign:'CPR_express_entry_R2', r3_days:8,
+    filters_json:[
+      {op:'contains',val:'Immigration Canada',field:'application',logic:'AND'},
+      {op:'contains',val:'canad',field:'adset',logic:'AND'}
     ]},
 ];
 
@@ -265,9 +305,9 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
       }
     }
 
-    let activeSchedules = schedules.filter(s=>s.active);
+    let activeSchedules = schedules.filter(s=>s.active && s.send_times.includes(timeSlot));
     if (onlyScheduleIds) activeSchedules = activeSchedules.filter(s=>onlyScheduleIds.has(s.id));
-    if (!activeSchedules.length) { log('No active schedules to run this cycle'); return result; }
+    if (!activeSchedules.length) { log(`No schedules configured for slot ${timeSlot}`); return result; }
 
     for (const schedule of activeSchedules) {
       const {phase,dayNum,campaign:campaignName} = getCurrentPhase(schedule);
@@ -458,15 +498,12 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 
 // ── SCHEDULE ──────────────────────────────────────────────────
-// Fixed send times: 18:30, 18:45, 19:00 IST (UTC: 13:00, 13:15, 13:30)
-// Metabase pre-fetch at 18:20 IST (UTC: 12:50) — cached in memory before send
-
 log('TerraTern Cron Service started');
-log('Fixed send slot: 12:20 IST | Pre-fetch: 12:17 IST');
+log('Slots: 07:00 IST (GOC/GHC/AUSB) | 10:00 IST (APR/Canada) | Pre-fetch: 06:50 & 09:50');
 
-// Pre-fetch Metabase leads 10 min before slot
-cron.schedule('47 6 * * *', async () => {
-  log('Pre-fetching Metabase leads for today...');
+// Pre-fetch helper
+async function preFetchLeads() {
+  log('Pre-fetching Metabase leads...');
   for (let i=0; i<3; i++) {
     try {
       const res = await fetch(METABASE_URL, { timeout: 120000, headers: { 'Accept-Encoding': 'identity' } });
@@ -481,9 +518,18 @@ cron.schedule('47 6 * * *', async () => {
       await new Promise(r=>setTimeout(r,(i+1)*2000));
     }
   }
-}, { timezone:'UTC' });
+}
 
-// Slot — 12:05 IST (06:35 UTC)
-cron.schedule('50 6 * * *', () => runCron('12:20').catch(console.error), { timezone:'UTC' });
+// Pre-fetch 1 — 06:50 IST (01:20 UTC)
+cron.schedule('20 1 * * *', preFetchLeads, { timezone:'UTC' });
+
+// Slot 1 — 07:00 IST (01:30 UTC) — GOC, GHC, AUSB
+cron.schedule('30 1 * * *', () => runCron('07:00').catch(console.error), { timezone:'UTC' });
+
+// Pre-fetch 2 — 09:50 IST (04:20 UTC)
+cron.schedule('20 4 * * *', preFetchLeads, { timezone:'UTC' });
+
+// Slot 2 — 10:00 IST (04:30 UTC) — APR, Canada
+cron.schedule('30 4 * * *', () => runCron('10:00').catch(console.error), { timezone:'UTC' });
 
 log('Service running — waiting for scheduled times...');
