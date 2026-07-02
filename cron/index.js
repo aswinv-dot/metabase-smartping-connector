@@ -10,10 +10,8 @@ const SUPABASE_URL      = "https://oagsgovnxgiszofgytre.supabase.co";
 const SUPABASE_KEY      = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI";
 const PORT               = process.env.PORT || 3001;
 
-// FIX: cron now polls every 5 min instead of running 3 fixed UTC jobs.
-// Each schedule defines its own 3 send_times (HH:MM, IST) — the poller
-// fires a schedule only during the 5-min window containing one of its times.
-const POLL_WINDOW_MIN = 7;
+// Send times are hardcoded in the cron schedule below (18:30/18:45/19:00 IST)
+// Metabase leads are pre-fetched at 18:20 IST and cached in memory
 
 // Template params can be plain static text, OR a {field:xxx} token that pulls
 // directly from the Metabase lead row at send time. {field:fullname} is special-
@@ -59,14 +57,6 @@ function toMinutes(hhmm) {
 }
 // returns the matching send_time label (e.g. "17:00") if `now` falls within
 // POLL_WINDOW_MIN minutes after one of the schedule's send_times, else null
-function matchSlot(sendTimes, now) {
-  const nowMin = toMinutes(istHHMM(now));
-  for (const t of (sendTimes||[])) {
-    const tMin = toMinutes(t);
-    if (nowMin >= tMin && nowMin < tMin + POLL_WINDOW_MIN) return t;
-  }
-  return null;
-}
 
 // ── SUPABASE ──────────────────────────────────────────────────
 const sbHeaders = { 'Content-Type':'application/json', 'apikey':SUPABASE_KEY, 'Authorization':`Bearer ${SUPABASE_KEY}` };
@@ -228,20 +218,26 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
     const reactivatedPhones= await getReactivatedPhones().catch(()=>new Set());
     const capReachedPhones = await getCapReachedPhones().catch(()=>new Set());
 
-    // Metabase with 2-min timeout + retry
-    let leads = [];
-    for (let i=0; i<3; i++) {
-      try {
-        const mbRes = await fetch(METABASE_URL, { timeout: 120000 });
-        const data = await mbRes.json();
-        if (!Array.isArray(data)) throw new Error('Bad Metabase response');
-        leads = data;
-        log(`Fetched ${leads.length} leads`);
-        break;
-      } catch(e) {
-        if (i===2) throw new Error(`Metabase failed after 3 attempts: ${e.message}`);
-        log(`Metabase retry ${i+1}/2 — ${e.message} — waiting ${(i+1)*2000}ms`);
-        await new Promise(r=>setTimeout(r,(i+1)*2000));
+    // Use pre-fetched leads if available, otherwise fetch fresh
+    let leads = cacheGet('leads');
+    if (leads) {
+      log(`Using cached leads: ${leads.length}`);
+    } else {
+      log('No cached leads — fetching Metabase now...');
+      for (let i=0; i<3; i++) {
+        try {
+          const mbRes = await fetch(METABASE_URL, { timeout: 120000 });
+          const data = await mbRes.json();
+          if (!Array.isArray(data)) throw new Error('Bad Metabase response');
+          leads = data;
+          cacheSet('leads', leads);
+          log(`Fetched ${leads.length} leads`);
+          break;
+        } catch(e) {
+          if (i===2) throw new Error(`Metabase failed after 3 attempts: ${e.message}`);
+          log(`Metabase retry ${i+1}/2 — ${e.message} — waiting ${(i+1)*2000}ms`);
+          await new Promise(r=>setTimeout(r,(i+1)*2000));
+        }
       }
     }
 
@@ -347,31 +343,6 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
 // (set per-schedule in the UI), and only runs schedules whose time matches
 // the current IST window. A schedule with no send_times falls back to the
 // legacy default ['17:00','18:00','19:00'].
-async function pollAndRun() {
-  const now = nowIST();
-  let schedules;
-  try { schedules = await getSchedules(); } catch(e) { log(`Poller: failed to fetch schedules — ${e.message}`); return; }
-
-  const due = new Map(); // slotLabel -> Set(scheduleIds)
-  for (const s of schedules.filter(x=>x.active)) {
-    const sendTimes = Array.isArray(s.send_times) && s.send_times.length
-      ? s.send_times
-      : ['17:00','18:00','19:00'];
-    const slot = matchSlot(sendTimes, now);
-    if (slot) {
-      if (!due.has(slot)) due.set(slot, new Set());
-      due.get(slot).add(s.id);
-    }
-  }
-
-  if (!due.size) return; // nothing to do this cycle — stay quiet
-
-  for (const [slot, ids] of due) {
-    log(`Poller: ${ids.size} schedule(s) due for slot ${slot} IST`);
-    await runCron(slot, ids).catch(e => log(`Poller run error (${slot}): ${e.message}`));
-  }
-}
-
 // ── HTTP SERVER ───────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Type','application/json');
@@ -465,9 +436,38 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 
 // ── SCHEDULE ──────────────────────────────────────────────────
-log('TerraTern Cron Service started');
-log(`Polling every ${POLL_WINDOW_MIN} min — each schedule fires at its own configured send_times (IST)`);
+// Fixed send times: 18:30, 18:45, 19:00 IST (UTC: 13:00, 13:15, 13:30)
+// Metabase pre-fetch at 18:20 IST (UTC: 12:50) — cached in memory before send
 
-cron.schedule(`*/${POLL_WINDOW_MIN} * * * *`, () => pollAndRun(), { timezone:'UTC' });
+log('TerraTern Cron Service started');
+log('Fixed send slots: 11:30, 11:45, 12:00 IST | Pre-fetch: 11:20 IST');
+
+// Pre-fetch Metabase leads 10 min before first slot — cache in memory
+cron.schedule('50 5 * * *', async () => {
+  log('Pre-fetching Metabase leads for today...');
+  for (let i=0; i<3; i++) {
+    try {
+      const res = await fetch(METABASE_URL, { timeout: 120000 });
+      const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('Bad response');
+      cacheSet('leads', data);
+      log(`Pre-fetch complete: ${data.length} leads cached`);
+      return;
+    } catch(e) {
+      if (i===2) { log(`Pre-fetch failed after 3 attempts: ${e.message}`); return; }
+      log(`Pre-fetch retry ${i+1}/2 — ${e.message} — waiting ${(i+1)*2000}ms`);
+      await new Promise(r=>setTimeout(r,(i+1)*2000));
+    }
+  }
+}, { timezone:'UTC' });
+
+// Slot 1 — 11:30 IST (06:00 UTC)
+cron.schedule('0 6 * * *', () => runCron('11:30').catch(console.error), { timezone:'UTC' });
+
+// Slot 2 — 11:45 IST (06:15 UTC)
+cron.schedule('15 6 * * *', () => runCron('11:45').catch(console.error), { timezone:'UTC' });
+
+// Slot 3 — 12:00 IST (06:30 UTC)
+cron.schedule('30 6 * * *', () => runCron('12:00').catch(console.error), { timezone:'UTC' });
 
 log('Service running — waiting for scheduled times...');
