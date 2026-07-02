@@ -50,18 +50,26 @@ export default async function handler(req, res) {
 
     for (const c of contacts) {
       try {
-        const html = resolveTokens(draft.body, c) +
-          `<br/><br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="#">Unsubscribe</a></p>`;
+        const sendId = `${draft_id}_${c.email}_${Date.now()}`;
+        const baseUrl = 'https://metabase-smartping-connector.vercel.app';
+        let html = resolveTokens(draft.body, c);
+        // Wrap links with click tracker
+        html = html.replace(/href="(https?:\/\/[^"]+)"/g, (_, url) =>
+          `href="${baseUrl}/api/email/track/click?id=${encodeURIComponent(sendId)}&url=${encodeURIComponent(url)}"`
+        );
+        // Append tracking pixel + unsubscribe
+        html += `<img src="${baseUrl}/api/email/track/open?id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
+        html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="#">Unsubscribe</a></p>`;
         await transporter.sendMail({
           from, to: c.email,
           subject: draft.subject,
           html,
           headers: { 'X-Preview-Text': draft.preview_text || '' }
         });
-        logs.push({ draft_id, email: c.email, status: 'sent' });
+        logs.push({ id: sendId, draft_id, email: c.email, status: 'sent' });
         sent++;
       } catch(e) {
-        logs.push({ draft_id, email: c.email, status: 'failed' });
+        logs.push({ id: `${draft_id}_${c.email}_err`, draft_id, email: c.email, status: 'failed' });
         failed++;
       }
     }
