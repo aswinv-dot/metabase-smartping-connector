@@ -305,7 +305,8 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
       }
     }
 
-    let activeSchedules = schedules.filter(s=>s.active && s.send_times.includes(timeSlot));
+    const isManual = timeSlot.includes('(manual)');
+    let activeSchedules = schedules.filter(s=>s.active && (isManual || s.send_times.includes(timeSlot)));
     if (onlyScheduleIds) activeSchedules = activeSchedules.filter(s=>onlyScheduleIds.has(s.id));
     if (!activeSchedules.length) { log(`No schedules configured for slot ${timeSlot}`); return result; }
 
