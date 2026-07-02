@@ -23,9 +23,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .sub{font-size:11px;color:var(--sky);letter-spacing:1px;text-transform:uppercase;flex:1}
 .nav-link{font-size:11px;color:var(--sky);text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:5px 12px;border-radius:6px;white-space:nowrap}
 .nav-link:hover{background:rgba(154,203,253,.15)}
-.tab-bar{background:var(--surface);border-bottom:1.5px solid var(--border);padding:0 24px;display:flex;position:sticky;top:52px;z-index:40}
-.tab{font-size:11px;font-weight:600;color:var(--muted);text-decoration:none;padding:10px 16px;border-bottom:2.5px solid transparent;transition:all .15s;white-space:nowrap}
-.tab:hover{color:var(--blue)}.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+
+
 
 /* TOOLBAR */
 .toolbar{padding:12px 20px;background:var(--surface);border-bottom:1.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:52px;z-index:40}
@@ -120,6 +120,10 @@ code{font-size:10px;background:#f0f4fb;padding:1px 4px;border-radius:3px;font-fa
 .bar-apr  {background:#c17825}
 .bar-cpr  {background:#7825c1}
 .bar-other{background:#666}
+.tab-nav{display:flex;align-items:center;gap:4px;flex:1;justify-content:center}
+.tab-nav a{font-size:12px;font-weight:600;color:rgba(154,203,253,.7);text-decoration:none;padding:6px 14px;border-radius:20px;transition:all .15s;white-space:nowrap}
+.tab-nav a:hover{color:#fff}
+.tab-nav a.active{background:#fff;color:var(--navy)}
 </style>
 </head>
 <body>
@@ -127,14 +131,15 @@ code{font-size:10px;background:#f0f4fb;padding:1px 4px;border-radius:3px;font-fa
 <div class="header">
   <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern"/></div>
   <div class="sub">Campaigns</div>
+<nav class="tab-nav">
+  <a href="/automation.html" class="">⚙️ Automation</a>
+  <a href="/schedule.html" class="">🗓 Schedules</a>
+  <a href="/campaigns.html" class="active">📋 Campaigns</a>
+  <a href="/today.html" class="">📅 Today</a>
+  <a href="/manual.html" class="">▶ Manual</a>
+</nav>
 </div>
-<div class="tab-bar">
-  <a href="/automation.html" class="tab">⚙️ Automation</a>
-  <a href="/schedule.html" class="tab">🗓 Schedules</a>
-  <a href="/campaigns.html" class="tab active">📋 Campaigns</a>
-  <a href="/today.html" class="tab">📅 Today</a>
-  <a href="/manual.html" class="tab">▶ Manual</a>
-</div>
+
 
 <div class="toolbar">
   <div class="filter-btns">
