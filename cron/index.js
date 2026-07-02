@@ -499,7 +499,6 @@ server.listen(PORT, () => log(`HTTP server listening on port ${PORT}`));
 
 // ── SCHEDULE ──────────────────────────────────────────────────
 log('TerraTern Cron Service started');
-log('Slots: 07:00 IST (GOC/GHC/AUSB) | 10:00 IST (APR/Canada) | Pre-fetch: 06:50 & 09:50');
 
 // Pre-fetch helper
 async function preFetchLeads() {
@@ -520,16 +519,26 @@ async function preFetchLeads() {
   }
 }
 
-// Pre-fetch 1 — 06:50 IST (01:20 UTC)
-cron.schedule('20 1 * * *', preFetchLeads, { timezone:'UTC' });
+// Derive unique send times from HARDCODED_SCHEDULES
+const uniqueSendTimes = [...new Set(HARDCODED_SCHEDULES.flatMap(s=>s.send_times))].sort();
+log(`Configured send slots (IST): ${uniqueSendTimes.join(', ')}`);
 
-// Slot 1 — 07:00 IST (01:30 UTC) — GOC, GHC, AUSB
-cron.schedule('30 1 * * *', () => runCron('07:00').catch(console.error), { timezone:'UTC' });
+uniqueSendTimes.forEach(timeIST => {
+  const [hh, mm] = timeIST.split(':').map(Number);
+  // Convert IST to UTC (subtract 5:30)
+  const totalMinUTC = hh * 60 + mm - 330;
+  const utcH = Math.floor(((totalMinUTC % 1440) + 1440) % 1440 / 60);
+  const utcM = ((totalMinUTC % 1440) + 1440) % 1440 % 60;
 
-// Pre-fetch 2 — 09:50 IST (04:20 UTC)
-cron.schedule('20 4 * * *', preFetchLeads, { timezone:'UTC' });
+  // Pre-fetch 10 min before slot
+  const preFetchMinUTC = ((totalMinUTC - 10) % 1440 + 1440) % 1440;
+  const pfH = Math.floor(preFetchMinUTC / 60);
+  const pfM = preFetchMinUTC % 60;
 
-// Slot 2 — 10:00 IST (04:30 UTC) — APR, Canada
-cron.schedule('30 4 * * *', () => runCron('10:00').catch(console.error), { timezone:'UTC' });
+  log(`Registering: pre-fetch at ${pfH}:${String(pfM).padStart(2,'0')} UTC → slot ${timeIST} IST at ${utcH}:${String(utcM).padStart(2,'0')} UTC`);
+
+  cron.schedule(`${pfM} ${pfH} * * *`, preFetchLeads, { timezone:'UTC' });
+  cron.schedule(`${utcM} ${utcH} * * *`, () => runCron(timeIST).catch(console.error), { timezone:'UTC' });
+});
 
 log('Service running — waiting for scheduled times...');
