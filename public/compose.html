@@ -87,7 +87,31 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .smtp-row:last-child{border-bottom:none}
 .smtp-key{color:rgba(154,203,253,.6)}.smtp-val{color:#fff;font-weight:600}
 .smtp-err{font-size:11px;color:#f87171;margin-top:8px;padding-top:8px;border-top:1px solid rgba(154,203,253,.1)}
+
+[data-theme='dark']{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--navy:#1e293b}
+[data-theme='dark'] .header{background:#0f172a}
+[data-theme='dark'] .tab-nav a.active{background:#e2e8f0;color:#0f172a}
+.theme-btn{background:transparent;border:1px solid rgba(154,203,253,.3);color:rgba(154,203,253,.8);padding:5px 10px;border-radius:20px;cursor:pointer;font-size:12px;font-family:var(--font);flex-shrink:0}
+.theme-btn:hover{background:rgba(154,203,253,.15)}
 </style>
+
+<script>
+(function(){
+  const saved = localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  window.toggleTheme = function(){
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    document.getElementById('theme-btn').textContent = next==='dark'?'☀️':'🌙';
+  };
+  document.addEventListener('DOMContentLoaded',()=>{
+    const btn = document.getElementById('theme-btn');
+    if(btn) btn.textContent = saved==='dark'?'☀️':'🌙';
+  });
+})();
+</script>
 </head>
 <body>
 <div class="header">
