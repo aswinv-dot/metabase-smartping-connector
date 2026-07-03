@@ -64,23 +64,7 @@ tr:hover td{background:#fafcff}
 .theme-btn:hover{background:rgba(154,203,253,.15)}
 </style>
 
-<script>
-(function(){
-  const saved = localStorage.getItem('theme')||'light';
-  document.documentElement.setAttribute('data-theme', saved);
-  window.toggleTheme = function(){
-    const cur = document.documentElement.getAttribute('data-theme');
-    const next = cur==='dark'?'light':'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-    document.getElementById('theme-btn').textContent = next==='dark'?'☀️':'🌙';
-  };
-  document.addEventListener('DOMContentLoaded',()=>{
-    const btn = document.getElementById('theme-btn');
-    if(btn) btn.textContent = saved==='dark'?'☀️':'🌙';
-  });
-})();
-</script>
+
 </head>
 <body>
 <div class="header">
@@ -253,6 +237,35 @@ function nextPage(){if(offset+LIMIT<total){offset+=LIMIT;loadContacts();}}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 window.onload=loadContacts;
+</script>
+<script>
+window.toggleSMTPModal = function(){
+  document.getElementById('smtp-modal').classList.toggle('show');
+};
+document.addEventListener('click', function(e){
+  const modal = document.getElementById('smtp-modal');
+  const pill = document.getElementById('smtp-pill');
+  if(modal && !modal.contains(e.target) && e.target !== pill) modal.classList.remove('show');
+});
+async function checkSMTP(){
+  const pill = document.getElementById('smtp-pill');
+  const errEl = document.getElementById('smtp-err');
+  if(!pill) return;
+  try{
+    const ctrl = new AbortController();
+    setTimeout(()=>ctrl.abort(), 8000);
+    const r = await fetch('/api/email-sync', {signal:ctrl.signal});
+    const d = await r.json();
+    pill.className = 'smtp-pill '+(d.live?'live':'down');
+    pill.innerHTML = d.live?'🟢 SMTP Live':'🔴 SMTP Down';
+    if(errEl){errEl.textContent=d.live?'':(d.message||'Failed');errEl.style.display=d.live?'none':'block';}
+  }catch(e){
+    pill.className='smtp-pill down';
+    pill.innerHTML='🔴 SMTP Down';
+    if(errEl){errEl.textContent=e.name==='AbortError'?'Timed out':e.message;errEl.style.display='block';}
+  }
+}
+checkSMTP();
 </script>
 </body>
 </html>
