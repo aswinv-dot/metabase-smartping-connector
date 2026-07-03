@@ -3,63 +3,61 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>TerraTern Automation</title>
+<title>Automation Hub</title>
 <link rel="icon" type="image/png" href="https://terratern.com/images/favicon.png"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--navy:#00215C;--blue:#255CC1;--bg:#f0f4fb;--surface:#fff;--border:#dde6f5;--text:#00215C;--muted:#5a7ab5;--green:#1a9e5c;--font:'Inter',system-ui,sans-serif}
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
-.header{background:var(--navy);padding:0 24px;height:56px;display:flex;align-items:center;gap:12px}
-.logo img{height:28px}
-.sub{font-size:12px;color:#9acbfd;letter-spacing:1px;text-transform:uppercase;flex:1}
-.page{padding:40px 32px;max-width:1000px;margin:0 auto}
-.brand-section{margin-bottom:40px}
-.brand-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+[data-theme='dark']{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--navy:#0f172a}
+[data-theme='dark'] .header{background:#0f172a}
+[data-theme='dark'] .card-title,.brand-name{color:var(--text)}
+[data-theme='dark'] .stat-val{color:var(--text)}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;transition:background .2s}
+.header{background:var(--navy);padding:0 24px;height:52px;display:flex;align-items:center;gap:12px}
+.logo img{height:26px}
+.sub{font-size:11px;color:#9acbfd;letter-spacing:1px;text-transform:uppercase;flex:1}
+.theme-btn{background:transparent;border:1px solid rgba(154,203,253,.3);color:rgba(154,203,253,.8);padding:5px 10px;border-radius:20px;cursor:pointer;font-size:12px;font-family:var(--font)}
+.page{padding:32px 24px;max-width:960px;margin:0 auto}
+.brand-section{margin-bottom:36px}
+.brand-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1.5px solid var(--border)}
 .brand-logo{width:32px;height:32px;border-radius:8px;object-fit:contain}
 .brand-name{font-size:16px;font-weight:800;color:var(--navy)}
-.brand-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;background:rgba(26,158,92,.15);color:var(--green)}
+.brand-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
+.brand-tag.live{background:rgba(26,158,92,.15);color:var(--green)}
 .brand-tag.soon{background:#f0f4fb;color:var(--muted)}
 .cards-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:24px;text-decoration:none;color:var(--text);transition:all .15s;display:block;position:relative;overflow:hidden}
-.card:not(.disabled):hover{border-color:var(--blue);box-shadow:0 4px 20px rgba(0,33,92,.12);transform:translateY(-2px)}
-.card.disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
-.card-icon{font-size:32px;margin-bottom:12px}
-.card-title{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:6px}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:24px;text-decoration:none;color:var(--text);transition:all .15s;display:block;position:relative}
+.card:not(.disabled):hover{border-color:var(--blue);box-shadow:0 4px 20px rgba(0,33,92,.1);transform:translateY(-2px)}
+.card.disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.card-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.card-icon{font-size:24px}
+.card-title{font-size:14px;font-weight:800;color:var(--navy)}
 .card-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
-.card-stats{display:flex;gap:16px;flex-wrap:wrap}
-.stat{display:flex;flex-direction:column}
-.stat-val{font-size:18px;font-weight:800;color:var(--navy)}
-.stat-label{font-size:10px;color:var(--muted);font-weight:600}
-.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;margin-top:12px}
-.status-badge.live{background:rgba(26,158,92,.15);color:var(--green)}
-.status-badge.down{background:#fdecea;color:#e03e3e}
-.status-badge.checking{background:#f0f4fb;color:var(--muted)}
-.divider{border:none;border-top:1.5px solid var(--border);margin:32px 0}
-.coming-soon{position:absolute;top:12px;right:12px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;background:#f0f4fb;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.card-stats{display:flex;gap:20px;flex-wrap:wrap}
+.stat .sv{font-size:20px;font-weight:800;color:var(--navy)}
+.stat .sl{font-size:10px;color:var(--muted);font-weight:600}
+.status-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;margin-top:10px}
+.status-pill.live{background:rgba(26,158,92,.15);color:var(--green)}
+.status-pill.down{background:#fdecea;color:#e03e3e}
+.status-pill.loading{background:#f0f4fb;color:var(--muted)}
+.divider{border:none;border-top:1.5px solid var(--border);margin:28px 0}
+.coming-soon{position:absolute;top:12px;right:12px;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:#f0f4fb;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spin{display:inline-block;width:8px;height:8px;border:1.5px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
-
-[data-theme='dark']{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--navy:#1e293b}
-[data-theme='dark'] .header{background:#0f172a}
-[data-theme='dark'] .tab-nav a.active{background:#e2e8f0;color:#0f172a}
-.theme-btn{background:transparent;border:1px solid rgba(154,203,253,.3);color:rgba(154,203,253,.8);padding:5px 10px;border-radius:20px;cursor:pointer;font-size:12px;font-family:var(--font);flex-shrink:0}
-.theme-btn:hover{background:rgba(154,203,253,.15)}
+.spin{display:inline-block;width:8px;height:8px;border:1.5px solid rgba(90,122,181,.3);border-top-color:var(--muted);border-radius:50%;animation:spin .7s linear infinite}
 </style>
-
 <script>
 (function(){
-  const saved = localStorage.getItem('theme')||'light';
-  document.documentElement.setAttribute('data-theme', saved);
-  window.toggleTheme = function(){
-    const cur = document.documentElement.getAttribute('data-theme');
-    const next = cur==='dark'?'light':'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-    document.getElementById('theme-btn').textContent = next==='dark'?'☀️':'🌙';
+  const t=localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme',t);
+  window.toggleTheme=function(){
+    const c=document.documentElement.getAttribute('data-theme');
+    const n=c==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',n);
+    localStorage.setItem('theme',n);
+    document.getElementById('theme-btn').textContent=n==='dark'?'☀️':'🌙';
   };
   document.addEventListener('DOMContentLoaded',()=>{
-    const btn = document.getElementById('theme-btn');
-    if(btn) btn.textContent = saved==='dark'?'☀️':'🌙';
+    document.getElementById('theme-btn').textContent=t==='dark'?'☀️':'🌙';
   });
 })();
 </script>
@@ -68,117 +66,81 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 <div class="header">
   <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern"/></div>
   <div class="sub">Automation Hub</div>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
 </div>
 
 <div class="page">
-
-  <!-- TERRATERN -->
   <div class="brand-section">
     <div class="brand-header">
       <img class="brand-logo" src="https://terratern.com/images/favicon_192.png" alt="TerraTern"/>
       <span class="brand-name">TerraTern</span>
-      <span class="brand-tag">Live</span>
+      <span class="brand-tag live">Live</span>
     </div>
     <div class="cards-row">
-      <!-- WhatsApp -->
       <a class="card" href="/automation.html">
-        <div class="card-icon">💬</div>
-        <div class="card-title">WhatsApp Automation</div>
-        <div class="card-desc">Drip campaigns across GOC, GHC, AUSB, APR, Canada programs. R1→R2→R3 sequences with smart dedup.</div>
+        <div class="card-top"><span class="card-icon">💬</span><span class="card-title">WhatsApp Automation</span></div>
+        <div class="card-desc">Drip campaigns across GOC, GHC, AUSB, APR, Canada. R1→R2→R3 sequences with smart dedup.</div>
         <div class="card-stats">
-          <div class="stat"><span class="stat-val" id="wa-schedules"><span class="spin"></span></span><span class="stat-label">Active Schedules</span></div>
-          <div class="stat"><span class="stat-val" id="wa-sent"><span class="spin"></span></span><span class="stat-label">Sent Today</span></div>
+          <div class="stat"><div class="sv" id="wa-schedules"><span class="spin"></span></div><div class="sl">Active Schedules</div></div>
+          <div class="stat"><div class="sv" id="wa-sent"><span class="spin"></span></div><div class="sl">Sent Today</div></div>
         </div>
-        <div class="status-badge checking" id="wa-status"><span class="spin"></span> Checking</div>
+        <div class="status-pill loading" id="wa-status"><span class="spin"></span> Checking</div>
       </a>
-      <!-- Email -->
       <a class="card" href="/email-home.html">
-        <div class="card-icon">📧</div>
-        <div class="card-title">Email Marketing</div>
-        <div class="card-desc">SMTP via Growlytics. Compose campaigns, sync contacts from Metabase, track open & click rates.</div>
+        <div class="card-top"><span class="card-icon">📧</span><span class="card-title">Email Marketing</span></div>
+        <div class="card-desc">SMTP via Growlytics. Compose campaigns, sync contacts, track open & click rates.</div>
         <div class="card-stats">
-          <div class="stat"><span class="stat-val" id="em-contacts"><span class="spin"></span></span><span class="stat-label">Contacts</span></div>
-          <div class="stat"><span class="stat-val" id="em-sent"><span class="spin"></span></span><span class="stat-label">Sent All Time</span></div>
+          <div class="stat"><div class="sv" id="em-contacts"><span class="spin"></span></div><div class="sl">Contacts</div></div>
+          <div class="stat"><div class="sv" id="em-sent"><span class="spin"></span></div><div class="sl">Sent</div></div>
+          <div class="stat"><div class="sv" id="em-opened"><span class="spin"></span></div><div class="sl">Opened</div></div>
         </div>
-        <div class="status-badge checking" id="em-status"><span class="spin"></span> Checking</div>
+        <div class="status-pill loading" id="em-status"><span class="spin"></span> Checking</div>
       </a>
     </div>
   </div>
 
-  <hr class="divider"/>
+  <div class="divider"></div>
 
-  <!-- HIRENUDGE -->
   <div class="brand-section">
     <div class="brand-header">
-      <img src="https://hirenudge.ai/logo.svg" style="width:32px;height:32px;border-radius:8px;object-fit:contain" alt="HireNudge"/>
+      <img class="brand-logo" src="https://hirenudge.ai/logo.svg" alt="HireNudge"/>
       <span class="brand-name">HireNudge</span>
       <span class="brand-tag soon">Coming Soon</span>
     </div>
     <div class="cards-row">
-      <div class="card disabled">
-        <div class="coming-soon">Coming Soon</div>
-        <div class="card-icon">💬</div>
-        <div class="card-title">WhatsApp Automation</div>
-        <div class="card-desc">Job placement drip sequences for candidates across verticals.</div>
-      </div>
-      <div class="card disabled">
-        <div class="coming-soon">Coming Soon</div>
-        <div class="card-icon">📧</div>
-        <div class="card-title">Email Marketing</div>
-        <div class="card-desc">Automated email campaigns for HireNudge job seekers.</div>
-      </div>
+      <div class="card disabled"><div class="coming-soon">Coming Soon</div><div class="card-top"><span class="card-icon">💬</span><span class="card-title">WhatsApp Automation</span></div><div class="card-desc">Job placement drip sequences for candidates across verticals.</div></div>
+      <div class="card disabled"><div class="coming-soon">Coming Soon</div><div class="card-top"><span class="card-icon">📧</span><span class="card-title">Email Marketing</span></div><div class="card-desc">Automated email campaigns for HireNudge job seekers.</div></div>
     </div>
   </div>
-
 </div>
 
 <script>
 const SB='https://oagsgovnxgiszofgytre.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI';
-const H={apikey:KEY,Authorization:`Bearer ${KEY}`};
-
+const H={apikey:KEY,Authorization:`Bearer ${KEY}`,Prefer:'count=exact'};
 async function loadStats(){
-  // WA schedules
+  const today=new Date(Date.now()+330*60000).toISOString().split('T')[0];
+  const set=(id,v)=>document.getElementById(id).textContent=v;
+  try{const r=await fetch(`${SB}/rest/v1/campaign_schedule?active=eq.true&select=id`,{headers:H});set('wa-schedules',r.headers.get('content-range')?.split('/')?.[1]||'—');}catch{set('wa-schedules','—');}
   try{
-    const r=await fetch(`${SB}/rest/v1/campaign_schedule?active=eq.true&select=id`,{headers:{...H,Prefer:'count=exact'}});
-    const count=r.headers.get('content-range')?.split('/')?.[1]||'—';
-    document.getElementById('wa-schedules').textContent=count;
-  }catch(e){document.getElementById('wa-schedules').textContent='—';}
-
-  // WA sent today
+    const r=await fetch(`${SB}/rest/v1/sent_log?status=eq.success&sent_at=gte.${today}T00:00:00&select=id`,{headers:H});
+    const n=Number(r.headers.get('content-range')?.split('/')?.[1]||0);
+    set('wa-sent',n.toLocaleString());
+    const ws=document.getElementById('wa-status');
+    ws.className='status-pill '+(n>0?'live':'loading');
+    ws.textContent=n>0?'🟢 Active Today':'⏳ Scheduled';
+  }catch{set('wa-sent','—');}
+  try{const r=await fetch(`${SB}/rest/v1/email_contacts?select=id`,{headers:H});set('em-contacts',Number(r.headers.get('content-range')?.split('/')?.[1]||0).toLocaleString());}catch{set('em-contacts','—');}
+  try{const r=await fetch(`${SB}/rest/v1/email_sends?status=eq.sent&select=id`,{headers:H});set('em-sent',Number(r.headers.get('content-range')?.split('/')?.[1]||0).toLocaleString());}catch{set('em-sent','—');}
+  try{const r=await fetch(`${SB}/rest/v1/email_sends?opened_at=not.is.null&select=id`,{headers:H});set('em-opened',Number(r.headers.get('content-range')?.split('/')?.[1]||0).toLocaleString());}catch{set('em-opened','—');}
   try{
-    const today=new Date(Date.now()+330*60000).toISOString().split('T')[0];
-    const r=await fetch(`${SB}/rest/v1/sent_log?status=eq.success&sent_at=gte.${today}T00:00:00&select=id`,{headers:{...H,Prefer:'count=exact'}});
-    const count=r.headers.get('content-range')?.split('/')?.[1]||'0';
-    document.getElementById('wa-sent').textContent=Number(count).toLocaleString();
-    document.getElementById('wa-status').className='status-badge '+(Number(count)>0?'live':'checking');
-    document.getElementById('wa-status').textContent=Number(count)>0?'🟢 Active Today':'⏳ Scheduled';
-  }catch(e){document.getElementById('wa-sent').textContent='—';}
-
-  // Email contacts
-  try{
-    const r=await fetch(`${SB}/rest/v1/email_contacts?select=id`,{headers:{...H,Prefer:'count=exact'}});
-    const count=r.headers.get('content-range')?.split('/')?.[1]||'0';
-    document.getElementById('em-contacts').textContent=Number(count).toLocaleString();
-  }catch(e){document.getElementById('em-contacts').textContent='—';}
-
-  // Email sent
-  try{
-    const r=await fetch(`${SB}/rest/v1/email_sends?status=eq.sent&select=id`,{headers:{...H,Prefer:'count=exact'}});
-    const count=r.headers.get('content-range')?.split('/')?.[1]||'0';
-    document.getElementById('em-sent').textContent=Number(count).toLocaleString();
-  }catch(e){document.getElementById('em-sent').textContent='—';}
-
-  // SMTP status
-  try{
-    const r=await fetch('/api/email-sync');
-    const d=await r.json();
-    const badge=document.getElementById('em-status');
-    badge.className='status-badge '+(d.live?'live':'down');
-    badge.textContent=d.live?'🟢 SMTP Live':'🔴 SMTP Down';
-  }catch(e){document.getElementById('em-status').textContent='—';}
+    const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),8000);
+    const r=await fetch('/api/email-sync',{signal:ctrl.signal});const d=await r.json();
+    const es=document.getElementById('em-status');
+    es.className='status-pill '+(d.live?'live':'down');
+    es.textContent=d.live?'🟢 SMTP Live':'🔴 SMTP Down';
+  }catch{const es=document.getElementById('em-status');es.className='status-pill down';es.textContent='🔴 SMTP Down';}
 }
-
 window.onload=loadStats;
 </script>
 </body>
