@@ -445,6 +445,9 @@ async function preFetchLeads() {
   }
 }
 
+// Pre-fetch at 18:10 IST (12:40 UTC)
+cron.schedule('40 12 * * *', preFetchLeads, { timezone:'UTC' });
+
 // ── POLLER (every 5 min, 17:00–22:00 IST only) ────────────────
 const firedSlots = new Set();
 
