@@ -445,22 +445,32 @@ async function preFetchLeads() {
   }
 }
 
-// Fixed send times derived from known schedule config
-// Update these when schedule send_times change in Supabase UI
-const uniqueSendTimes = ['07:00','10:00'];
-log(`Configured send slots (IST): ${uniqueSendTimes.join(', ')}`);
-
-uniqueSendTimes.forEach(timeIST => {
-  const [hh, mm] = timeIST.split(':').map(Number);
-  const totalMinUTC = hh * 60 + mm - 330;
-  const utcH = Math.floor(((totalMinUTC % 1440) + 1440) % 1440 / 60);
-  const utcM = ((totalMinUTC % 1440) + 1440) % 1440 % 60;
-  const preFetchMinUTC = ((totalMinUTC - 10) % 1440 + 1440) % 1440;
-  const pfH = Math.floor(preFetchMinUTC / 60);
-  const pfM = preFetchMinUTC % 60;
-  log(`Registering: pre-fetch at ${pfH}:${String(pfM).padStart(2,'0')} UTC → slot ${timeIST} IST at ${utcH}:${String(utcM).padStart(2,'0')} UTC`);
-  cron.schedule(`${pfM} ${pfH} * * *`, preFetchLeads, { timezone:'UTC' });
-  cron.schedule(`${utcM} ${utcH} * * *`, () => runCron(timeIST).catch(console.error), { timezone:'UTC' });
-});
-
-log('Service running — waiting for scheduled times...');
+// Fetch send_times from Supabase at startup — register cron jobs dynamically
+(async () => {
+  try {
+    const schedules = await sbGet('campaign_schedule','?active=eq.true&select=send_times');
+    const uniqueSendTimes = [...new Set(schedules.flatMap(s => {
+      try { return Array.isArray(s.send_times) ? s.send_times : JSON.parse(s.send_times||'[]'); }
+      catch { return []; }
+    }))].sort();
+    log(`Configured send slots (IST): ${uniqueSendTimes.join(', ')}`);
+    uniqueSendTimes.forEach(timeIST => {
+      const [hh, mm] = timeIST.split(':').map(Number);
+      const totalMinUTC = hh * 60 + mm - 330;
+      const utcH = Math.floor(((totalMinUTC % 1440) + 1440) % 1440 / 60);
+      const utcM = ((totalMinUTC % 1440) + 1440) % 1440 % 60;
+      const preFetchMinUTC = ((totalMinUTC - 10) % 1440 + 1440) % 1440;
+      const pfH = Math.floor(preFetchMinUTC / 60);
+      const pfM = preFetchMinUTC % 60;
+      log(`Registering: pre-fetch at ${pfH}:${String(pfM).padStart(2,'0')} UTC → slot ${timeIST} IST at ${utcH}:${String(utcM).padStart(2,'0')} UTC`);
+      cron.schedule(`${pfM} ${pfH} * * *`, preFetchLeads, { timezone:'UTC' });
+      cron.schedule(`${utcM} ${utcH} * * *`, () => runCron(timeIST).catch(console.error), { timezone:'UTC' });
+    });
+  } catch(e) {
+    // Fallback to default if Supabase unavailable at startup
+    log(`Failed to fetch send_times from Supabase: ${e.message} — using default 18:00 IST`);
+    cron.schedule('50 12 * * *', preFetchLeads, { timezone:'UTC' });
+    cron.schedule('30 12 * * *', () => runCron('18:00').catch(console.error), { timezone:'UTC' });
+  }
+  log('Service running — waiting for scheduled times...');
+})();
