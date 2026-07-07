@@ -321,18 +321,36 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
         continue;
       }
 
-      const toSend=[], newReactivated=[];
+      // Sort consistently by lead_id for stable daily batching
+      matched.sort((a,b) => String(a.lead_id||a.id||'').localeCompare(String(b.lead_id||b.id||'')));
+
+      // Check reactivation on FULL pool first
+      const newReactivated = [];
       for (const row of matched) {
-        if (toSend.length>=perSlot) break;
-        const phone=normalizePhone(row.mobile||'');
+        const phone = normalizePhone(row.mobile||'');
         if (!phone) continue;
-        if (isReactivated(row)) { if(!reactivatedPhones.has(phone)){newReactivated.push({phone,campaign:campaignName,utm_campaign:row.latest_utm_campaign});reactivatedPhones.add(phone);} result.skipped++; continue; }
-        if (capReachedPhones.has(phone)||sentPhones.has(phone)||failedPhones.has(phone)) { result.skipped++; continue; }
-        toSend.push(row);
+        if (isReactivated(row) && !reactivatedPhones.has(phone)) {
+          newReactivated.push({phone, campaign:campaignName, utm_campaign:row.latest_utm_campaign});
+          reactivatedPhones.add(phone);
+        }
+      }
+      if (newReactivated.length) {
+        await sbPost('reactivated_list', newReactivated, '?on_conflict=phone');
+        log(`Added ${newReactivated.length} reactivated phones`);
       }
 
-      log(`Sending to ${toSend.length} leads`);
-      if (newReactivated.length) await sbPost('reactivated_list',newReactivated,'?on_conflict=phone');
+      // Offset-based batching — skip already-sent, take next batchSize
+      const toSend = [];
+      let skippedCount = 0;
+      for (const row of matched) {
+        if (toSend.length >= batchSize) break;
+        const phone = normalizePhone(row.mobile||'');
+        if (!phone) continue;
+        if (reactivatedPhones.has(phone)||capReachedPhones.has(phone)||failedPhones.has(phone)) { result.skipped++; continue; }
+        if (sentPhones.has(phone)) { skippedCount++; continue; }
+        toSend.push(row);
+      }
+      log(`Offset: ${skippedCount} already sent | Sending to ${toSend.length} leads`);
 
       const BATCH=20, newSentLog=[], newFailLog=[];
       let sent=0,failed=0;
