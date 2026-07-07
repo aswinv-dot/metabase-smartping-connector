@@ -190,79 +190,21 @@ function getCurrentPhase(s) {
   return {phase:'DONE',dayNum,campaign:null};
 }
 
-// ── HARDCODED CONFIG ──────────────────────────────────────────
-const HARDCODED_SCHEDULES = [
-  { id:'mr1u9lay', name:'GOC_July', active:false, start_date:'2026-07-02',
-    send_times:['07:00'],
-    r1_campaign:'GOC_hiring_status_R1', r1_days:8, gap1_days:1,
-    r2_campaign:'GOC_hiring_activity_R2', r2_days:8, gap2_days:1,
-    r3_campaign:'GOC_hiring_activity_R2', r3_days:8,
-    filters_json:[
-      {op:'contains',val:'Immigration Germany',field:'application',logic:'AND'},
-      {op:'contains',val:'goc',field:'adset',logic:'AND'},
-      {op:'contains',val:'germ',field:'adset',logic:'OR'},
-      {op:'not_contains',val:'Work Germany',field:'application',logic:'AND'},
-      {op:'not_contains',val:'Ausbildung Germany',field:'application',logic:'AND'}
-    ]},
-  { id:'mr1qhbuw', name:'GHC_July', active:false, start_date:'2026-07-02',
-    send_times:['07:00'],
-    r1_campaign:'GHC_latest_salary_R1', r1_days:8, gap1_days:1,
-    r2_campaign:'GHC_recruitment_update_R2', r2_days:8, gap2_days:1,
-    r3_campaign:'GHC_latest_salary_R1', r3_days:8,
-    filters_json:[
-      {op:'contains',val:'healthcare',field:'application',logic:'AND'},
-      {op:'contains',val:'ghc',field:'adset',logic:'AND'},
-      {op:'contains',val:'grmny',field:'adset',logic:'OR'}
-    ]},
-  { id:'mr33dzgm', name:'AUSB_July', active:false, start_date:'2026-07-02',
-    send_times:['07:00'],
-    r1_campaign:'Ausb_stipend_update_R1', r1_days:8, gap1_days:1,
-    r2_campaign:'latest_ausb_update_R2', r2_days:8, gap2_days:1,
-    r3_campaign:'latest_ausb_update_R2', r3_days:8,
-    filters_json:[
-      {op:'contains',val:'Work Germany',field:'application',logic:'AND'},
-      {op:'contains',val:'Ausbildung Germany',field:'application',logic:'OR'},
-      {op:'contains',val:'Ausb',field:'adset',logic:'AND'}
-    ]},
-  { id:'mr1wazu4', name:'APR_July', active:false, start_date:'2026-07-02',
-    send_times:['10:00'],
-    r1_campaign:'apr_hiring_status_r1', r1_days:8, gap1_days:1,
-    r2_campaign:'APR_eoi_update_R2', r2_days:8, gap2_days:1,
-    r3_campaign:'APR_eoi_update_R2', r3_days:8,
-    filters_json:[
-      {op:'contains',val:'Immigration Australia',field:'application',logic:'AND'},
-      {op:'contains',val:'Aust',field:'adset',logic:'AND'}
-    ]},
-  { id:'mr1wgqou', name:'Canada_July', active:false, start_date:'2026-07-02',
-    send_times:['10:00'],
-    r1_campaign:'CPR_hiring_status_R1', r1_days:8, gap1_days:1,
-    r2_campaign:'CPR_express_entry_R2', r2_days:8, gap2_days:1,
-    r3_campaign:'CPR_express_entry_R2', r3_days:8,
-    filters_json:[
-      {op:'contains',val:'Immigration Canada',field:'application',logic:'AND'},
-      {op:'contains',val:'canad',field:'adset',logic:'AND'}
-    ]},
-];
-
-const HARDCODED_CAMPAIGNS = {
-  'GHC_latest_salary_R1':      { campaign_name:'GHC_latest_salary_R1',      template_params:['{field:highest_education}','Staff Nurse','₹3,50,000 / Month*','{field:work_experience}','01 July 2026','cutt.ly/Gt5VtzPA','{field:bde}'], media_url:'', media_type:'' },
-  'GHC_recruitment_update_R2': { campaign_name:'GHC_recruitment_update_R2', template_params:['120+','June 30, 2026','https://cutt.ly/2t5VaRlL','{field:bde}'], media_url:'', media_type:'' },
-  'GOC_hiring_status_R1':      { campaign_name:'GOC_hiring_status_R1',      template_params:['Germany','IT, Engg, Management','{field:work_experience}','₹4,50,000 / month*','July 1, 2026','https://cutt.ly/Wt5VeOKN','{field:bde}'], media_url:'', media_type:'' },
-  'GOC_hiring_activity_R2':    { campaign_name:'GOC_hiring_activity_R2',    template_params:['Germany job market','{field:work_experience}','₹4,50,000 / month*','Berlin, Munich, Hamburg','July 1, 2026','https://cutt.ly/Et5Vrx9q','{field:bde}'], media_url:'', media_type:'' },
-  'apr_hiring_status_r1':      { campaign_name:'apr_hiring_status_r1',      template_params:['Australia','IT, Engg, Healthcare','{field:work_experience}','₹5,70,000 / month*','June 4, 2026','https://cutt.ly/Jt5Vjzse','{field:bde}'], media_url:'', media_type:'' },
-  'APR_eoi_update_R2':         { campaign_name:'APR_eoi_update_R2',         template_params:['IT, Engg and Healthcare','75 Points','June 4, 2026','https://cutt.ly/Zt5VkrID','{field:bde}'], media_url:'', media_type:'' },
-  'CPR_hiring_status_R1':      { campaign_name:'CPR_hiring_status_R1',      template_params:['Canada','IT, Engg and Healthcare','{field:work_experience}','₹5,00,000 / month*','June 26, 2026','https://cutt.ly/gt5VlqL2','{field:bde}'], media_url:'', media_type:'' },
-  'CPR_express_entry_R2':      { campaign_name:'CPR_express_entry_R2',      template_params:['IT and Engg','516','4000','June 23, 2026','https://cutt.ly/zt5VlnL7','{field:bde}'], media_url:'', media_type:'' },
-};
-
 // ── MAIN CRON JOB ─────────────────────────────────────────────
 async function runCron(timeSlot, onlyScheduleIds = null) {
   const startTime = Date.now();
   log(`=== CRON START: ${timeSlot} ===`);
   const result = { slot:timeSlot, sent:0, failed:0, skipped:0, schedules:[] };
   try {
-    const schedules   = HARDCODED_SCHEDULES;
-    const campaignMap = HARDCODED_CAMPAIGNS;
+    // Fetch schedules + campaigns from Supabase (UI controls active/pause)
+    const [sbSchedules, sbCampaigns] = await Promise.all([
+      sbGet('campaign_schedule','?active=eq.true').catch(()=>[]),
+      sbGet('campaigns','?active=eq.true').catch(()=>[]),
+    ]);
+    const schedules = sbSchedules;
+    const campaignMap = {};
+    sbCampaigns.forEach(c => campaignMap[c.campaign_name] = c);
+
     const reactivatedPhones = await getReactivatedPhones().catch(()=>new Set());
     const capReachedPhones  = await getCapReachedPhones().catch(()=>new Set());
 
@@ -503,7 +445,9 @@ async function preFetchLeads() {
   }
 }
 
-const uniqueSendTimes = [...new Set(HARDCODED_SCHEDULES.flatMap(s=>s.send_times))].sort();
+// Fixed send times derived from known schedule config
+// Update these when schedule send_times change in Supabase UI
+const uniqueSendTimes = ['07:00','10:00'];
 log(`Configured send slots (IST): ${uniqueSendTimes.join(', ')}`);
 
 uniqueSendTimes.forEach(timeIST => {
