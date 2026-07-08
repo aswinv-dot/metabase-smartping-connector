@@ -452,31 +452,37 @@ cron.schedule('40 12 * * *', preFetchLeads, { timezone:'UTC' });
 const firedSlots = new Set();
 
 cron.schedule('*/5 * * * *', async () => {
-  const now = nowIST(); // UTC+5:30 stored as UTC — getUTCHours() = IST hours
+  const now = nowIST();
   const istH = now.getUTCHours();
   const istM = now.getUTCMinutes();
   const totalIST = istH * 60 + istM;
-  if (totalIST < 17*60 || totalIST > 22*60) return;
+  if (totalIST < 16*60+30 || totalIST > 22*60) return;
 
   try {
     const schedules = await sbGet('campaign_schedule','?active=eq.true&select=id,name,send_times');
+    // Collect all due schedule+slot pairs
+    const due = [];
     for (const s of schedules) {
       const times = Array.isArray(s.send_times) ? s.send_times : [];
       for (const t of times) {
         const [th, tm] = t.split(':').map(Number);
-        const slotTotal = th * 60 + tm;
-        const diff = Math.abs(totalIST - slotTotal);
+        const diff = Math.abs(totalIST - (th*60+tm));
         const key = `${s.id}_${t}_${now.toISOString().slice(0,10)}`;
         if (diff <= 2 && !firedSlots.has(key)) {
           firedSlots.add(key);
-          log(`Poller: firing slot ${t} IST for schedule ${s.name}`);
-          runCron(t).catch(e => log(`Poller run error: ${e.message}`));
+          due.push({ id: s.id, name: s.name, slot: t });
         }
       }
+    }
+    // Run SEQUENTIALLY — each waits for sent_log writes before next starts
+    for (const { id, name, slot } of due) {
+      log(`Poller: firing slot ${slot} IST for schedule ${name}`);
+      try { await runCron(slot, new Set([id])); }
+      catch(e) { log(`Poller run error (${name}): ${e.message}`); }
     }
   } catch(e) {
     log(`Poller fetch error: ${e.message}`);
   }
 }, { timezone: 'UTC' });
 
-log('Service running — poller active 17:00–22:00 IST every 5 min');
+log('Service running — poller active 16:30–22:00 IST every 5 min');
