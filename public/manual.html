@@ -7,58 +7,65 @@
 <link rel="icon" type="image/png" href="https://terratern.com/images/favicon.png"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--navy:#00215C;--blue:#255CC1;--bg:#f0f4fb;--surface:#fff;--border:#dde6f5;--text:#00215C;--muted:#5a7ab5;--green:#1a9e5c;--red:#e03e3e;--font:'Inter',system-ui,sans-serif;--radius:8px}
+:root{--navy:#00215C;--blue:#255CC1;--bg:#f0f4fb;--surface:#fff;--border:#dde6f5;--text:#00215C;--muted:#5a7ab5;--green:#1a9e5c;--red:#e03e3e;--amber:#b07d00;--font:'Inter',system-ui,sans-serif;--radius:8px}
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
 .header{background:var(--navy);padding:0 24px;height:52px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
 .logo img{height:26px}.sub{font-size:11px;color:#9acbfd;letter-spacing:1px;text-transform:uppercase;flex:1}
 .tab-nav{display:flex;align-items:center;gap:4px;flex:1;justify-content:center}
 .tab-nav a{font-size:12px;font-weight:600;color:rgba(154,203,253,.7);text-decoration:none;padding:6px 14px;border-radius:20px;transition:all .15s;white-space:nowrap}
-.tab-nav a:hover{color:#fff}
-.tab-nav a.active{background:#fff;color:var(--navy)}
-.page{padding:24px;max-width:800px;margin:0 auto}
+.tab-nav a:hover{color:#fff}.tab-nav a.active{background:#fff;color:var(--navy)}
+.page{padding:24px;max-width:860px;margin:0 auto}
 .section{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
-.section-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.section-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
 .form-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block}
-.form-input,.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none}
-.form-input:focus,.form-select:focus{border-color:var(--blue)}
-.form-group{margin-bottom:12px}
-.btn{background:var(--blue);color:#fff;border:none;padding:8px 18px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
-.btn:hover{background:var(--navy)}
-.btn:disabled{opacity:.6;cursor:not-allowed}
-.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:7px 14px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px}
-.btn-green{background:var(--green);color:#fff;border:none;padding:10px 24px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:700;border-radius:6px;width:100%;transition:all .15s}
-.btn-green:hover{background:#158a4e}
-.btn-green:disabled{opacity:.6;cursor:not-allowed}
-.filter-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.filter-row{border:1.5px solid var(--border);border-radius:6px;padding:10px;background:#fafcff}
-.filter-top{display:flex;gap:6px;margin-bottom:6px;align-items:center}
-.filter-bottom{display:grid;grid-template-columns:1fr 32px;gap:6px;align-items:center}
-.filter-row select,.filter-row input[type="text"]{border:1.5px solid var(--border);border-radius:5px;color:var(--text);padding:6px 8px;font-family:var(--font);font-size:11px;outline:none;width:100%;background:#fff}
-.filter-row select:focus,.filter-row input[type="text"]:focus{border-color:var(--blue)}
-.filter-row select:disabled{opacity:.4;background:#f5f5f5}
+.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none}
+.form-select:focus{border-color:var(--blue)}
+.btn{background:var(--blue);color:#fff;border:none;padding:8px 16px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;transition:all .15s}
+.btn:hover{background:var(--navy)}.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue);padding:7px 12px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;border-radius:6px}
+.btn-green{background:var(--green);color:#fff;border:none;padding:12px 24px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:700;border-radius:6px;width:100%;transition:all .15s}
+.btn-green:hover{background:#158a4e}.btn-green:disabled{opacity:.5;cursor:not-allowed}
+/* Metabase filters */
+.mf-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.mf-row{border:1.5px solid var(--border);border-radius:6px;padding:10px;background:#fafcff}
+.mf-top{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.mf-bottom{display:grid;grid-template-columns:1fr 32px;gap:6px;align-items:center}
+.mf-row select,.mf-row input[type="text"]{border:1.5px solid var(--border);border-radius:5px;padding:6px 8px;font-family:var(--font);font-size:11px;outline:none;width:100%;background:#fff;color:var(--text)}
+.mf-row select:focus,.mf-row input[type="text"]:focus{border-color:var(--blue)}
+.mf-row select:disabled{opacity:.4;background:#f5f5f5}
 .logic-toggle{display:flex;border:1.5px solid var(--border);border-radius:5px;overflow:hidden;flex-shrink:0}
 .lt-btn{background:#fff;border:none;color:var(--muted);padding:4px 8px;cursor:pointer;font-family:var(--font);font-size:9px;font-weight:700;transition:all .15s}
 .lt-btn.active{background:var(--blue);color:#fff}
 .lt-spacer{width:60px;flex-shrink:0}
-.remove-btn{background:transparent;border:1.5px solid #fca5a5;color:var(--red);width:32px;height:32px;cursor:pointer;font-size:14px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+.rm-btn{background:transparent;border:1.5px solid #fca5a5;color:var(--red);width:32px;height:32px;cursor:pointer;font-size:14px;border-radius:5px;display:flex;align-items:center;justify-content:center}
 .add-filter-btn{background:transparent;border:1.5px dashed var(--border);color:var(--muted);padding:7px;cursor:pointer;font-family:var(--font);font-size:11px;border-radius:5px;width:100%;margin-bottom:10px}
 .add-filter-btn:hover{border-color:var(--blue);color:var(--blue)}
-.match-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;background:#f0f5ff;border:1.5px solid var(--border);margin-bottom:10px}
-.match-count{font-size:22px;font-weight:800;color:var(--navy)}
+/* Supabase filters */
+.sb-filters{display:flex;flex-direction:column;gap:8px}
+.sb-filter-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s}
+.sb-filter-row:hover{border-color:var(--blue);background:#f0f5ff}
+.sb-filter-row input[type="checkbox"]{width:15px;height:15px;cursor:pointer;accent-color:var(--blue)}
+.sb-filter-label{font-size:12px;font-weight:600;color:var(--text)}
+.sb-filter-desc{font-size:10px;color:var(--muted);margin-top:1px}
+/* Match bar */
+.match-bar{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:6px;background:#f0f5ff;border:1.5px solid var(--border);margin-bottom:14px}
+.match-count{font-size:28px;font-weight:800;color:var(--navy);line-height:1}
 .match-label{font-size:11px;color:var(--muted)}
+/* Preview */
 .preview-box{background:#f8faff;border:1.5px solid var(--border);border-radius:6px;padding:14px;margin-bottom:14px}
 .preview-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f4fb;font-size:12px}
 .preview-row:last-child{border-bottom:none}
-.preview-key{color:var(--muted)}.preview-val{font-weight:700;color:var(--navy)}
+.preview-key{color:var(--muted)}.preview-val{font-weight:700;color:var(--navy);text-align:right;max-width:60%}
+.warn-bar{background:#fff3cd;border:1.5px solid var(--yellow,#f1c819);border-radius:6px;padding:10px 14px;font-size:11px;font-weight:600;color:var(--amber);margin-bottom:10px}
 .status-msg{font-size:12px;font-weight:600;margin-top:10px;text-align:center}
 .status-msg.ok{color:var(--green)}.status-msg.err{color:var(--red)}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(37,92,193,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
 </style>
 </head>
 <body>
 <div class="header">
-  <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt="TerraTern"/></div>
+  <div class="logo"><img src="https://terratern.com/images/favicon_192.png" alt=""/></div>
   <div class="sub">Manual</div>
   <nav class="tab-nav">
     <a href="/home.html">🏠 Home</a>
@@ -72,26 +79,47 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <div class="page">
 
-  <!-- STEP 1: LEAD FILTERS -->
+  <!-- STEP 1A: METABASE FILTERS -->
   <div class="section">
-    <div class="section-title">Step 1 — Lead Filters</div>
-    <div class="filter-list" id="filter-list"></div>
-    <button class="add-filter-btn" onclick="addFilter()">+ Add Filter</button>
-    <div style="display:flex;gap:8px">
+    <div class="section-title">
+      <span>Step 1A — Metabase Filters</span>
       <button class="btn" onclick="fetchLeads()" id="fetch-btn">↻ Fetch Leads</button>
-      <button class="btn-ghost" onclick="clearFilters()">Clear</button>
+    </div>
+    <div class="mf-list" id="mf-list"><div style="font-size:12px;color:var(--muted)">No filters — will match all leads</div></div>
+    <button class="add-filter-btn" onclick="addMF()">+ Add Metabase Filter</button>
+    <div id="fetch-status" style="font-size:11px;color:var(--muted)"></div>
+  </div>
+
+  <!-- STEP 1B: SUPABASE FILTERS -->
+  <div class="section">
+    <div class="section-title">Step 1B — Supabase Filters (Exclusions)</div>
+    <div class="sb-filters">
+      <label class="sb-filter-row">
+        <input type="checkbox" id="excl-today" checked onchange="applyAndShow()"/>
+        <div><div class="sb-filter-label">Exclude sent today</div><div class="sb-filter-desc">Skip leads who received any campaign message today</div></div>
+      </label>
+      <label class="sb-filter-row">
+        <input type="checkbox" id="excl-reactivated" checked onchange="applyAndShow()"/>
+        <div><div class="sb-filter-label">Exclude reactivated</div><div class="sb-filter-desc">Skip leads who responded via WhatsApp/SMS/Email/IVR</div></div>
+      </label>
+      <label class="sb-filter-row">
+        <input type="checkbox" id="excl-campaign" onchange="applyAndShow()"/>
+        <div><div class="sb-filter-label">Exclude already sent this campaign</div><div class="sb-filter-desc">Skip leads who ever received the selected campaign</div></div>
+      </label>
+      <label class="sb-filter-row">
+        <input type="checkbox" id="only-fresh" onchange="applyAndShow()"/>
+        <div><div class="sb-filter-label">Only fresh leads</div><div class="sb-filter-desc">Include only leads who have never received any campaign</div></div>
+      </label>
     </div>
   </div>
 
   <!-- STEP 2: CAMPAIGN -->
   <div class="section">
     <div class="section-title">Step 2 — Select Campaign</div>
-    <div class="form-group">
-      <label class="form-label">Campaign</label>
-      <select class="form-select" id="campaign-select" onchange="updatePreview()">
-        <option value="">Loading campaigns...</option>
-      </select>
-    </div>
+    <select class="form-select" id="campaign-select" onchange="onCampaignChange()">
+      <option value="">Select campaign...</option>
+    </select>
+    <div id="daily-warn" style="display:none" class="warn-bar" style="margin-top:10px">⚠ This campaign was already sent today</div>
   </div>
 
   <!-- STEP 3: PREVIEW + SEND -->
@@ -103,12 +131,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div class="match-label">leads matched</div>
       </div>
       <div style="flex:1"></div>
-      <div id="fetch-status" style="font-size:11px;color:var(--muted)">Fetch leads to see count</div>
+      <div id="match-status" style="font-size:11px;color:var(--muted)">Fetch leads first</div>
     </div>
     <div class="preview-box" id="preview-box" style="display:none">
       <div class="preview-row"><span class="preview-key">Campaign</span><span class="preview-val" id="pv-campaign">—</span></div>
-      <div class="preview-row"><span class="preview-key">Leads</span><span class="preview-val" id="pv-leads">—</span></div>
-      <div class="preview-row"><span class="preview-key">Template Params</span><span class="preview-val" id="pv-params">—</span></div>
+      <div class="preview-row"><span class="preview-key">Matched leads</span><span class="preview-val" id="pv-leads">—</span></div>
+      <div class="preview-row"><span class="preview-key">Excluded (sent today)</span><span class="preview-val" id="pv-excl-today">—</span></div>
+      <div class="preview-row"><span class="preview-key">Excluded (reactivated)</span><span class="preview-val" id="pv-excl-react">—</span></div>
+      <div class="preview-row"><span class="preview-key">Template params</span><span class="preview-val" id="pv-params">—</span></div>
     </div>
     <button class="btn-green" id="send-btn" onclick="confirmSend()" disabled>📤 Send Campaign</button>
     <div class="status-msg" id="status-msg"></div>
@@ -117,24 +147,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 </div>
 
 <script>
-const CAMPAIGNS_API   = '/api/campaigns';
-const METABASE_PROXY  = '/api/metabase-proxy';
-const TRIGGER_API     = 'https://patient-solace-production.up.railway.app/trigger';
-const SB              = 'https://oagsgovnxgiszofgytre.supabase.co';
-const KEY             = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI';
-const sbH             = { apikey:KEY, Authorization:`Bearer ${KEY}` };
+const CAMPAIGNS_API  = '/api/campaigns';
+const METABASE_PROXY = '/api/metabase-proxy';
+const SB  = 'https://oagsgovnxgiszofgytre.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI';
+const sbH = { apikey:KEY, Authorization:`Bearer ${KEY}` };
+const SMARTPING_URL = 'https://backend.api-wa.co/campaign/smartping/api/v2';
+const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4';
 
 const FIELDS = ['current_lead_status','current_lead_stage','application','application_count',
   'mql_status','webinar_booked','webinar_attended','webinar_program','state','utm_source',
   'adset','latest_utm_campaign','bde','otp_verified','highest_education','work_experience',
-  'calls_attempted','connected_count','first_call_at','created_at','updated_at'];
-const OPERATORS = [
-  {value:'is',label:'is',needsVal:true},{value:'is_not',label:'is not',needsVal:true},
-  {value:'contains',label:'contains',needsVal:true},{value:'not_contains',label:'does not contain',needsVal:true},
-  {value:'has_value',label:'has any value',needsVal:false},{value:'is_empty',label:'is empty',needsVal:false},
+  'calls_attempted','connected_count','created_at','updated_at'];
+const OPS = [
+  {v:'is',l:'is',nv:true},{v:'is_not',l:'is not',nv:true},
+  {v:'contains',l:'contains',nv:true},{v:'not_contains',l:'does not contain',nv:true},
+  {v:'has_value',l:'has any value',nv:false},{v:'is_empty',l:'is empty',nv:false},
 ];
 
-let filters = [], leads = [], campaigns = [], fieldValCache = {}, fetchedOnce = false;
+let mfFilters=[], allLeads=[], campaigns=[], fieldValCache={}, fetched=false;
+let sbSentToday=new Set(), sbReactivated=new Set(), sbSentCampaign=new Set(), sbAllSent=new Set();
 
 // ── INIT ──────────────────────────────────────────────────────
 async function loadCampaigns() {
@@ -145,54 +177,7 @@ async function loadCampaigns() {
     const sel = document.getElementById('campaign-select');
     sel.innerHTML = '<option value="">Select campaign...</option>' +
       campaigns.map(c=>`<option value="${c.campaign_name}">${c.campaign_name}</option>`).join('');
-  } catch(e) { console.warn('Campaigns load failed', e.message); }
-}
-
-// ── FILTERS ───────────────────────────────────────────────────
-function addFilter() {
-  filters.push({logic:'AND', field:FIELDS[0], op:'is', val:''});
-  renderFilters();
-}
-function removeFilter(i) { filters.splice(i,1); renderFilters(); }
-function setFL(i,v) { filters[i].logic=v; renderFilters(); }
-function updateFilter(i,k,v) {
-  filters[i][k]=v;
-  if(k==='field') { filters[i].val=''; renderFilters(); }
-  if(k==='op') renderFilters();
-}
-function clearFilters() {
-  filters=[]; leads=[]; fetchedOnce=false;
-  document.getElementById('match-count').textContent='—';
-  document.getElementById('fetch-status').textContent='Fetch leads to see count';
-  document.getElementById('preview-box').style.display='none';
-  document.getElementById('send-btn').disabled=true;
-  renderFilters();
-}
-
-function renderFilters() {
-  const list = document.getElementById('filter-list');
-  if (!filters.length) { list.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">No filters — will send to ALL leads</div>'; return; }
-  list.innerHTML = filters.map((f,i) => {
-    const fOpts = FIELDS.map(ff=>`<option value="${ff}" ${f.field===ff?'selected':''}>${ff}</option>`).join('');
-    const oOpts = OPERATORS.map(o=>`<option value="${o.value}" ${f.op===o.value?'selected':''}>${o.label}</option>`).join('');
-    const curOp = OPERATORS.find(o=>o.value===f.op);
-    const needVal = curOp?.needsVal !== false;
-    const isText = ['application','adset','latest_utm_campaign','webinar_program'].includes(f.field);
-    let valEl = '';
-    if (!needVal) valEl = `<select disabled><option>—</option></select>`;
-    else if (!fetchedOnce || isText) valEl = `<input type="text" value="${esc(f.val)}" placeholder="type value" oninput="updateFilter(${i},'val',this.value)"/>`;
-    else {
-      const vals = fieldValCache[f.field]||[];
-      if (!vals.length) valEl = `<input type="text" value="${esc(f.val)}" placeholder="type value" oninput="updateFilter(${i},'val',this.value)"/>`;
-      else valEl = `<select onchange="updateFilter(${i},'val',this.value)">${vals.map(v=>`<option value="${esc(v)}" ${f.val===v?'selected':''}>${v===''?'(empty)':esc(v)}</option>`).join('')}</select>`;
-    }
-    const logicEl = i===0 ? `<div class="lt-spacer"></div>` :
-      `<div class="logic-toggle"><button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setFL(${i},'AND')">AND</button><button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setFL(${i},'OR')">OR</button></div>`;
-    return `<div class="filter-row">
-      <div class="filter-top">${logicEl}<select style="flex:1" onchange="updateFilter(${i},'field',this.value)">${fOpts}</select><select style="flex:1" onchange="updateFilter(${i},'op',this.value)">${oOpts}</select></div>
-      <div class="filter-bottom">${valEl}<button class="remove-btn" onclick="removeFilter(${i})">×</button></div>
-    </div>`;
-  }).join('');
+  } catch(e) {}
 }
 
 // ── FETCH LEADS ───────────────────────────────────────────────
@@ -200,140 +185,208 @@ async function fetchLeads() {
   const btn = document.getElementById('fetch-btn');
   const status = document.getElementById('fetch-status');
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>Fetching...';
-  status.textContent='Fetching from Metabase...';
+  status.textContent='Fetching Metabase leads...';
   try {
     const r = await fetch(METABASE_PROXY);
-    leads = await r.json();
-    if (!Array.isArray(leads)) throw new Error('Bad response');
-
-    // Build field value cache for dropdowns
-    fieldValCache = {};
-    FIELDS.forEach(field => {
-      const seen = new Set(), vals = [];
-      leads.forEach(row => {
-        const v = row[field];
-        const s = v===null||v===undefined||String(v).trim()==='' ? '' : String(v).trim();
-        if (!seen.has(s)) { seen.add(s); vals.push(s); }
+    allLeads = await r.json();
+    if (!Array.isArray(allLeads)) throw new Error('Bad response');
+    // Build field value cache
+    fieldValCache={};
+    FIELDS.forEach(f=>{
+      const seen=new Set(),vals=[];
+      allLeads.forEach(row=>{
+        const v=row[f]; const s=v===null||v===undefined||String(v).trim()===''?'':String(v).trim();
+        if(!seen.has(s)){seen.add(s);vals.push(s);}
       });
-      fieldValCache[field] = vals.filter(v=>v!=='').sort();
+      fieldValCache[f]=vals.filter(v=>v!=='').sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
     });
-    fetchedOnce = true;
-    renderFilters();
+    fetched=true;
+    renderMF();
+    status.textContent=`✓ ${allLeads.length.toLocaleString()} leads fetched`;
+    // Fetch Supabase dedup data in parallel
+    await fetchSBData();
     applyAndShow();
-    status.textContent=`✓ ${leads.length.toLocaleString()} total leads fetched`;
-  } catch(e) {
-    status.textContent='Failed: '+e.message;
-  }
+  } catch(e) { status.textContent='Failed: '+e.message; }
   btn.disabled=false; btn.innerHTML='↻ Fetch Leads';
 }
 
-function applyAndShow() {
-  const matched = applyFilters(leads, filters);
-  document.getElementById('match-count').textContent = matched.toLocaleString ? matched.length.toLocaleString() : matched.length;
-  updatePreview(matched.length);
-  document.getElementById('send-btn').disabled = matched.length === 0 || !document.getElementById('campaign-select').value;
+async function fetchSBData() {
+  const today = new Date(Date.now()+330*60000).toISOString().split('T')[0];
+  try {
+    const [r1,r2,r3] = await Promise.all([
+      fetch(`${SB}/rest/v1/sent_log?sent_at=gte.${today}T00:00:00&status=eq.success&select=phone`, {headers:sbH}),
+      fetch(`${SB}/rest/v1/reactivated_list?select=phone`, {headers:sbH}),
+      fetch(`${SB}/rest/v1/sent_log?status=eq.success&select=phone`, {headers:sbH}),
+    ]);
+    const [d1,d2,d3] = await Promise.all([r1.json(),r2.json(),r3.json()]);
+    sbSentToday = new Set((d1||[]).map(x=>String(x.phone)));
+    sbReactivated = new Set((d2||[]).map(x=>String(x.phone)));
+    sbAllSent = new Set((d3||[]).map(x=>String(x.phone)));
+  } catch(e) { console.warn('Supabase dedup fetch failed:', e.message); }
 }
 
-function updatePreview(count) {
-  if (count === undefined) {
-    const matched = applyFilters(leads, filters);
-    count = matched.length;
-    document.getElementById('match-count').textContent = count.toLocaleString();
-  }
+async function fetchCampaignSent(campName) {
+  try {
+    const r = await fetch(`${SB}/rest/v1/sent_log?campaign=eq.${encodeURIComponent(campName)}&status=eq.success&select=phone`,{headers:sbH});
+    const d = await r.json();
+    sbSentCampaign = new Set((d||[]).map(x=>String(x.phone)));
+  } catch(e) { sbSentCampaign=new Set(); }
+}
+
+// ── METABASE FILTERS ──────────────────────────────────────────
+function addMF() { mfFilters.push({logic:'AND',field:FIELDS[0],op:'is',val:''}); renderMF(); }
+function removeMF(i) { mfFilters.splice(i,1); renderMF(); applyAndShow(); }
+function setMFL(i,v) { mfFilters[i].logic=v; renderMF(); applyAndShow(); }
+function updateMF(i,k,v) {
+  mfFilters[i][k]=v;
+  if(k==='field'){mfFilters[i].val=''; renderMF();}
+  if(k==='op') renderMF();
+  applyAndShow();
+}
+
+function renderMF() {
+  const list = document.getElementById('mf-list');
+  if (!mfFilters.length) { list.innerHTML='<div style="font-size:12px;color:var(--muted);padding:4px 0">No filters — matches all leads</div>'; return; }
+  list.innerHTML = mfFilters.map((f,i)=>{
+    const fOpts=FIELDS.map(ff=>`<option value="${ff}" ${f.field===ff?'selected':''}>${ff}</option>`).join('');
+    const oOpts=OPS.map(o=>`<option value="${o.v}" ${f.op===o.v?'selected':''}>${o.l}</option>`).join('');
+    const curOp=OPS.find(o=>o.v===f.op);
+    const needVal=curOp?.nv!==false;
+    let valEl='';
+    if(!needVal) valEl=`<select disabled><option>—</option></select>`;
+    else if(!fetched) valEl=`<input type="text" value="${esc(f.val)}" placeholder="type value" oninput="updateMF(${i},'val',this.value)"/>`;
+    else {
+      const vals=fieldValCache[f.field]||[];
+      if(!vals.length) valEl=`<input type="text" value="${esc(f.val)}" placeholder="(no values found)" oninput="updateMF(${i},'val',this.value)"/>`;
+      else valEl=`<select onchange="updateMF(${i},'val',this.value)">${vals.map(v=>`<option value="${esc(v)}" ${f.val===v?'selected':''}>${esc(v)}</option>`).join('')}</select>`;
+    }
+    const logicEl=i===0?`<div class="lt-spacer"></div>`:`<div class="logic-toggle"><button class="lt-btn ${f.logic==='AND'?'active':''}" onclick="setMFL(${i},'AND')">AND</button><button class="lt-btn ${f.logic==='OR'?'active':''}" onclick="setMFL(${i},'OR')">OR</button></div>`;
+    return `<div class="mf-row">
+      <div class="mf-top">${logicEl}<select style="flex:1" onchange="updateMF(${i},'field',this.value)">${fOpts}</select><select style="flex:1" onchange="updateMF(${i},'op',this.value)">${oOpts}</select></div>
+      <div class="mf-bottom">${valEl}<button class="rm-btn" onclick="removeMF(${i})">×</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ── APPLY FILTERS + SHOW ──────────────────────────────────────
+function applyAndShow() {
+  if (!fetched) return;
+  // Metabase filter
+  let matched = applyMFFilters(allLeads, mfFilters);
+  const afterMF = matched.length;
+  // Supabase exclusions
+  let exclToday=0, exclReact=0, exclCamp=0;
+  const exclTodayOn = document.getElementById('excl-today').checked;
+  const exclReactOn = document.getElementById('excl-reactivated').checked;
+  const exclCampOn  = document.getElementById('excl-campaign').checked;
+  const onlyFresh   = document.getElementById('only-fresh').checked;
+  matched = matched.filter(row => {
+    const phone = String(normalizePhone(row.mobile||'')||'');
+    if(exclTodayOn && sbSentToday.has(phone)){exclToday++;return false;}
+    if(exclReactOn && sbReactivated.has(phone)){exclReact++;return false;}
+    if(exclCampOn  && sbSentCampaign.has(phone)){exclCamp++;return false;}
+    if(onlyFresh   && sbAllSent.has(phone)) return false;
+    return true;
+  });
+  // Update UI
+  document.getElementById('match-count').textContent = matched.length.toLocaleString();
+  document.getElementById('match-status').textContent = `${afterMF.toLocaleString()} after Metabase filters`;
   const campName = document.getElementById('campaign-select').value;
   const camp = campaigns.find(c=>c.campaign_name===campName);
-  if (!campName || !leads.length) { document.getElementById('preview-box').style.display='none'; return; }
-  document.getElementById('preview-box').style.display='block';
-  document.getElementById('pv-campaign').textContent = campName;
-  document.getElementById('pv-leads').textContent = count.toLocaleString()+' leads';
-  document.getElementById('pv-params').textContent = camp ? (camp.template_params||[]).join(', ') : '—';
-  document.getElementById('send-btn').disabled = count === 0;
+  if (campName && matched.length > 0) {
+    document.getElementById('preview-box').style.display='block';
+    document.getElementById('pv-campaign').textContent=campName;
+    document.getElementById('pv-leads').textContent=matched.length.toLocaleString();
+    document.getElementById('pv-excl-today').textContent=exclToday.toLocaleString();
+    document.getElementById('pv-excl-react').textContent=exclReact.toLocaleString();
+    document.getElementById('pv-params').textContent=camp?(camp.template_params||[]).join(', '):'—';
+  } else {
+    document.getElementById('preview-box').style.display='none';
+  }
+  document.getElementById('send-btn').disabled = matched.length===0 || !campName;
+  return matched;
+}
+
+async function onCampaignChange() {
+  const campName = document.getElementById('campaign-select').value;
+  if (!campName) return;
+  // Check if sent today
+  const today = new Date(Date.now()+330*60000).toISOString().split('T')[0];
+  try {
+    const r = await fetch(`${SB}/rest/v1/sent_log?campaign=eq.${encodeURIComponent(campName)}&sent_at=gte.${today}T00:00:00&status=eq.success&select=count`,{headers:{...sbH,Prefer:'count=exact'}});
+    const count = Number(r.headers.get('content-range')?.split('/')?.[1]||0);
+    document.getElementById('daily-warn').style.display = count>0 ? 'block' : 'none';
+    document.getElementById('daily-warn').textContent = count>0 ? `⚠ "${campName}" already sent to ${count.toLocaleString()} leads today` : '';
+  } catch(e){}
+  // Fetch campaign sent phones for exclusion
+  if (document.getElementById('excl-campaign').checked) await fetchCampaignSent(campName);
+  applyAndShow();
 }
 
 // ── SEND ──────────────────────────────────────────────────────
 async function confirmSend() {
+  const matched = applyAndShow();
   const campName = document.getElementById('campaign-select').value;
-  const matched = applyFilters(leads, filters);
-  if (!campName) { showMsg('Select a campaign first','err'); return; }
-  if (!matched.length) { showMsg('No leads matched','err'); return; }
+  if (!campName || !matched?.length) return;
   if (!confirm(`Send "${campName}" to ${matched.length.toLocaleString()} leads?`)) return;
-
   const btn = document.getElementById('send-btn');
-  btn.disabled=true; btn.textContent='📤 Sending...';
-  showMsg('','');
-
+  btn.disabled=true; showMsg('','');
   const camp = campaigns.find(c=>c.campaign_name===campName);
-  const BATCH = 20;
-  let sent=0, failed=0;
-  const SMARTPING = 'https://backend.api-wa.co/campaign/smartping/api/v2';
-  const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4';
-
+  const BATCH=20; let sent=0, failed=0;
   for (let i=0; i<matched.length; i+=BATCH) {
-    const batch = matched.slice(i, i+BATCH);
-    btn.textContent = `📤 Sending ${Math.min(i+BATCH,matched.length)}/${matched.length}...`;
-    await Promise.all(batch.map(async row => {
-      const phone = normalizePhone(row.mobile||'');
-      if (!phone) return;
-      const params = (camp.template_params||[]).map(p => resolveParam(p, row));
-      try {
-        const r = await fetch(SMARTPING, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            apiKey:API_KEY, campaignName:campName, destination:phone,
-            userName:row.fullname||'User', templateParams:params,
-            source:'manual', media:{}, buttons:[], carouselCards:[], location:{}, attributes:{},
-            paramsFallbackValue:{FirstName:firstName(row.fullname)}
-          })
-        });
-        if (r.ok) sent++; else failed++;
-      } catch(e) { failed++; }
+    const batch=matched.slice(i,i+BATCH);
+    btn.textContent=`📤 Sending ${Math.min(i+BATCH,matched.length)}/${matched.length}...`;
+    await Promise.all(batch.map(async row=>{
+      const phone=normalizePhone(row.mobile||'');
+      if(!phone) return;
+      const params=(camp.template_params||[]).map(p=>resolveParam(p,row));
+      try{
+        const r=await fetch(SMARTPING_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({apiKey:API_KEY,campaignName:campName,destination:phone,
+            userName:row.fullname||'User',templateParams:params,source:'manual',
+            media:{},buttons:[],carouselCards:[],location:{},attributes:{},
+            paramsFallbackValue:{FirstName:firstName(row.fullname)}})});
+        if(r.ok) sent++; else failed++;
+      }catch(e){failed++;}
     }));
   }
-
   showMsg(`✓ Sent: ${sent} | Failed: ${failed}`, sent>0?'ok':'err');
   btn.disabled=false; btn.textContent='📤 Send Campaign';
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
-function applyFilters(rows, fl) {
-  if (!fl?.length) return rows;
-  return rows.filter(lead => {
-    let r = evalFilter(lead, fl[0]);
-    for (let i=1;i<fl.length;i++) { const t=evalFilter(lead,fl[i]); r=fl[i].logic==='OR'?r||t:r&&t; }
+function applyMFFilters(rows,fl){
+  if(!fl?.length) return rows;
+  return rows.filter(lead=>{
+    let r=evalF(lead,fl[0]);
+    for(let i=1;i<fl.length;i++){const t=evalF(lead,fl[i]);r=fl[i].logic==='OR'?r||t:r&&t;}
     return r;
   });
 }
-function evalFilter(lead, f) {
-  const raw=lead[f.field]; const cell=String(raw??'').toLowerCase().trim(); const val=String(f.val??'').toLowerCase().trim();
+function evalF(lead,f){
+  const raw=lead[f.field];const cell=String(raw??'').toLowerCase().trim();const val=String(f.val??'').toLowerCase().trim();
   switch(f.op){
-    case 'is':return cell===val; case 'is_not':return cell!==val;
-    case 'contains':return cell.includes(val); case 'not_contains':return !cell.includes(val);
+    case 'is':return cell===val;case 'is_not':return cell!==val;
+    case 'contains':return cell.includes(val);case 'not_contains':return !cell.includes(val);
     case 'has_value':return raw!==null&&raw!==undefined&&String(raw).trim()!=='';
     case 'is_empty':return raw===null||raw===undefined||String(raw).trim()==='';
     default:return true;
   }
 }
-function normalizePhone(raw) {
-  if (!raw) return null;
-  const d=String(raw).replace(/\D/g,'');
-  if(d.length===10) return '91'+d;
-  if(d.length===12&&d.startsWith('91')) return d;
-  if(d.length===11&&d.startsWith('0')) return '91'+d.slice(1);
-  if(d.length>6) return d;
-  return null;
+function normalizePhone(raw){
+  if(!raw)return null;const d=String(raw).replace(/\D/g,'');
+  if(d.length===10)return '91'+d;if(d.length===12&&d.startsWith('91'))return d;
+  if(d.length===11&&d.startsWith('0'))return '91'+d.slice(1);if(d.length>6)return d;return null;
 }
-function resolveParam(str, row) {
-  const m=String(str).match(/^\{field:(\w+)\}$/);
-  if(!m) return str;
-  const key=m[1];
-  if(key==='fullname') return firstName(row.fullname);
-  return row[key]??'';
+function resolveParam(str,row){
+  const m=String(str).match(/^\{field:(\w+)\}$/);if(!m)return str;
+  const key=m[1];if(key==='fullname')return firstName(row.fullname);return row[key]??'';
 }
-function firstName(full) { return String(full||'there').trim().split(/\s+/)[0]; }
-function showMsg(txt, type) { const el=document.getElementById('status-msg'); el.textContent=txt; el.className='status-msg '+type; }
+function firstName(full){return String(full||'there').trim().split(/\s+/)[0];}
+function showMsg(txt,type){const el=document.getElementById('status-msg');el.textContent=txt;el.className='status-msg '+type;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-window.onload = () => { loadCampaigns(); renderFilters(); };
+window.onload=()=>{loadCampaigns();renderMF();};
 </script>
 </body>
 </html>
