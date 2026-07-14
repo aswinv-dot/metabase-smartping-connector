@@ -160,14 +160,20 @@ const sbH = { apikey:KEY, Authorization:`Bearer ${KEY}` };
 const SMARTPING_URL = 'https://backend.api-wa.co/campaign/smartping/api/v2';
 const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4';
 
-const FIELDS = ['current_lead_status','current_lead_stage','application','application_count',
+const FIELDS = ['lead_status','lead_stage','application','application_count',
   'mql_status','webinar_booked','webinar_attended','webinar_program','state','utm_source',
   'adset','latest_utm_campaign','bde','otp_verified','highest_education','work_experience',
-  'calls_attempted','connected_count','created_at','updated_at'];
+  'calls_attempted','connected_count','first_call_at','created_at','updated_at'];
+
+// These fields use free-text input (not dropdown)
+const TEXT_FIELDS = new Set(['adset','latest_utm_campaign','application']);
+// These fields use date picker
+const DATE_FIELDS = new Set(['first_call_at','created_at','updated_at']);
 const OPS = [
   {v:'is',l:'is',nv:true},{v:'is_not',l:'is not',nv:true},
   {v:'contains',l:'contains',nv:true},{v:'not_contains',l:'does not contain',nv:true},
   {v:'has_value',l:'has any value',nv:false},{v:'is_empty',l:'is empty',nv:false},
+  {v:'date_after',l:'after (date)',nv:true},{v:'date_before',l:'before (date)',nv:true},
 ];
 
 let mfFilters=[], allLeads=[], campaigns=[], fieldValCache={}, fetched=false;
@@ -259,7 +265,9 @@ function renderMF() {
     const needVal=curOp?.nv!==false;
     let valEl='';
     if(!needVal) valEl=`<select disabled><option>—</option></select>`;
-    else if(!fetched) valEl=`<input type="text" value="${esc(f.val)}" placeholder="type value" oninput="updateMF(${i},'val',this.value)"/>`;
+    else if(DATE_FIELDS.has(f.field)) valEl=`<input type="date" value="${esc(f.val)}" oninput="updateMF(${i},'val',this.value)" style="border:1.5px solid var(--border);border-radius:5px;padding:6px 8px;font-family:var(--font);font-size:11px;outline:none;width:100%;background:#fff;color:var(--text)"/>`;
+    else if(TEXT_FIELDS.has(f.field)) valEl=`<input type="text" value="${esc(f.val)}" placeholder="type value" oninput="updateMF(${i},'val',this.value)"/>`;
+    else if(!fetched) valEl=`<input type="text" value="${esc(f.val)}" placeholder="fetch leads first" oninput="updateMF(${i},'val',this.value)"/>`;
     else {
       const vals=fieldValCache[f.field]||[];
       if(!vals.length) valEl=`<input type="text" value="${esc(f.val)}" placeholder="(no values found)" oninput="updateMF(${i},'val',this.value)"/>`;
@@ -383,6 +391,14 @@ function applyMFFilters(rows,fl){
 }
 function evalF(lead,f){
   const raw=lead[f.field];const cell=String(raw??'').toLowerCase().trim();const val=String(f.val??'').toLowerCase().trim();
+  if(f.op==='date_after'||f.op==='date_before'){
+    if(!raw||!f.val) return false;
+    // Convert stored UTC date to IST for comparison
+    const d=new Date(raw);const dIST=new Date(d.getTime()+330*60000);
+    const dStr=dIST.toISOString().split('T')[0];
+    if(f.op==='date_after') return dStr>=f.val;
+    if(f.op==='date_before') return dStr<=f.val;
+  }
   switch(f.op){
     case 'is':return cell===val;case 'is_not':return cell!==val;
     case 'contains':return cell.includes(val);case 'not_contains':return !cell.includes(val);
