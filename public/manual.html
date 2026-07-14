@@ -87,6 +87,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
     <div class="mf-list" id="mf-list"><div style="font-size:12px;color:var(--muted)">No filters — will match all leads</div></div>
     <button class="add-filter-btn" onclick="addMF()">+ Add Metabase Filter</button>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+      <button class="btn-ghost" onclick="applyAndShow()" id="apply-btn">↻ Apply Filters</button>
+      <span id="apply-count" style="font-size:12px;color:var(--muted)"></span>
+    </div>
     <div id="fetch-status" style="font-size:11px;color:var(--muted)"></div>
   </div>
 
@@ -111,6 +115,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div><div class="sb-filter-label">Only fresh leads</div><div class="sb-filter-desc">Include only leads who have never received any campaign</div></div>
       </label>
     </div>
+    <div id="sb-count-summary" style="display:none;margin-top:10px;padding:10px 12px;background:#f0f5ff;border:1.5px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);line-height:1.8"></div>
   </div>
 
   <!-- STEP 2: CAMPAIGN -->
@@ -291,6 +296,19 @@ function applyAndShow() {
   // Update UI
   document.getElementById('match-count').textContent = matched.length.toLocaleString();
   document.getElementById('match-status').textContent = `${afterMF.toLocaleString()} after Metabase filters`;
+  const applyCount = document.getElementById('apply-count');
+  if(applyCount) applyCount.textContent = fetched ? `${matched.length.toLocaleString()} leads match current filters` : '';
+  // Supabase exclusion summary
+  const sbSummary = document.getElementById('sb-count-summary');
+  if(fetched && sbSummary){
+    const lines = [];
+    if(exclTodayOn) lines.push(`🚫 ${exclToday.toLocaleString()} excluded — sent today`);
+    if(exclReactOn) lines.push(`🚫 ${exclReact.toLocaleString()} excluded — reactivated`);
+    if(exclCampOn)  lines.push(`🚫 ${exclCamp.toLocaleString()} excluded — already sent this campaign`);
+    lines.push(`✅ ${matched.length.toLocaleString()} leads remaining`);
+    sbSummary.style.display = 'block';
+    sbSummary.innerHTML = lines.join('<br/>');
+  }
   const campName = document.getElementById('campaign-select').value;
   const camp = campaigns.find(c=>c.campaign_name===campName);
   if (campName && matched.length > 0) {
