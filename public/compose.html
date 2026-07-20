@@ -417,7 +417,10 @@ async function confirmSend() {
   sendEmails();
 }
 
+let isSending = false;
 async function sendEmails() {
+  if (isSending) return;
+  isSending = true;
   const btn = document.getElementById('send-btn');
   btn.disabled = true; btn.textContent = '📤 Sending...';
   const stage = document.getElementById('send-stage').value;
@@ -450,6 +453,7 @@ async function sendEmails() {
     showMsg(`✓ Sent ${sent} | Failed ${failed}`, 'ok');
   } catch(e) { showMsg('Failed: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = '📤 Send';
+  isSending = false;
 }
 
 function showMsg(txt, type) {
