@@ -65,6 +65,8 @@ export default async function handler(req, res) {
         );
         html += `<img src="${baseUrl}/api/email/track?type=open&id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
         html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="${baseUrl}/api/email/unsubscribe?email=${encodeURIComponent(c.email)}">Unsubscribe</a></p>`;
+        const sizeBytes = Buffer.byteLength(html, 'utf8');
+        console.log(`Email HTML size for ${c.email}: ${sizeBytes} bytes (${(sizeBytes/1024).toFixed(1)}KB)`);
         await transporter.sendMail({ from, to: c.email, subject: draft.subject, html, headers: { 'X-Preview-Text': draft.preview_text||'' } });
         logs.push({ id: sendId, draft_id, email: c.email, status: 'sent' });
         sent++;
