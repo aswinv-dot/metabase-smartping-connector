@@ -202,6 +202,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
             <button class="token-btn" onclick="insertToken('{{email}}')" title="Email token">{{email}}</button>
             <button class="token-btn" onclick="insertToken('{{mobile}}')" title="Mobile token">{{mobile}}</button>
             <div class="rich-sep"></div>
+            <button class="rich-btn" onclick="cleanEditorHtml()" title="Strip inline styles (fixes Gmail clipping)">🧹 Clean</button>
             <button class="rich-btn" id="html-toggle-btn" onclick="toggleHTML()">HTML</button>
           </div>
           <div class="editor-area" id="editor-area" contenteditable="true" oninput="updatePreview()" onkeyup="updatePreview()"></div>
@@ -334,6 +335,37 @@ function insertToken(token) {
   area.focus();
   document.execCommand('insertText', false, token);
   updatePreview();
+}
+
+// ── PASTE AS PLAIN TEXT (prevents Google Docs style bloat / Gmail 102KB clipping) ──
+document.getElementById('editor-area').addEventListener('paste', function(e) {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, text);
+  updatePreview();
+});
+
+// ── CLEAN HTML (strip inline styles from existing drafts) ──
+function cleanEditorHtml() {
+  const editorArea = document.getElementById('editor-area');
+  const before = editorArea.innerHTML.length;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = editorArea.innerHTML;
+  // Strip style/dir attrs and Docs guid ids from every element
+  tmp.querySelectorAll('*').forEach(el => {
+    el.removeAttribute('style');
+    el.removeAttribute('dir');
+    if (el.id && el.id.startsWith('docs-internal-guid')) el.removeAttribute('id');
+  });
+  // Unwrap all spans (keep their children — text, bold, links, images survive)
+  tmp.querySelectorAll('span').forEach(sp => {
+    while (sp.firstChild) sp.parentNode.insertBefore(sp.firstChild, sp);
+    sp.remove();
+  });
+  editorArea.innerHTML = tmp.innerHTML;
+  updatePreview();
+  const after = editorArea.innerHTML.length;
+  showMsg(`🧹 Cleaned: ${(before/1024).toFixed(1)}KB → ${(after/1024).toFixed(1)}KB`, 'ok');
 }
 
 function toggleHTML() {
