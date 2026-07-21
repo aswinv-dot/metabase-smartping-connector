@@ -362,6 +362,14 @@ function cleanEditorHtml() {
     while (sp.firstChild) sp.parentNode.insertBefore(sp.firstChild, sp);
     sp.remove();
   });
+  // Detect embedded base64 images (massive size — main cause of Gmail clipping)
+  const dataImgs = [...tmp.querySelectorAll('img')].filter(im => (im.getAttribute('src')||'').startsWith('data:'));
+  if (dataImgs.length) {
+    const total = dataImgs.reduce((s,im) => s + im.getAttribute('src').length, 0);
+    if (confirm(`Found ${dataImgs.length} embedded base64 image(s) (~${(total/1024).toFixed(0)}KB). Remove them?\n\nRe-insert via 🖼 Image using a hosted URL (Supabase storage).`)) {
+      dataImgs.forEach(im => im.remove());
+    }
+  }
   editorArea.innerHTML = tmp.innerHTML;
   updatePreview();
   const after = editorArea.innerHTML.length;
@@ -457,32 +465,45 @@ async function sendEmails() {
   btn.disabled = true; btn.textContent = '📤 Sending...';
   const stage = document.getElementById('send-stage').value;
   try {
-    // Fetch contacts client-side
+    // Fetch ALL contacts (Supabase caps at 1000/request — paginate)
     const SB = 'https://oagsgovnxgiszofgytre.supabase.co';
     const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI';
-    let url = `${SB}/rest/v1/email_contacts?select=fullname,email,mobile&email=not.is.null&email=neq.`;
-    if (stage !== 'all') url += `&lead_stage=eq.${encodeURIComponent(stage)}`;
-    const cr = await fetch(url, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
-    const contacts = await cr.json();
-    if (!Array.isArray(contacts) || !contacts.length) { showMsg('No contacts found', 'err'); btn.disabled=false; btn.textContent='📤 Send'; return; }
+    let baseUrl = `${SB}/rest/v1/email_contacts?select=fullname,email,mobile&email=not.is.null&email=neq.&order=email.asc`;
+    if (stage !== 'all') baseUrl += `&lead_stage=eq.${encodeURIComponent(stage)}`;
+    const contacts = [];
+    const PAGE = 1000;
+    for (let off = 0; ; off += PAGE) {
+      const cr = await fetch(`${baseUrl}&limit=${PAGE}&offset=${off}`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
+      const page = await cr.json();
+      if (!Array.isArray(page) || !page.length) break;
+      contacts.push(...page);
+      if (page.length < PAGE) break;
+    }
+    if (!contacts.length) { showMsg('No contacts found', 'err'); btn.disabled=false; btn.textContent='📤 Send'; return; }
 
-    // Batch POST 10 at a time
-    const BATCH = 10;
-    let sent = 0, failed = 0;
+    // Batch 5 at a time (stay under Vercel timeout); continue past batch failures
+    const BATCH = 5;
+    let sent = 0, failed = 0, batchErrors = 0;
     for (let i = 0; i < contacts.length; i += BATCH) {
       const batch = contacts.slice(i, i + BATCH);
-      btn.textContent = `📤 Sending ${Math.min(i+BATCH,contacts.length)}/${contacts.length}...`;
-      const r = await fetch('/api/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draft_id: currentId, batch })
-      });
-      const d = await r.json();
-      if (d.error) throw new Error(d.error);
-      sent += d.sent || 0;
-      failed += d.failed || 0;
+      btn.textContent = `📤 ${Math.min(i+BATCH,contacts.length)}/${contacts.length} (✓${sent} ✗${failed})`;
+      try {
+        const r = await fetch('/api/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ draft_id: currentId, batch })
+        });
+        const d = await r.json();
+        if (d.error) throw new Error(d.error);
+        sent += d.sent || 0;
+        failed += d.failed || 0;
+      } catch(be) {
+        failed += batch.length; batchErrors++;
+        console.error('Batch failed at offset', i, be.message);
+        if (batchErrors >= 10) { showMsg(`Aborted after 10 batch failures. Sent ${sent}.`, 'err'); break; }
+      }
     }
-    showMsg(`✓ Sent ${sent} | Failed ${failed}`, 'ok');
+    showMsg(`✓ Sent ${sent} | Failed ${failed} of ${contacts.length}`, 'ok');
   } catch(e) { showMsg('Failed: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = '📤 Send';
   isSending = false;
