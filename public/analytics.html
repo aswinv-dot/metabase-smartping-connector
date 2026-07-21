@@ -124,9 +124,16 @@ async function load() {
   const draftMap = {};
   (dr.drafts||[]).forEach(d=>draftMap[d.id]=d.campaign_name||'Untitled');
 
-  // Fetch sends grouped by draft_id
-  const r = await fetch(`${SB}/rest/v1/email_sends?select=draft_id,status,opened_at,clicked_at,sent_at&order=sent_at.desc&limit=2000`, {headers:sbH});
-  const rows = await r.json();
+  // Fetch ALL sends (Supabase caps 1000/request — paginate)
+  const rows = [];
+  const PAGE = 1000;
+  for (let off = 0; ; off += PAGE) {
+    const r = await fetch(`${SB}/rest/v1/email_sends?select=draft_id,email,status,opened_at,clicked_at,sent_at&order=sent_at.desc&limit=${PAGE}&offset=${off}`, {headers:sbH});
+    const page = await r.json();
+    if (!Array.isArray(page)||!page.length) break;
+    rows.push(...page);
+    if (page.length < PAGE) break;
+  }
 
   if (!Array.isArray(rows)||!rows.length) {
     document.getElementById('tbody').innerHTML='<tr><td colspan="6" class="empty">No campaigns sent yet</td></tr>';
