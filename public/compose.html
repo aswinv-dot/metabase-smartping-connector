@@ -15,7 +15,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .nav-link{font-size:11px;color:#9acbfd;text-decoration:none;border:1px solid rgba(154,203,253,.3);padding:5px 12px;border-radius:6px}
 .nav-link:hover{background:rgba(154,203,253,.15)}
 .layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 52px)}
-/* LEFT - DRAFTS */
 .drafts-panel{background:var(--surface);border-right:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .drafts-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .drafts-title{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
@@ -33,17 +32,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .draft-date{font-size:9px;color:var(--muted2,#aaa);margin-top:3px}
 .draft-actions{display:flex;gap:4px;margin-top:6px}
 .empty-drafts{padding:30px;text-align:center;font-size:12px;color:var(--muted)}
-/* RIGHT - EDITOR */
 .editor-panel{display:flex;flex-direction:column;overflow:hidden}
 .editor-toolbar{padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
 .editor-body{flex:1;overflow-y:auto;padding:20px;display:grid;grid-template-columns:1fr 380px;gap:20px}
-/* FORM */
 .form-section{display:flex;flex-direction:column;gap:12px}
 .form-group{display:flex;flex-direction:column;gap:4px}
 .form-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .form-input,.form-select{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--font);font-size:12px;color:var(--text);background:#fff;outline:none}
 .form-input:focus,.form-select:focus{border-color:var(--blue)}
-/* RICH TEXT */
 .rich-toolbar{display:flex;gap:3px;padding:6px 8px;background:#f8faff;border:1.5px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;flex-wrap:wrap}
 .rich-btn{background:transparent;border:1px solid transparent;border-radius:4px;padding:3px 7px;cursor:pointer;font-size:12px;font-family:var(--font);color:var(--text);transition:all .1s}
 .rich-btn:hover{background:#e8f0ff;border-color:var(--blue)}
@@ -54,7 +50,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .editor-area{border:1.5px solid var(--border);border-top:none;border-radius:0 0 6px 6px;min-height:280px;padding:12px;font-size:13px;line-height:1.6;outline:none;background:#fff}
 .editor-area:focus{border-color:var(--blue)}
 .html-area{display:none;border:1.5px solid var(--border);border-top:none;border-radius:0 0 6px 6px;min-height:280px;padding:12px;font-size:12px;font-family:monospace;outline:none;resize:vertical;background:#1e1e2e;color:#cdd6f4;width:100%}
-/* PREVIEW */
 .preview-section{display:flex;flex-direction:column;gap:10px}
 .preview-toggle{display:flex;border:1.5px solid var(--border);border-radius:6px;overflow:hidden;width:fit-content}
 .pt-btn{background:#fff;border:none;padding:6px 14px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;color:var(--muted);transition:all .15s}
@@ -66,7 +61,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .preview-meta span{font-weight:700;color:var(--text)}
 .preview-body{padding:20px;font-size:13px;line-height:1.6;min-height:200px}
 .preview-unsubscribe{padding:10px 14px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);text-align:center}
-/* STATUS */
 .status-bar{padding:8px 20px;background:#f8faff;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
 .status-msg{font-size:11px;font-weight:600}
 .status-msg.ok{color:var(--green)}.status-msg.err{color:var(--red)}
@@ -87,15 +81,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 .smtp-row:last-child{border-bottom:none}
 .smtp-key{color:rgba(154,203,253,.6)}.smtp-val{color:#fff;font-weight:600}
 .smtp-err{font-size:11px;color:#f87171;margin-top:8px;padding-top:8px;border-top:1px solid rgba(154,203,253,.1)}
-
 [data-theme='dark']{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--navy:#1e293b}
 [data-theme='dark'] .header{background:#0f172a}
 [data-theme='dark'] .tab-nav a.active{background:#e2e8f0;color:#0f172a}
 .theme-btn{background:transparent;border:1px solid rgba(154,203,253,.3);color:rgba(154,203,253,.8);padding:5px 10px;border-radius:20px;cursor:pointer;font-size:12px;font-family:var(--font);flex-shrink:0}
 .theme-btn:hover{background:rgba(154,203,253,.15)}
 </style>
-
-
 </head>
 <body>
 <div class="header">
@@ -119,7 +110,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 </div>
 
 <div class="layout">
-  <!-- DRAFTS PANEL -->
   <div class="drafts-panel">
     <div class="drafts-header">
       <span class="drafts-title">Drafts</span>
@@ -130,7 +120,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
   </div>
 
-  <!-- EDITOR PANEL -->
   <div class="editor-panel">
     <div class="editor-toolbar">
       <button class="btn" onclick="saveDraft()">💾 Save</button>
@@ -159,7 +148,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     </div>
 
     <div class="editor-body">
-      <!-- FORM -->
       <div class="form-section">
         <div class="form-group">
           <label class="form-label">Campaign Name</label>
@@ -183,10 +171,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
             <option value="marketing.terratern.in">marketing.terratern.in</option>
           </select>
         </div>
-
         <div class="form-group">
           <label class="form-label">Body</label>
-          <!-- Rich Text Toolbar -->
           <div class="rich-toolbar" id="rich-toolbar">
             <button class="rich-btn" onclick="exec('bold')" title="Bold"><b>B</b></button>
             <button class="rich-btn" onclick="exec('italic')" title="Italic"><i>I</i></button>
@@ -202,7 +188,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
             <button class="token-btn" onclick="insertToken('{{email}}')" title="Email token">{{email}}</button>
             <button class="token-btn" onclick="insertToken('{{mobile}}')" title="Mobile token">{{mobile}}</button>
             <div class="rich-sep"></div>
-            <button class="rich-btn" onclick="cleanEditorHtml()" title="Strip inline styles (fixes Gmail clipping)">🧹 Clean</button>
+            <button class="rich-btn" onclick="cleanEditorHtml()" title="Strip inline styles">🧹 Clean</button>
             <button class="rich-btn" id="html-toggle-btn" onclick="toggleHTML()">HTML</button>
           </div>
           <div class="editor-area" id="editor-area" contenteditable="true" oninput="updatePreview()" onkeyup="updatePreview()"></div>
@@ -210,7 +196,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         </div>
       </div>
 
-      <!-- PREVIEW -->
       <div class="preview-section">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span class="form-label">Preview</span>
@@ -238,7 +223,6 @@ const API = '/api/email/drafts';
 let currentId = null;
 let htmlMode = false;
 
-// ── DRAFTS ──────────────────────────────────────────────────
 async function loadDrafts() {
   const list = document.getElementById('drafts-list');
   try {
@@ -317,7 +301,6 @@ async function deleteDraft() {
   newDraft();
 }
 
-// ── RICH TEXT ──────────────────────────────────────────────
 function exec(cmd) { document.getElementById('editor-area').focus(); document.execCommand(cmd, false, null); updatePreview(); }
 
 function insertLink() {
@@ -337,7 +320,6 @@ function insertToken(token) {
   updatePreview();
 }
 
-// ── PASTE AS PLAIN TEXT (prevents Google Docs style bloat / Gmail 102KB clipping) ──
 document.getElementById('editor-area').addEventListener('paste', function(e) {
   e.preventDefault();
   const text = (e.clipboardData || window.clipboardData).getData('text/plain');
@@ -345,24 +327,20 @@ document.getElementById('editor-area').addEventListener('paste', function(e) {
   updatePreview();
 });
 
-// ── CLEAN HTML (strip inline styles from existing drafts) ──
 function cleanEditorHtml() {
   const editorArea = document.getElementById('editor-area');
   const before = editorArea.innerHTML.length;
   const tmp = document.createElement('div');
   tmp.innerHTML = editorArea.innerHTML;
-  // Strip style/dir attrs and Docs guid ids from every element
   tmp.querySelectorAll('*').forEach(el => {
     el.removeAttribute('style');
     el.removeAttribute('dir');
     if (el.id && el.id.startsWith('docs-internal-guid')) el.removeAttribute('id');
   });
-  // Unwrap all spans (keep their children — text, bold, links, images survive)
   tmp.querySelectorAll('span').forEach(sp => {
     while (sp.firstChild) sp.parentNode.insertBefore(sp.firstChild, sp);
     sp.remove();
   });
-  // Detect embedded base64 images (massive size — main cause of Gmail clipping)
   const dataImgs = [...tmp.querySelectorAll('img')].filter(im => (im.getAttribute('src')||'').startsWith('data:'));
   if (dataImgs.length) {
     const total = dataImgs.reduce((s,im) => s + im.getAttribute('src').length, 0);
@@ -380,7 +358,6 @@ function toggleHTML() {
   const editorArea = document.getElementById('editor-area');
   const htmlArea = document.getElementById('html-area');
   const btn = document.getElementById('html-toggle-btn');
-  const toolbar = document.getElementById('rich-toolbar');
   htmlMode = !htmlMode;
   if (htmlMode) {
     htmlArea.value = editorArea.innerHTML;
@@ -401,14 +378,12 @@ function syncFromHTML() {
   updatePreview();
 }
 
-// ── PREVIEW ──────────────────────────────────────────────
 function updatePreview() {
   const fromName = document.getElementById('f-from-name').value || 'TerraTern';
   const domain = document.getElementById('f-domain').value;
   const subject = document.getElementById('f-subject').value || '—';
   const preview = document.getElementById('f-preview-text').value || 'Preview text...';
   const body = document.getElementById('editor-area').innerHTML;
-
   document.getElementById('pv-from').textContent = fromName;
   document.getElementById('pv-domain').textContent = domain;
   document.getElementById('pv-subject').textContent = subject;
@@ -428,7 +403,7 @@ function setPreviewMode(mode) {
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// ── SEND ──────────────────────────────────────────────────
+// ── SEND TEST ─────────────────────────────────────────────
 async function sendTest() {
   if (!currentId) { showMsg('Save draft first', 'err'); return; }
   const emails = document.getElementById('test-emails').value.split(',').map(e=>e.trim()).filter(Boolean);
@@ -448,6 +423,7 @@ async function sendTest() {
   btn.disabled = false; btn.textContent = '🧪 Test';
 }
 
+// ── CONFIRM SEND ──────────────────────────────────────────
 async function confirmSend() {
   if (!currentId) { showMsg('Save draft first', 'err'); return; }
   const stage = document.getElementById('send-stage').value;
@@ -457,6 +433,7 @@ async function confirmSend() {
   sendEmails();
 }
 
+// ── SEND — single server-side call, no batching in browser ──
 let isSending = false;
 async function sendEmails() {
   if (isSending) return;
@@ -465,45 +442,14 @@ async function sendEmails() {
   btn.disabled = true; btn.textContent = '📤 Sending...';
   const stage = document.getElementById('send-stage').value;
   try {
-    // Fetch ALL contacts (Supabase caps at 1000/request — paginate)
-    const SB = 'https://oagsgovnxgiszofgytre.supabase.co';
-    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI';
-    let baseUrl = `${SB}/rest/v1/email_contacts?select=fullname,email,mobile&email=not.is.null&email=neq.&order=email.asc`;
-    if (stage !== 'all') baseUrl += `&lead_stage=eq.${encodeURIComponent(stage)}`;
-    const contacts = [];
-    const PAGE = 1000;
-    for (let off = 0; ; off += PAGE) {
-      const cr = await fetch(`${baseUrl}&limit=${PAGE}&offset=${off}`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
-      const page = await cr.json();
-      if (!Array.isArray(page) || !page.length) break;
-      contacts.push(...page);
-      if (page.length < PAGE) break;
-    }
-    if (!contacts.length) { showMsg('No contacts found', 'err'); btn.disabled=false; btn.textContent='📤 Send'; return; }
-
-    // Batch 5 at a time (stay under Vercel timeout); continue past batch failures
-    const BATCH = 5;
-    let sent = 0, failed = 0, batchErrors = 0;
-    for (let i = 0; i < contacts.length; i += BATCH) {
-      const batch = contacts.slice(i, i + BATCH);
-      btn.textContent = `📤 ${Math.min(i+BATCH,contacts.length)}/${contacts.length} (✓${sent} ✗${failed})`;
-      try {
-        const r = await fetch('/api/email/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ draft_id: currentId, batch })
-        });
-        const d = await r.json();
-        if (d.error) throw new Error(d.error);
-        sent += d.sent || 0;
-        failed += d.failed || 0;
-      } catch(be) {
-        failed += batch.length; batchErrors++;
-        console.error('Batch failed at offset', i, be.message);
-        if (batchErrors >= 10) { showMsg(`Aborted after 10 batch failures. Sent ${sent}.`, 'err'); break; }
-      }
-    }
-    showMsg(`✓ Sent ${sent} | Failed ${failed} of ${contacts.length}`, 'ok');
+    const r = await fetch('/api/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id: currentId, stage })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    showMsg(`✓ Sent ${d.sent} | Failed ${d.failed} | Skipped ${d.skipped} | Already sent ${d.already_sent} of ${d.total}`, 'ok');
   } catch(e) { showMsg('Failed: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = '📤 Send';
   isSending = false;
