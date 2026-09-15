@@ -1,6 +1,6 @@
 {
   "functions": {
-    "pages/api/cron.js": {
+    "pages/api/cron-simple.js": {
       "maxDuration": 300
     },
     "pages/api/email/send.js": {

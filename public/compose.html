@@ -433,26 +433,55 @@ async function confirmSend() {
   sendEmails();
 }
 
-// ── SEND — single server-side call, no batching in browser ──
+// ── SEND — queues the whole campaign server-side, sent in batches
+// of 10 by the background worker. This call returns instantly; the
+// worker keeps going even if this tab is closed. We poll for live
+// progress and the final report.
 let isSending = false;
 async function sendEmails() {
   if (isSending) return;
   isSending = true;
   const btn = document.getElementById('send-btn');
-  btn.disabled = true; btn.textContent = '📤 Sending...';
+  btn.disabled = true; btn.textContent = '📤 Queuing...';
   const stage = document.getElementById('send-stage').value;
   try {
-    const r = await fetch('/api/email/send', {
+    const r = await fetch('/api/email/campaign-queue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ draft_id: currentId, stage })
     });
     const d = await r.json();
     if (d.error) throw new Error(d.error);
-    showMsg(`✓ Sent ${d.sent} | Failed ${d.failed} | Skipped ${d.skipped} | Already sent ${d.already_sent} of ${d.total}`, 'ok');
-  } catch(e) { showMsg('Failed: ' + e.message, 'err'); }
-  btn.disabled = false; btn.textContent = '📤 Send';
-  isSending = false;
+    if (d.empty) { showMsg('No contacts found', 'err'); btn.disabled = false; btn.textContent = '📤 Send'; isSending = false; return; }
+    btn.textContent = '📤 Sending... 0/' + d.total;
+    pollCampaign(d.campaign_id, btn);
+  } catch(e) {
+    showMsg('Failed: ' + e.message, 'err');
+    btn.disabled = false; btn.textContent = '📤 Send';
+    isSending = false;
+  }
+}
+
+async function pollCampaign(campaignId, btn) {
+  try {
+    const r = await fetch(`/api/email/campaign-status?id=${campaignId}`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    const c = d.campaign;
+    const done = c.sent + c.failed + c.skipped + c.already_sent;
+    btn.textContent = `📤 Sending... ${done}/${c.total}`;
+    if (c.status === 'done' || c.status === 'failed') {
+      showMsg(`✓ Sent ${c.sent} | Failed ${c.failed} | Skipped ${c.skipped} | Already sent ${c.already_sent} of ${c.total}`, c.status === 'failed' ? 'err' : 'ok');
+      btn.disabled = false; btn.textContent = '📤 Send';
+      isSending = false;
+      return;
+    }
+    setTimeout(() => pollCampaign(campaignId, btn), 3000);
+  } catch(e) {
+    showMsg('Status check failed: ' + e.message, 'err');
+    btn.disabled = false; btn.textContent = '📤 Send';
+    isSending = false;
+  }
 }
 
 function showMsg(txt, type) {

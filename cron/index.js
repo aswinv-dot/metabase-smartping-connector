@@ -1,6 +1,7 @@
-const cron   = require('node-cron');
-const fetch  = require('node-fetch');
-const http   = require('http');
+const cron       = require('node-cron');
+const fetch      = require('node-fetch');
+const http       = require('http');
+const nodemailer = require('nodemailer');
 // ── CONFIG ────────────────────────────────────────────────────
 const SMARTPING_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NmU5MTQ2ZjJjOGUzMGJlY2FlMDVkYiIsIm5hbWUiOiJUZXJyYXRlcm4iLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjc2ZTkxNDZmMmM4ZTMwYmVjYWUwNWNlIiwiYWN0aXZlUGxhbiI6IlBST19NT05USExZIiwiaWF0IjoxNzY5Njc2MzQ2fQ.Oj6veBiRUaPtWZ1yaVgTAp-q_JvCfXC8zuU42_T4rM4";
 const SMARTPING_URL     = "https://backend.api-wa.co/campaign/smartping/api/v2";
@@ -8,6 +9,22 @@ const METABASE_URL      = "https://metabase.terratern.com/api/public/card/7e84f1
 const SUPABASE_URL      = "https://oagsgovnxgiszofgytre.supabase.co";
 const SUPABASE_KEY      = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI";
 const PORT               = process.env.PORT || 3001;
+
+// ── EMAIL (SMTP) ─────────────────────────────────────────────
+const EMAIL_BASE_URL = 'https://metabase-smartping-connector.vercel.app';
+const mailTransport = nodemailer.createTransport({
+  host: 'node21.urmailtechno.com',
+  port: 587,
+  secure: false,
+  auth: { user: 'user_teratern', pass: process.env.SMTP_PASS || 'A9fK7M2qL8R5tZ' },
+  tls: { rejectUnauthorized: false },
+});
+function resolveEmailTokens(html, contact) {
+  return String(html || '')
+    .replace(/\{\{name\}\}/g, contact.fullname || '')
+    .replace(/\{\{email\}\}/g, contact.email || '')
+    .replace(/\{\{mobile\}\}/g, contact.mobile || '');
+}
 
 function resolveParam(str, row) {
   const m = String(str).match(/^\{field:(\w+)\}$/);
@@ -348,6 +365,108 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
   log(`=== CRON END: ${timeSlot} | sent=${result.sent} failed=${result.failed} duration=${duration}s ===`);
   return result;
 }
+
+// ── EMAIL CAMPAIGN QUEUE PROCESSOR ─────────────────────────────
+// Picks up campaigns queued by /api/email/campaign-queue and sends
+// them in batches of `batch_size` (default 10) on each tick, so a
+// single click on Send is not bound by any serverless timeout.
+let emailQueueBusy = false;
+
+async function processEmailCampaigns() {
+  if (emailQueueBusy) return; // avoid overlapping runs
+  emailQueueBusy = true;
+  try {
+    const campaigns = await sbGet('email_campaigns', `?status=in.(queued,sending)&order=created_at.asc&limit=5`);
+    if (!campaigns || !campaigns.length) return;
+
+    for (const c of campaigns) {
+      try {
+        await processOneEmailCampaignBatch(c);
+      } catch (e) {
+        log(`Email campaign ${c.id} batch error: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    log(`processEmailCampaigns error: ${e.message}`);
+  } finally {
+    emailQueueBusy = false;
+  }
+}
+
+async function processOneEmailCampaignBatch(campaign) {
+  const { id, draft_id, contacts, cursor, batch_size } = campaign;
+  const total = contacts.length;
+  if (cursor >= total) {
+    await sbPatch('email_campaigns', { status: 'done', updated_at: new Date().toISOString() }, `?id=eq.${id}`);
+    log(`Email campaign ${id} done — sent=${campaign.sent} failed=${campaign.failed}`);
+    return;
+  }
+
+  if (campaign.status === 'queued') {
+    await sbPatch('email_campaigns', { status: 'sending' }, `?id=eq.${id}`);
+  }
+
+  const [draftRows, unsubRows] = await Promise.all([
+    sbGet('email_drafts', `?id=eq.${draft_id}&select=*`),
+    sbGet('email_unsubscribes', `?select=email`),
+  ]);
+  const draft = draftRows && draftRows[0];
+  if (!draft) {
+    await sbPatch('email_campaigns', { status: 'failed', error: 'Draft not found' }, `?id=eq.${id}`);
+    return;
+  }
+  const unsubSet = new Set((unsubRows || []).map(u => String(u.email).toLowerCase()));
+
+  const batch = contacts.slice(cursor, cursor + (batch_size || 10));
+  const emails = batch.map(c => (c.email || '').toLowerCase()).filter(Boolean);
+  const prior = await sbGet('email_sends', `?draft_id=eq.${draft_id}&status=eq.sent&email=in.(${emails.map(e => `"${e}"`).join(',')})&select=email`);
+  const sentSet = new Set((prior || []).map(p => String(p.email).toLowerCase()));
+
+  const from = `${draft.from_name} <user_teratern@${draft.domain}>`;
+  let sent = 0, failed = 0, skipped = 0, already = 0;
+  const logs = [];
+
+  for (const c of batch) {
+    const em = (c.email || '').toLowerCase();
+    if (unsubSet.has(em)) { skipped++; continue; }
+    if (sentSet.has(em)) { already++; continue; }
+    try {
+      const sendId = `${draft_id}_${c.email}_${Date.now()}`;
+      let html = resolveEmailTokens(draft.body, c);
+      html = html.replace(/href="(https?:\/\/[^"]+)"/g, (_, u) =>
+        `href="${EMAIL_BASE_URL}/api/email/track?type=click&id=${encodeURIComponent(sendId)}&url=${encodeURIComponent(u)}"`
+      );
+      html += `<img src="${EMAIL_BASE_URL}/api/email/track?type=open&id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
+      html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="${EMAIL_BASE_URL}/api/email/unsubscribe?email=${encodeURIComponent(c.email)}">Unsubscribe</a></p>`;
+      await mailTransport.sendMail({ from, to: c.email, subject: draft.subject, html, headers: { 'X-Preview-Text': draft.preview_text || '' } });
+      logs.push({ id: sendId, draft_id, email: c.email, status: 'sent' });
+      sent++;
+    } catch (e) {
+      logs.push({ id: `${draft_id}_${c.email}_err_${Date.now()}`, draft_id, email: c.email, status: 'failed' });
+      failed++;
+    }
+  }
+
+  if (logs.length) await sbPost('email_sends', logs);
+
+  const newCursor = cursor + batch.length;
+  await sbPatch('email_campaigns', {
+    cursor: newCursor,
+    sent: (campaign.sent || 0) + sent,
+    failed: (campaign.failed || 0) + failed,
+    skipped: (campaign.skipped || 0) + skipped,
+    already_sent: (campaign.already_sent || 0) + already,
+    status: newCursor >= total ? 'done' : 'sending',
+    updated_at: new Date().toISOString(),
+  }, `?id=eq.${id}`);
+
+  log(`Email campaign ${id}: batch ${cursor}-${newCursor}/${total} — sent=${sent} failed=${failed} skipped=${skipped} already=${already}`);
+}
+
+// Poll every 15s for queued/sending email campaigns — independent of the
+// WhatsApp poller's IST time-window restriction, since email can go out
+// on-demand whenever a user hits Send.
+setInterval(() => { processEmailCampaigns().catch(e => log(`Email poller error: ${e.message}`)); }, 15000);
 
 // ── HTTP SERVER ───────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
