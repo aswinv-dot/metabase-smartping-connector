@@ -18,7 +18,23 @@ const mailTransport = nodemailer.createTransport({
   secure: false,
   auth: { user: 'user_teratern', pass: process.env.SMTP_PASS || 'A9fK7M2qL8R5tZ' },
   tls: { rejectUnauthorized: false },
+  // Fail fast instead of hanging forever if this network can't reach the
+  // SMTP host (common on some cloud providers that block/blackhole
+  // outbound SMTP ports) — without these, a stuck connection blocks the
+  // whole batch poller indefinitely with no error logged.
+  connectionTimeout: 15000,
+  greetingTimeout: 10000,
+  socketTimeout: 20000,
 });
+
+// Extra safety net: even with the timeouts above, wrap each send in its
+// own hard timeout so one bad connection can never freeze the poller.
+function sendMailWithTimeout(opts, ms = 25000) {
+  return Promise.race([
+    mailTransport.sendMail(opts),
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`sendMail timed out after ${ms}ms`)), ms)),
+  ]);
+}
 function resolveEmailTokens(html, contact) {
   return String(html || '')
     .replace(/\{\{name\}\}/g, contact.fullname || '')
@@ -379,11 +395,16 @@ async function processEmailCampaigns() {
     const campaigns = await sbGet('email_campaigns', `?status=in.(queued,sending)&order=created_at.asc&limit=5`);
     if (!campaigns || !campaigns.length) return;
 
+    log(`Email poller: ${campaigns.length} active campaign(s) found — ${campaigns.map(c => `${c.id.slice(0,8)}(${c.cursor}/${c.total})`).join(', ')}`);
     for (const c of campaigns) {
       try {
         await processOneEmailCampaignBatch(c);
       } catch (e) {
         log(`Email campaign ${c.id} batch error: ${e.message}`);
+        // Don't leave the campaign stuck silently — surface the error on the row
+        // so it's visible in Supabase too, and so a hung/failed batch doesn't
+        // just sit at cursor 0 forever with no trace.
+        await sbPatch('email_campaigns', { error: e.message }, `?id=eq.${c.id}`).catch(()=>{});
       }
     }
   } catch (e) {
@@ -438,7 +459,7 @@ async function processOneEmailCampaignBatch(campaign) {
       );
       html += `<img src="${EMAIL_BASE_URL}/api/email/track?type=open&id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
       html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="${EMAIL_BASE_URL}/api/email/unsubscribe?email=${encodeURIComponent(c.email)}">Unsubscribe</a></p>`;
-      await mailTransport.sendMail({ from, to: c.email, subject: draft.subject, html, headers: { 'X-Preview-Text': draft.preview_text || '' } });
+      await sendMailWithTimeout({ from, to: c.email, subject: draft.subject, html, headers: { 'X-Preview-Text': draft.preview_text || '' } });
       logs.push({ id: sendId, draft_id, email: c.email, status: 'sent' });
       sent++;
     } catch (e) {
