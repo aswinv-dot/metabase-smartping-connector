@@ -427,49 +427,29 @@ async function processOneEmailCampaignBatch(campaign) {
     await sbPatch('email_campaigns', { status: 'sending' }, `?id=eq.${id}`);
   }
 
-  const [draftRows, unsubRows] = await Promise.all([
-    sbGet('email_drafts', `?id=eq.${draft_id}&select=*`),
-    sbGet('email_unsubscribes', `?select=email`),
-  ]);
-  const draft = draftRows && draftRows[0];
-  if (!draft) {
-    await sbPatch('email_campaigns', { status: 'failed', error: 'Draft not found' }, `?id=eq.${id}`);
-    return;
-  }
-  const unsubSet = new Set((unsubRows || []).map(u => String(u.email).toLowerCase()));
-
   const batch = contacts.slice(cursor, cursor + (batch_size || 10));
-  const emails = batch.map(c => (c.email || '').toLowerCase()).filter(Boolean);
-  const prior = await sbGet('email_sends', `?draft_id=eq.${draft_id}&status=eq.sent&email=in.(${emails.map(e => `"${e}"`).join(',')})&select=email`);
-  const sentSet = new Set((prior || []).map(p => String(p.email).toLowerCase()));
 
-  const from = `${draft.from_name} <user_teratern@${draft.domain}>`;
-  let sent = 0, failed = 0, skipped = 0, already = 0;
-  const logs = [];
-
-  for (const c of batch) {
-    const em = (c.email || '').toLowerCase();
-    if (unsubSet.has(em)) { skipped++; continue; }
-    if (sentSet.has(em)) { already++; continue; }
-    try {
-      const sendId = `${draft_id}_${c.email}_${Date.now()}`;
-      let html = resolveEmailTokens(draft.body, c);
-      html = html.replace(/href="(https?:\/\/[^"]+)"/g, (_, u) =>
-        `href="${EMAIL_BASE_URL}/api/email/track?type=click&id=${encodeURIComponent(sendId)}&url=${encodeURIComponent(u)}"`
-      );
-      html += `<img src="${EMAIL_BASE_URL}/api/email/track?type=open&id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
-      html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="${EMAIL_BASE_URL}/api/email/unsubscribe?email=${encodeURIComponent(c.email)}">Unsubscribe</a></p>`;
-      await sendMailWithTimeout({ from, to: c.email, subject: draft.subject, html, headers: { 'X-Preview-Text': draft.preview_text || '' } });
-      logs.push({ id: sendId, draft_id, email: c.email, status: 'sent' });
-      sent++;
-    } catch (e) {
-      logs.push({ id: `${draft_id}_${c.email}_err_${Date.now()}`, draft_id, email: c.email, status: 'failed' });
-      failed++;
-    }
+  // Railway's network cannot reach the SMTP host (node21.urmailtechno.com) —
+  // connections just hang/time out with no error, confirmed by testing.
+  // Vercel CAN reach it fine (that's how Test sends have always worked), so
+  // Railway's job is only to drive the batching/progress — the actual SMTP
+  // send happens via the existing, proven /api/email/send endpoint on Vercel,
+  // which already supports a `batch` param for exactly this.
+  let result;
+  try {
+    const resp = await fetch(`${EMAIL_BASE_URL}/api/email/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id, batch }),
+    });
+    result = await resp.json();
+    if (!resp.ok || result.error) throw new Error(result.error || `HTTP ${resp.status}`);
+  } catch (e) {
+    await sbPatch('email_campaigns', { error: `batch send failed: ${e.message}` }, `?id=eq.${id}`).catch(()=>{});
+    throw e; // let the outer catch in processEmailCampaigns log it too
   }
 
-  if (logs.length) await sbPost('email_sends', logs);
-
+  const { sent = 0, failed = 0, skipped = 0, already_sent: already = 0 } = result;
   const newCursor = cursor + batch.length;
   await sbPatch('email_campaigns', {
     cursor: newCursor,
