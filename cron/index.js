@@ -383,9 +383,10 @@ async function runCron(timeSlot, onlyScheduleIds = null) {
 }
 
 // ── EMAIL CAMPAIGN QUEUE PROCESSOR ─────────────────────────────
-// Picks up campaigns queued by /api/email/campaign-queue and sends
-// them in batches of `batch_size` (default 10) on each tick, so a
-// single click on Send is not bound by any serverless timeout.
+// Picks up campaigns queued by /api/email/campaign-queue and sends them
+// directly from here (Railway) in batches of `batch_size` (default 10) on
+// each tick, so a single click on Send is not bound by any serverless
+// timeout and doesn't depend on a round-trip to Vercel for the actual send.
 let emailQueueBusy = false;
 
 async function processEmailCampaigns() {
@@ -414,6 +415,42 @@ async function processEmailCampaigns() {
   }
 }
 
+async function fetchDraft(draftId) {
+  const rows = await sbGet('email_drafts', `?id=eq.${draftId}&select=*`);
+  return rows && rows[0];
+}
+
+async function fetchUnsubscribes() {
+  const rows = await sbGet('email_unsubscribes', '?select=email');
+  return new Set((rows || []).map(r => r.email.toLowerCase()));
+}
+
+async function fetchAlreadySentEmails(draftId, emails) {
+  if (!emails.length) return new Set();
+  const inList = emails.map(e => encodeURIComponent(e)).join(',');
+  const rows = await sbGet('email_sends', `?draft_id=eq.${draftId}&status=eq.sent&email=in.(${inList})&select=email`);
+  return new Set((rows || []).map(r => r.email.toLowerCase()));
+}
+
+async function bumpContactStats(email, { sent = 0, delivered = 0, opened = 0, clicked = 0 } = {}) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bump_email_contact_stats`, {
+      method: 'POST', headers: sbHeaders,
+      body: JSON.stringify({ p_email: email, p_sent: sent, p_delivered: delivered, p_opened: opened, p_clicked: clicked }),
+    });
+    if (!res.ok) log(`bumpContactStats non-OK for ${email}: ${res.status}`);
+  } catch (e) {
+    log(`bumpContactStats failed for ${email}: ${e.message}`);
+  }
+}
+
+// Sends directly from Railway via the mailTransport defined at the top of
+// this file. An earlier attempt at this hung indefinitely — Railway's
+// network couldn't reach node21.urmailtechno.com at the time — which is
+// why sending was routed through Vercel's /api/email/send instead. We're
+// trying direct-from-Railway again; sendMailWithTimeout's hard per-email
+// timeout means a renewed network block surfaces as failed sends in
+// email_sends/email_campaigns.error, not a silently stuck poller.
 async function processOneEmailCampaignBatch(campaign) {
   const { id, draft_id, contacts, cursor, batch_size } = campaign;
   const total = contacts.length;
@@ -429,27 +466,51 @@ async function processOneEmailCampaignBatch(campaign) {
 
   const batch = contacts.slice(cursor, cursor + (batch_size || 10));
 
-  // Railway's network cannot reach the SMTP host (node21.urmailtechno.com) —
-  // connections just hang/time out with no error, confirmed by testing.
-  // Vercel CAN reach it fine (that's how Test sends have always worked), so
-  // Railway's job is only to drive the batching/progress — the actual SMTP
-  // send happens via the existing, proven /api/email/send endpoint on Vercel,
-  // which already supports a `batch` param for exactly this.
-  let result;
+  let sent = 0, failed = 0, skipped = 0, already = 0;
   try {
-    const resp = await fetch(`${EMAIL_BASE_URL}/api/email/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ draft_id, batch }),
-    });
-    result = await resp.json();
-    if (!resp.ok || result.error) throw new Error(result.error || `HTTP ${resp.status}`);
+    const draft = await fetchDraft(draft_id);
+    if (!draft) throw new Error('Draft not found');
+
+    const unsubSet = await fetchUnsubscribes();
+    const emails = batch.map(c => (c.email || '').toLowerCase()).filter(Boolean);
+    const sentSet = await fetchAlreadySentEmails(draft_id, emails);
+
+    const from = `${draft.from_name} <user_teratern@${draft.domain}>`;
+    const logs = [];
+
+    for (const c of batch) {
+      const em = (c.email || '').toLowerCase();
+      if (!em) { skipped++; continue; }
+      if (unsubSet.has(em)) { skipped++; continue; }
+      if (sentSet.has(em)) { already++; continue; }
+      try {
+        const sendId = `${draft_id}_${c.email}_${Date.now()}`;
+        let html = resolveEmailTokens(draft.body, c);
+        html = html.replace(/href="(https?:\/\/[^"]+)"/g, (_, u) =>
+          `href="${EMAIL_BASE_URL}/api/email/track?type=click&id=${encodeURIComponent(sendId)}&url=${encodeURIComponent(u)}"`
+        );
+        html += `<img src="${EMAIL_BASE_URL}/api/email/track?type=open&id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
+        html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="${EMAIL_BASE_URL}/api/email/unsubscribe?email=${encodeURIComponent(c.email)}">Unsubscribe</a></p>`;
+        await sendMailWithTimeout({ from, to: c.email, subject: draft.subject, html, headers: { 'X-Preview-Text': draft.preview_text || '' } });
+        logs.push({ id: sendId, draft_id, email: c.email, status: 'sent' });
+        sent++;
+      } catch (e) {
+        logs.push({ id: `${draft_id}_${c.email}_err_${Date.now()}`, draft_id, email: c.email, status: 'failed' });
+        failed++;
+        log(`Email send failed for ${c.email}: ${e.message}`);
+      }
+    }
+
+    if (logs.length) await sbPost('email_sends', logs);
+    const sentEmails = logs.filter(l => l.status === 'sent').map(l => l.email);
+    if (sentEmails.length) {
+      await Promise.all(sentEmails.map(email => bumpContactStats(email, { sent: 1, delivered: 1 })));
+    }
   } catch (e) {
     await sbPatch('email_campaigns', { error: `batch send failed: ${e.message}` }, `?id=eq.${id}`).catch(()=>{});
     throw e; // let the outer catch in processEmailCampaigns log it too
   }
 
-  const { sent = 0, failed = 0, skipped = 0, already_sent: already = 0 } = result;
   const newCursor = cursor + batch.length;
   await sbPatch('email_campaigns', {
     cursor: newCursor,
