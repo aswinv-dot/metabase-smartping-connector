@@ -464,9 +464,9 @@ async function processOneEmailCampaignBatch(campaign) {
     await sbPatch('email_campaigns', { status: 'sending' }, `?id=eq.${id}`);
   }
 
-  const batch = contacts.slice(cursor, cursor + (batch_size || 10));
+  const batch = contacts.slice(cursor, cursor + (batch_size || 50));
 
-  let sent = 0, failed = 0, skipped = 0, already = 0;
+  let sent = 0, failed = 0, skipped = 0, already = 0, processedCount = 0, interrupted = null;
   try {
     const draft = await fetchDraft(draft_id);
     if (!draft) throw new Error('Draft not found');
@@ -479,6 +479,18 @@ async function processOneEmailCampaignBatch(campaign) {
     const logs = [];
 
     for (const c of batch) {
+      // With bigger batches, check every 10 sends whether someone hit
+      // Pause/Stop on the dashboard, so it takes effect within a few
+      // seconds instead of only being noticed after the whole batch drains.
+      if (processedCount > 0 && processedCount % 10 === 0) {
+        const [fresh] = await sbGet('email_campaigns', `?id=eq.${id}&select=status`);
+        if (fresh && (fresh.status === 'paused' || fresh.status === 'stopped')) {
+          interrupted = fresh.status;
+          break;
+        }
+      }
+      processedCount++;
+
       const em = (c.email || '').toLowerCase();
       if (!em) { skipped++; continue; }
       if (unsubSet.has(em)) { skipped++; continue; }
@@ -511,24 +523,29 @@ async function processOneEmailCampaignBatch(campaign) {
     throw e; // let the outer catch in processEmailCampaigns log it too
   }
 
-  const newCursor = cursor + batch.length;
+  // processedCount is how far we actually got — if Pause/Stop was hit
+  // partway through, this is less than batch.length, and the cursor
+  // reflects exactly where to resume from.
+  const newCursor = cursor + processedCount;
+  const finalStatus = interrupted ? interrupted : (newCursor >= total ? 'done' : 'sending');
   await sbPatch('email_campaigns', {
     cursor: newCursor,
     sent: (campaign.sent || 0) + sent,
     failed: (campaign.failed || 0) + failed,
     skipped: (campaign.skipped || 0) + skipped,
     already_sent: (campaign.already_sent || 0) + already,
-    status: newCursor >= total ? 'done' : 'sending',
+    status: finalStatus,
     updated_at: new Date().toISOString(),
   }, `?id=eq.${id}`);
 
-  log(`Email campaign ${id}: batch ${cursor}-${newCursor}/${total} — sent=${sent} failed=${failed} skipped=${skipped} already=${already}`);
+  log(`Email campaign ${id}: batch ${cursor}-${newCursor}/${total} — sent=${sent} failed=${failed} skipped=${skipped} already=${already}${interrupted ? ` — ${interrupted}` : ''}`);
 }
 
-// Poll every 15s for queued/sending email campaigns — independent of the
+// Poll every 4s for queued/sending email campaigns — independent of the
 // WhatsApp poller's IST time-window restriction, since email can go out
-// on-demand whenever a user hits Send.
-setInterval(() => { processEmailCampaigns().catch(e => log(`Email poller error: ${e.message}`)); }, 15000);
+// on-demand whenever a user hits Send. Paused/stopped campaigns simply
+// don't match the status filter below, so they're skipped until resumed.
+setInterval(() => { processEmailCampaigns().catch(e => log(`Email poller error: ${e.message}`)); }, 4000);
 
 // ── HTTP SERVER ───────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {

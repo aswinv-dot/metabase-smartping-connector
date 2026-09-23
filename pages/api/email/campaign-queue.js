@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       status: 'queued',
       contacts,
       total: contacts.length,
-      batch_size: batch_size || 10,
+      batch_size: batch_size || 50,
     }]).select().single();
     if (iErr) throw iErr;
 

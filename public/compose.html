@@ -140,6 +140,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       </select>
       <span id="recipient-count" style="font-size:11px;color:var(--muted)"></span>
       <button class="btn" onclick="confirmSend()" id="send-btn" style="background:#1a9e5c">📤 Send</button>
+      <button class="btn" onclick="controlCampaign('pause')" id="pause-btn" style="background:#c99a1a;display:none">⏸ Pause</button>
+      <button class="btn" onclick="controlCampaign('resume')" id="resume-btn" style="background:#1a9e5c;display:none">▶ Resume</button>
+      <button class="btn" onclick="controlCampaign('stop')" id="stop-btn" style="background:#e03e3e;display:none">⏹ Stop</button>
       <div class="rich-sep" style="height:24px;background:var(--border);margin:0 6px"></div>
       <input class="form-input" id="test-emails" value="v.aswinraaju@gmail.com, guhankarthick07@gmail.com" style="width:300px;padding:6px 10px;font-size:11px"/>
       <button class="btn" onclick="sendTest()" id="test-btn" style="background:#7c3aed">🧪 Test</button>
@@ -433,11 +436,26 @@ async function confirmSend() {
   sendEmails();
 }
 
-// ── SEND — queues the whole campaign server-side, sent in batches
-// of 10 by the background worker. This call returns instantly; the
-// worker keeps going even if this tab is closed. We poll for live
-// progress and the final report.
+// ── SEND — queues the whole campaign server-side, sent in large batches
+// by the background worker (Railway, directly through Growlytics SMTP).
+// This call returns instantly; the worker keeps going even if this tab
+// is closed. We poll for live progress, and Pause/Stop just flip the
+// campaign's status — the worker checks that status every ~10 sends and
+// on every tick, so it backs off within seconds.
 let isSending = false;
+let currentCampaignId = null;
+
+function setSendButtons(mode) {
+  const send = document.getElementById('send-btn');
+  const pause = document.getElementById('pause-btn');
+  const resume = document.getElementById('resume-btn');
+  const stop = document.getElementById('stop-btn');
+  send.style.display = mode === 'idle' ? '' : 'none';
+  pause.style.display = mode === 'sending' ? '' : 'none';
+  resume.style.display = mode === 'paused' ? '' : 'none';
+  stop.style.display = (mode === 'sending' || mode === 'paused') ? '' : 'none';
+}
+
 async function sendEmails() {
   if (isSending) return;
   isSending = true;
@@ -453,8 +471,9 @@ async function sendEmails() {
     const d = await r.json();
     if (d.error) throw new Error(d.error);
     if (d.empty) { showMsg('No contacts found', 'err'); btn.disabled = false; btn.textContent = '📤 Send'; isSending = false; return; }
-    btn.textContent = '📤 Sending... 0/' + d.total;
-    pollCampaign(d.campaign_id, btn);
+    currentCampaignId = d.campaign_id;
+    setSendButtons('sending');
+    pollCampaign(d.campaign_id);
   } catch(e) {
     showMsg('Failed: ' + e.message, 'err');
     btn.disabled = false; btn.textContent = '📤 Send';
@@ -462,24 +481,52 @@ async function sendEmails() {
   }
 }
 
-async function pollCampaign(campaignId, btn) {
+async function controlCampaign(action) {
+  if (!currentCampaignId) return;
+  try {
+    const r = await fetch('/api/email/campaign-control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: currentCampaignId, action })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    if (action === 'pause') { setSendButtons('paused'); showMsg('Paused — resume anytime', 'ok'); }
+    if (action === 'resume') { setSendButtons('sending'); showMsg('Resumed', 'ok'); pollCampaign(currentCampaignId); }
+    if (action === 'stop') { setSendButtons('idle'); showMsg('Stopped — remaining contacts were not emailed', 'ok'); isSending = false; }
+  } catch(e) {
+    showMsg('Failed: ' + e.message, 'err');
+  }
+}
+
+async function pollCampaign(campaignId) {
+  const btn = document.getElementById('send-btn');
   try {
     const r = await fetch(`/api/email/campaign-status?id=${campaignId}`);
     const d = await r.json();
     if (d.error) throw new Error(d.error);
     const c = d.campaign;
     const done = c.sent + c.failed + c.skipped + c.already_sent;
-    btn.textContent = `📤 Sending... ${done}/${c.total}`;
-    if (c.status === 'done' || c.status === 'failed') {
-      showMsg(`✓ Sent ${c.sent} | Failed ${c.failed} | Skipped ${c.skipped} | Already sent ${c.already_sent} of ${c.total}`, c.status === 'failed' ? 'err' : 'ok');
-      btn.disabled = false; btn.textContent = '📤 Send';
-      isSending = false;
+    const label = `${done}/${c.total}`;
+    document.getElementById('recipient-count').textContent =
+      c.status === 'paused' ? `⏸ Paused at ${label}` : `📤 Sending... ${label}`;
+
+    if (c.status === 'paused') { setSendButtons('paused'); return; } // stop polling until Resume is clicked
+    if (c.status === 'stopped') {
+      showMsg(`Stopped at ${label} — Sent ${c.sent} | Failed ${c.failed} | Skipped ${c.skipped} | Already sent ${c.already_sent}`, 'ok');
+      setSendButtons('idle'); btn.disabled = false; btn.textContent = '📤 Send'; isSending = false;
       return;
     }
-    setTimeout(() => pollCampaign(campaignId, btn), 3000);
+    if (c.status === 'done' || c.status === 'failed') {
+      showMsg(`✓ Sent ${c.sent} | Failed ${c.failed} | Skipped ${c.skipped} | Already sent ${c.already_sent} of ${c.total}`, c.status === 'failed' ? 'err' : 'ok');
+      setSendButtons('idle'); btn.disabled = false; btn.textContent = '📤 Send'; isSending = false;
+      document.getElementById('recipient-count').textContent = '';
+      return;
+    }
+    setTimeout(() => pollCampaign(campaignId), 3000);
   } catch(e) {
     showMsg('Status check failed: ' + e.message, 'err');
-    btn.disabled = false; btn.textContent = '📤 Send';
+    setSendButtons('idle'); btn.disabled = false; btn.textContent = '📤 Send';
     isSending = false;
   }
 }
