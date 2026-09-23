@@ -217,8 +217,12 @@ async function syncContacts(){
     const leads = await mbRes.json();
     if(!Array.isArray(leads)) throw new Error(leads.error || 'Bad Metabase response');
 
-    // Step 2: POST in batches of 200
+    // Step 2: POST in batches of 200, all stamped with the same synced_at
+    // so the Contacts view can show exactly "everyone from this run" —
+    // whoever no longer matches the Metabase query just won't get this
+    // stamp, and drops out of view (their row and history stay in Supabase).
     const BATCH = 200;
+    const syncedAt = new Date().toISOString();
     let synced = 0;
     for(let i=0; i<leads.length; i+=BATCH){
       const batch = leads.slice(i, i+BATCH);
@@ -226,14 +230,14 @@ async function syncContacts(){
       const r = await fetch('/api/email/contacts', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ contacts: batch })
+        body: JSON.stringify({ contacts: batch, synced_at: syncedAt })
       });
       const d = await r.json();
       if(d.error) throw new Error(d.error);
       synced += d.synced;
     }
 
-    msg.textContent=`✓ Synced ${synced.toLocaleString()} contacts`;
+    msg.textContent=`✓ Synced ${synced.toLocaleString()} contacts (showing latest query results only)`;
     msg.className='sync-msg ok';
     loadContacts();
   }catch(e){

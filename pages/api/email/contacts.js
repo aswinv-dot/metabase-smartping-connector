@@ -6,21 +6,42 @@ const sbH = { 'Content-Type':'application/json', apikey: SUPABASE_KEY, Authoriza
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
-      const { stage, search, limit=100, offset=0 } = req.query;
-      let url = `${SUPABASE_URL}/rest/v1/email_contacts?select=*&order=created_at.desc&limit=${limit}&offset=${offset}`;
+      const { stage, search, limit=100, offset=0, all } = req.query;
+
+      // By default, only show contacts from the most recent full sync run
+      // (every contact synced together carries the same synced_at stamp —
+      // see /api/email/contacts POST and public/contacts.html's syncContacts()).
+      // Older rows from a previous query/sync stay in Supabase untouched,
+      // just out of view here, unless ?all=true is passed.
+      let latestSyncFilter = '';
+      if (all !== 'true') {
+        const latestUrl = `${SUPABASE_URL}/rest/v1/email_contacts?select=synced_at&order=synced_at.desc.nullslast&limit=1`;
+        const lr = await fetch(latestUrl, { headers: sbH });
+        const latest = await lr.json();
+        const latestSyncedAt = latest?.[0]?.synced_at;
+        if (latestSyncedAt) latestSyncFilter = `&synced_at=eq.${encodeURIComponent(latestSyncedAt)}`;
+      }
+
+      let url = `${SUPABASE_URL}/rest/v1/email_contacts?select=*&order=created_at.desc&limit=${limit}&offset=${offset}${latestSyncFilter}`;
       if (stage && stage !== 'all') url += `&lead_stage=eq.${encodeURIComponent(stage)}`;
       if (search) url += `&or=(fullname.ilike.*${encodeURIComponent(search)}*,email.ilike.*${encodeURIComponent(search)}*)`;
       const r = await fetch(url, { headers: sbH });
       const data = await r.json();
-      const countUrl = `${SUPABASE_URL}/rest/v1/email_contacts?select=count` + (stage && stage !== 'all' ? `&lead_stage=eq.${encodeURIComponent(stage)}` : '');
+      const countUrl = `${SUPABASE_URL}/rest/v1/email_contacts?select=count${latestSyncFilter}` + (stage && stage !== 'all' ? `&lead_stage=eq.${encodeURIComponent(stage)}` : '');
       const cr = await fetch(countUrl, { headers: { ...sbH, Prefer: 'count=exact' } });
       const total = cr.headers.get('content-range')?.split('/')?.[1] || 0;
       return res.status(200).json({ contacts: Array.isArray(data) ? data : [], total });
     }
 
     if (req.method === 'POST') {
-      const { contacts } = req.body;
+      const { contacts, synced_at } = req.body;
       if (!Array.isArray(contacts)) return res.status(400).json({ error: 'contacts array required' });
+      // All batches of one sync run should share the exact same synced_at
+      // stamp, so the GET above can pick out "everyone from the latest run"
+      // with a plain equality check. The caller (contacts.html) generates
+      // this once per run and passes it on every batch; fall back to "now"
+      // for any older caller that doesn't send one.
+      const stamp = synced_at || new Date().toISOString();
       const rows = contacts.map(l => ({
         lead_id: String(l.lead_id || l.id || ''),
         email: l.email || '',
@@ -34,7 +55,7 @@ export default async function handler(req, res) {
         webinar_attended: l.webinar_attended || 'No',
         payment: l.payment || 'No',
         created_at: l.created_at || null,
-        synced_at: new Date().toISOString(),
+        synced_at: stamp,
       })).filter(r => r.lead_id && r.email);
       await fetch(`${SUPABASE_URL}/rest/v1/email_contacts`, {
         method: 'POST',
