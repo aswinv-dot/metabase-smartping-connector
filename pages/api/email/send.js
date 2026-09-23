@@ -82,6 +82,14 @@ export default async function handler(req, res) {
     }
     // Log to email_sends
     if (logs.length) await sb.from('email_sends').insert(logs);
+    // Bump each contact's running sent/delivered scoreboard (delivered ==
+    // sent for now — there's no bounce feed to tell the two apart yet).
+    const sentEmails = logs.filter(l => l.status === 'sent').map(l => l.email);
+    if (sentEmails.length) {
+      await Promise.all(sentEmails.map(email =>
+        sb.rpc('bump_email_contact_stats', { p_email: email, p_sent: 1, p_delivered: 1 }).then(() => {}).catch(() => {})
+      ));
+    }
     return res.status(200).json({ success: true, sent, failed, skipped, already_sent: already, total: contacts.length });
   } catch(e) {
     return res.status(500).json({ error: e.message });

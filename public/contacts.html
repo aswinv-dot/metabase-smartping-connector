@@ -140,11 +140,13 @@ tr:hover td{background:#fafcff}
           <th>Payment</th>
           <th>Created</th>
           <th>Sends</th>
+          <th>Delivered</th>
           <th>Opens</th>
+          <th>Clicks</th>
         </tr>
       </thead>
       <tbody id="table-body">
-        <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr>
+        <tr><td colspan="12" style="text-align:center;padding:40px;color:var(--muted)">Loading...</td></tr>
       </tbody>
     </table>
   </div>
@@ -161,28 +163,10 @@ tr:hover td{background:#fafcff}
 const LIMIT = 50;
 let offset = 0, total = 0, debTimer;
 
-// ── Send/Open stats per contact (from email_sends, paginated) ──
-const SB='https://oagsgovnxgiszofgytre.supabase.co';
-const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hZ3Nnb3ZueGdpc3pvZmd5dHJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MzA1MjgsImV4cCI6MjA5NjEwNjUyOH0.V3eNIE3PXAcMuS3Gv0tBb3kqjVRAI25tSj8ED5W7vmI';
-let sendStats = null;
-async function loadSendStats(){
-  const map={};
-  const PAGE=1000;
-  for(let off=0;;off+=PAGE){
-    const r=await fetch(`${SB}/rest/v1/email_sends?select=email,status,opened_at&limit=${PAGE}&offset=${off}`,{headers:{apikey:KEY,Authorization:`Bearer ${KEY}`}});
-    const page=await r.json();
-    if(!Array.isArray(page)||!page.length)break;
-    page.forEach(s=>{
-      const e=(s.email||'').toLowerCase();if(!e)return;
-      map[e]=map[e]||{sent:0,opened:0};
-      if(s.status==='sent')map[e].sent++;
-      if(s.opened_at)map[e].opened++;
-    });
-    if(page.length<PAGE)break;
-  }
-  sendStats=map;
-}
-
+// Send/delivered/open/click counts now come straight from email_contacts
+// (emails_sent, emails_delivered, emails_opened, emails_clicked columns),
+// kept up to date by the send/track endpoints — no more scanning all of
+// email_sends in the browser on every page load.
 function debounceLoad(){clearTimeout(debTimer);debTimer=setTimeout(()=>{offset=0;loadContacts();},400);}
 
 async function loadContacts(){
@@ -192,9 +176,8 @@ async function loadContacts(){
   if(stage!=='all') url+=`&stage=${encodeURIComponent(stage)}`;
   if(search) url+=`&search=${encodeURIComponent(search)}`;
   const tbody = document.getElementById('table-body');
-  tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)"><span class="spin"></span>Loading...</td></tr>`;
+  tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--muted)"><span class="spin"></span>Loading...</td></tr>`;
   try{
-    if(!sendStats) await loadSendStats();
     const r=await fetch(url);
     const d=await r.json();
     total=parseInt(d.total)||0;
@@ -202,7 +185,7 @@ async function loadContacts(){
     document.getElementById('pg-info').textContent=`Showing ${offset+1}–${Math.min(offset+LIMIT,total)} of ${total.toLocaleString()}`;
     document.getElementById('prev-btn').disabled=offset===0;
     document.getElementById('next-btn').disabled=offset+LIMIT>=total;
-    if(!d.contacts?.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)">No contacts found</td></tr>`;return;}
+    if(!d.contacts?.length){tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:30px;color:var(--muted)">No contacts found</td></tr>`;return;}
     tbody.innerHTML=d.contacts.map(c=>`<tr>
       <td style="font-weight:600">${esc(c.fullname||'—')}</td>
       <td>${esc(c.email||'—')}</td>
@@ -212,10 +195,12 @@ async function loadContacts(){
       <td><span class="badge ${c.webinar_attended==='Yes'?'badge-yes':'badge-no'}">${c.webinar_attended==='Yes'?'Attended':c.webinar_booked==='Yes'?'Booked':'No'}</span></td>
       <td><span class="badge ${c.payment==='Yes'?'badge-paid':'badge-no'}">${c.payment==='Yes'?'Paid':'No'}</span></td>
       <td style="color:var(--muted)">${c.created_at?new Date(c.created_at).toLocaleDateString('en-IN'):'—'}</td>
-      <td style="font-weight:700">${(sendStats[(c.email||'').toLowerCase()]||{}).sent||0}</td>
-      <td style="font-weight:700;color:var(--green)">${(sendStats[(c.email||'').toLowerCase()]||{}).opened||0}</td>
+      <td style="font-weight:700">${c.emails_sent||0}</td>
+      <td style="font-weight:700">${c.emails_delivered||0}</td>
+      <td style="font-weight:700;color:var(--green)">${c.emails_opened||0}</td>
+      <td style="font-weight:700;color:var(--blue)">${c.emails_clicked||0}</td>
     </tr>`).join('');
-  }catch(e){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;color:var(--red);padding:30px">Error: ${e.message}</td></tr>`;}
+  }catch(e){tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;color:var(--red);padding:30px">Error: ${e.message}</td></tr>`;}
 }
 
 async function syncContacts(){
