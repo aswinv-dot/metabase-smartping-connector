@@ -415,42 +415,13 @@ async function processEmailCampaigns() {
   }
 }
 
-async function fetchDraft(draftId) {
-  const rows = await sbGet('email_drafts', `?id=eq.${draftId}&select=*`);
-  return rows && rows[0];
-}
-
-async function fetchUnsubscribes() {
-  const rows = await sbGet('email_unsubscribes', '?select=email');
-  return new Set((rows || []).map(r => r.email.toLowerCase()));
-}
-
-async function fetchAlreadySentEmails(draftId, emails) {
-  if (!emails.length) return new Set();
-  const inList = emails.map(e => encodeURIComponent(e)).join(',');
-  const rows = await sbGet('email_sends', `?draft_id=eq.${draftId}&status=eq.sent&email=in.(${inList})&select=email`);
-  return new Set((rows || []).map(r => r.email.toLowerCase()));
-}
-
-async function bumpContactStats(email, { sent = 0, delivered = 0, opened = 0, clicked = 0 } = {}) {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bump_email_contact_stats`, {
-      method: 'POST', headers: sbHeaders,
-      body: JSON.stringify({ p_email: email, p_sent: sent, p_delivered: delivered, p_opened: opened, p_clicked: clicked }),
-    });
-    if (!res.ok) log(`bumpContactStats non-OK for ${email}: ${res.status}`);
-  } catch (e) {
-    log(`bumpContactStats failed for ${email}: ${e.message}`);
-  }
-}
-
-// Sends directly from Railway via the mailTransport defined at the top of
-// this file. An earlier attempt at this hung indefinitely — Railway's
-// network couldn't reach node21.urmailtechno.com at the time — which is
-// why sending was routed through Vercel's /api/email/send instead. We're
-// trying direct-from-Railway again; sendMailWithTimeout's hard per-email
-// timeout means a renewed network block surfaces as failed sends in
-// email_sends/email_campaigns.error, not a silently stuck poller.
+// CONFIRMED via live test on 2026-09-23: every single send attempted
+// directly from Railway failed with "Connection timeout" — Railway's
+// network genuinely cannot reach node21.urmailtechno.com. Back to routing
+// the actual SMTP send through Vercel's /api/email/send (which CAN reach
+// it — that's how Test sends have always worked); Railway's job here is
+// just to drive batching/pacing/pause-stop, not to hold the SMTP
+// connection itself.
 async function processOneEmailCampaignBatch(campaign) {
   const { id, draft_id, contacts, cursor, batch_size } = campaign;
   const total = contacts.length;
@@ -466,79 +437,33 @@ async function processOneEmailCampaignBatch(campaign) {
 
   const batch = contacts.slice(cursor, cursor + (batch_size || 50));
 
-  let sent = 0, failed = 0, skipped = 0, already = 0, processedCount = 0, interrupted = null;
+  let result;
   try {
-    const draft = await fetchDraft(draft_id);
-    if (!draft) throw new Error('Draft not found');
-
-    const unsubSet = await fetchUnsubscribes();
-    const emails = batch.map(c => (c.email || '').toLowerCase()).filter(Boolean);
-    const sentSet = await fetchAlreadySentEmails(draft_id, emails);
-
-    const from = `${draft.from_name} <user_teratern@${draft.domain}>`;
-    const logs = [];
-
-    for (const c of batch) {
-      // With bigger batches, check every 10 sends whether someone hit
-      // Pause/Stop on the dashboard, so it takes effect within a few
-      // seconds instead of only being noticed after the whole batch drains.
-      if (processedCount > 0 && processedCount % 10 === 0) {
-        const [fresh] = await sbGet('email_campaigns', `?id=eq.${id}&select=status`);
-        if (fresh && (fresh.status === 'paused' || fresh.status === 'stopped')) {
-          interrupted = fresh.status;
-          break;
-        }
-      }
-      processedCount++;
-
-      const em = (c.email || '').toLowerCase();
-      if (!em) { skipped++; continue; }
-      if (unsubSet.has(em)) { skipped++; continue; }
-      if (sentSet.has(em)) { already++; continue; }
-      try {
-        const sendId = `${draft_id}_${c.email}_${Date.now()}`;
-        let html = resolveEmailTokens(draft.body, c);
-        html = html.replace(/href="(https?:\/\/[^"]+)"/g, (_, u) =>
-          `href="${EMAIL_BASE_URL}/api/email/track?type=click&id=${encodeURIComponent(sendId)}&url=${encodeURIComponent(u)}"`
-        );
-        html += `<img src="${EMAIL_BASE_URL}/api/email/track?type=open&id=${encodeURIComponent(sendId)}" width="1" height="1" style="display:none"/>`;
-        html += `<br/><hr/><p style="font-size:11px;color:#999">You're receiving this email because you opted in. <a href="${EMAIL_BASE_URL}/api/email/unsubscribe?email=${encodeURIComponent(c.email)}">Unsubscribe</a></p>`;
-        await sendMailWithTimeout({ from, to: c.email, subject: draft.subject, html, headers: { 'X-Preview-Text': draft.preview_text || '' } });
-        logs.push({ id: sendId, draft_id, email: c.email, status: 'sent' });
-        sent++;
-      } catch (e) {
-        logs.push({ id: `${draft_id}_${c.email}_err_${Date.now()}`, draft_id, email: c.email, status: 'failed' });
-        failed++;
-        log(`Email send failed for ${c.email}: ${e.message}`);
-      }
-    }
-
-    if (logs.length) await sbPost('email_sends', logs);
-    const sentEmails = logs.filter(l => l.status === 'sent').map(l => l.email);
-    if (sentEmails.length) {
-      await Promise.all(sentEmails.map(email => bumpContactStats(email, { sent: 1, delivered: 1 })));
-    }
+    const resp = await fetch(`${EMAIL_BASE_URL}/api/email/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id, batch }),
+    });
+    result = await resp.json();
+    if (!resp.ok || result.error) throw new Error(result.error || `HTTP ${resp.status}`);
   } catch (e) {
     await sbPatch('email_campaigns', { error: `batch send failed: ${e.message}` }, `?id=eq.${id}`).catch(()=>{});
     throw e; // let the outer catch in processEmailCampaigns log it too
   }
 
-  // processedCount is how far we actually got — if Pause/Stop was hit
-  // partway through, this is less than batch.length, and the cursor
-  // reflects exactly where to resume from.
-  const newCursor = cursor + processedCount;
-  const finalStatus = interrupted ? interrupted : (newCursor >= total ? 'done' : 'sending');
+  const { sent = 0, failed = 0, skipped = 0, already_sent: already = 0 } = result;
+  const newCursor = cursor + batch.length;
   await sbPatch('email_campaigns', {
     cursor: newCursor,
     sent: (campaign.sent || 0) + sent,
     failed: (campaign.failed || 0) + failed,
     skipped: (campaign.skipped || 0) + skipped,
     already_sent: (campaign.already_sent || 0) + already,
-    status: finalStatus,
+    status: newCursor >= total ? 'done' : 'sending',
     updated_at: new Date().toISOString(),
   }, `?id=eq.${id}`);
 
-  log(`Email campaign ${id}: batch ${cursor}-${newCursor}/${total} — sent=${sent} failed=${failed} skipped=${skipped} already=${already}${interrupted ? ` — ${interrupted}` : ''}`);
+  log(`Email campaign ${id}: batch ${cursor}-${newCursor}/${total} — sent=${sent} failed=${failed} skipped=${skipped} already=${already}`);
 }
 
 // Poll every 4s for queued/sending email campaigns — independent of the

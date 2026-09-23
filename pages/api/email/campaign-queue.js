@@ -21,11 +21,25 @@ export default async function handler(req, res) {
     if (isTest) {
       contacts = test_emails.map(email => ({ email, fullname: 'Test User', mobile: '9876543210' }));
     } else {
-      let query = sb.from('email_contacts').select('fullname,email,mobile').not('email', 'is', null).neq('email', '');
-      if (stage && stage !== 'all') query = query.eq('lead_stage', stage);
-      const { data, error: cErr } = await query;
-      if (cErr) throw cErr;
-      contacts = data || [];
+      // A plain .select() caps out at Supabase/PostgREST's default row
+      // limit (1000) regardless of how many contacts actually match —
+      // confirmed live: every past "all"/broad-stage campaign topped out
+      // at exactly 1000 total, silently, even when the real audience was
+      // bigger. Page through in chunks of 1000 until a page comes back
+      // short, so the full matching audience is queued, not just the
+      // first 1000 rows.
+      const PAGE = 1000;
+      contacts = [];
+      for (let from = 0; ; from += PAGE) {
+        let query = sb.from('email_contacts').select('fullname,email,mobile')
+          .not('email', 'is', null).neq('email', '')
+          .range(from, from + PAGE - 1);
+        if (stage && stage !== 'all') query = query.eq('lead_stage', stage);
+        const { data, error: cErr } = await query;
+        if (cErr) throw cErr;
+        contacts.push(...(data || []));
+        if (!data || data.length < PAGE) break;
+      }
     }
 
     if (!contacts.length) return res.status(200).json({ success: true, empty: true, message: 'No contacts found' });
